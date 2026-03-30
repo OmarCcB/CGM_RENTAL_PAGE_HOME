@@ -6,7 +6,7 @@ Sirve el sitio cgmrental.com con filtrado dinámico de productos por categoría.
 import os
 import json
 import re
-from flask import Flask, abort, request, send_from_directory, make_response
+from flask import Flask, abort, request, send_from_directory, make_response, redirect
 from flask_compress import Compress
 
 # ── Configuración ──
@@ -1284,6 +1284,20 @@ PAGINAS_ESTATICAS = {
     "leasing-operativo": "leasing_operativo.html",
     # carrito y carrito-2 se manejan con ruta dedicada
 }
+
+
+# ── Portal de Proveedores ── (redirige al sitio externo original)
+@app.route("/portalproveedores/")
+@app.route("/portalproveedores/index.html")
+def portal_proveedores():
+    return redirect("https://portalproveedores.cgmrental.com/", code=302)
+
+
+# ── Canal de Denuncias ──
+@app.route("/canal-de-denuncias/")
+@app.route("/canal-de-denuncias/index.html")
+def canal_de_denuncias():
+    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "canal-de-denuncias.html")
 
 
 @app.route("/<page>/")
