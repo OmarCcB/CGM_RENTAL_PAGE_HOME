@@ -1298,7 +1298,7 @@ PAGINAS_ESTATICAS = {
 @app.route("/portalproveedores/")
 @app.route("/portalproveedores/index.html")
 def portal_proveedores():
-    return redirect("https://portalproveedores.cgmrental.com/", code=302)
+    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
 
 
 # ── Canal de Denuncias ──
