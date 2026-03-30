@@ -6,8 +6,16 @@ Sirve el sitio cgmrental.com con filtrado dinámico de productos por categoría.
 import os
 import json
 import re
-from flask import Flask, abort, request, send_from_directory, make_response, redirect
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from datetime import datetime
+from dotenv import load_dotenv
+from flask import Flask, abort, request, send_from_directory, make_response, redirect, jsonify
 from flask_compress import Compress
+
+# ── Cargar variables de entorno ──
+load_dotenv()
 
 # ── Configuración ──
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1298,6 +1306,79 @@ def portal_proveedores():
 @app.route("/canal-de-denuncias/index.html")
 def canal_de_denuncias():
     return send_from_directory(os.path.join(STATIC_DIR, "pages"), "canal-de-denuncias.html")
+
+
+@app.route("/canal-de-denuncias/submit/", methods=["POST"])
+def canal_de_denuncias_submit():
+    """Procesa el formulario de Canal de Denuncias y envía email vía Outlook."""
+    try:
+        # ── Recoger campos del formulario ──
+        denunciante_nombre = request.form.get("form_fields[field_445d8c0]", "No especificado")
+        denunciante_empresa = request.form.get("form_fields[field_096e4a6]", "No especificado")
+        denunciante_email   = request.form.get("form_fields[field_8f13678]", "No especificado")
+        descripcion         = request.form.get("form_fields[message]", "No especificado")
+        denunciado_nombre   = request.form.get("form_fields[field_c4b8638]", "No especificado")
+        denunciado_empresa  = request.form.get("form_fields[name]", "No especificado")
+        tipo_denuncia       = request.form.get("form_fields[field_16ea685]", "No especificado")
+        fecha_envio         = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        # ── Construir cuerpo del email HTML ──
+        cuerpo_html = f"""
+        <html><body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;">
+          <div style="background:#004d3d;padding:20px;text-align:center;">
+            <h2 style="color:white;margin:0;">Canal de Denuncias CGM RENTAL</h2>
+          </div>
+          <div style="padding:24px;border:1px solid #ddd;">
+            <p style="color:#666;font-size:13px;">Fecha: {fecha_envio}</p>
+
+            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;">DENUNCIANTE</h3>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:8px;background:#f9f9f9;width:40%;"><b>Nombres y Apellidos</b></td><td style="padding:8px;">{denunciante_nombre}</td></tr>
+              <tr><td style="padding:8px;background:#f9f9f9;"><b>Empresa</b></td><td style="padding:8px;">{denunciante_empresa}</td></tr>
+              <tr><td style="padding:8px;background:#f9f9f9;"><b>Email</b></td><td style="padding:8px;">{denunciante_email}</td></tr>
+              <tr><td style="padding:8px;background:#f9f9f9;"><b>Descripción</b></td><td style="padding:8px;">{descripcion}</td></tr>
+            </table>
+
+            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;margin-top:20px;">DENUNCIADO</h3>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:8px;background:#f9f9f9;width:40%;"><b>Nombres y Apellidos</b></td><td style="padding:8px;">{denunciado_nombre}</td></tr>
+              <tr><td style="padding:8px;background:#f9f9f9;"><b>Empresa</b></td><td style="padding:8px;">{denunciado_empresa}</td></tr>
+            </table>
+
+            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;margin-top:20px;">TIPO DE DENUNCIA</h3>
+            <p style="padding:8px;background:#f9f9f9;">{tipo_denuncia}</p>
+          </div>
+          <div style="background:#f0f0f0;padding:12px;text-align:center;font-size:11px;color:#999;">
+            CGM RENTAL &mdash; Canal de Denuncias Confidencial
+          </div>
+        </body></html>
+        """
+
+        # ── Configuración SMTP Outlook ──
+        smtp_user     = os.environ.get("SMTP_USER")
+        smtp_password = os.environ.get("SMTP_PASSWORD")
+        smtp_host     = os.environ.get("SMTP_HOST", "smtp.office365.com")
+        smtp_port     = int(os.environ.get("SMTP_PORT", 587))
+        email_destino = os.environ.get("EMAIL_DESTINO")
+        email_from    = os.environ.get("EMAIL_FROM")
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Nuevo mensaje | Canal de Denuncias CGM RENTAL"
+        msg["From"]    = f"CGM RENTAL <{email_from}>"
+        msg["To"]      = email_destino
+        msg["Reply-To"] = denunciante_email
+        msg.attach(MIMEText(cuerpo_html, "html"))
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(email_from, email_destino, msg.as_string())
+
+        return jsonify({"success": True, "message": "Denuncia enviada correctamente."})
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error al enviar: {str(e)}"}), 500
 
 
 @app.route("/<page>/")

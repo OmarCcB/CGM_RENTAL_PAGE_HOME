@@ -5949,4 +5949,38 @@ const a=JSON.parse(document.getElementById("wp-emoji-settings").textContent),o=(
 
 
 
-<style>#myIframe { position:absolute; top: 0px; left: 0px; } @media print {  #myIframe { min-width: 100% ;   max-width: 100%;  width: 100%;  border: none; } body {width: 21cm; height: 100%; max-width: 21cm; }  html {height: 100%; width: 21cm; max-width: 21cm;}  @page { margin: 0.4;} }</style><chatgpt-sidebar data-rendered="true" data-gpts-theme="light"></chatgpt-sidebar></body>
+<style>#myIframe { position:absolute; top: 0px; left: 0px; } @media print {  #myIframe { min-width: 100% ;   max-width: 100%;  width: 100%;  border: none; } body {width: 21cm; height: 100%; max-width: 21cm; }  html {height: 100%; width: 21cm; max-width: 21cm;}  @page { margin: 0.4;} }</style><chatgpt-sidebar data-rendered="true" data-gpts-theme="light"></chatgpt-sidebar>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var form = document.querySelector("form.elementor-form");
+  if (!form) return;
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    var formData = new FormData(form);
+    var submitBtn = document.getElementById("enviardenunciaform");
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Enviando..."; }
+
+    fetch("/canal-de-denuncias/submit/", {
+      method: "POST",
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        form.innerHTML = "<div style="text-align:center;padding:40px 20px;"><div style="font-size:50px;"><chatgpt-sidebar data-rendered="true" data-gpts-theme="light"></chatgpt-sidebar></body>#10003;</div><h3 style="color:#004d3d;">00a1Denuncia enviada exitosamente!</h3><p>Tu denuncia ha sido recibida y ser00e1 atendida de forma confidencial.</p></div>";
+      } else {
+        alert("Error al enviar: " + data.message);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Enviar"; }
+      }
+    })
+    .catch(function(err) {
+      alert("Error de conexi00f3n. Int00e9ntalo nuevamente.");
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Enviar"; }
+    });
+  }, true);
+});
+</script>
+</body>
