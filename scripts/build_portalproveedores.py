@@ -1,43 +1,60 @@
 #!/usr/bin/env python3
 """
-Construye portalproveedores.html basado en nosotros.html:
-- Mantiene: head, header, hero banner
-- Elimina: Nuestra Historia, Politica Integrada, Sucursales (orig), Socios, Testimonios
-- Agrega: nueva seccion con info empresa (izquierda) + formulario iframe (derecha)
-- Copia el Vue SPA original como portalproveedores-form.html
+Construye portalproveedores.html:
+  - Base visual: nosotros.html (head + header + hero + footer)
+  - Elimina: Nuestra Historia, Politica Integrada, Sucursales, Socios, Testimonios
+  - Agrega: seccion con info empresa (izq) + Vue SPA del formulario DIRECTO (der)
+  - El Vue SPA se incrusta directamente (sin iframe) para que sea 100% funcional
 """
 
-import shutil, os, sys
-sys.stdout.reconfigure(encoding='utf-8')
+import sys, re, os, shutil
+sys.stdout.reconfigure(encoding="utf-8")
 
-# ── Rutas ─────────────────────────────────────────────────────────────────────
-NOSOTROS      = "static/pages/nosotros.html"
-PORTAL_ORIG   = "static/pages/portalproveedores.html"
-PORTAL_FORM   = "static/pages/portalproveedores-form.html"
-PORTAL_OUT    = "static/pages/portalproveedores.html"
+NOSOTROS    = "static/pages/nosotros.html"
+FORM_SPA    = "static/pages/portalproveedores-form.html"
+OUTPUT      = "static/pages/portalproveedores.html"
 
-# ── 1. Guardar copia del Vue SPA original como portalproveedores-form ─────────
-print("Copiando SPA original -> portalproveedores-form.html ...")
-shutil.copy(PORTAL_ORIG, PORTAL_FORM)
-
-# ── 2. Leer nosotros.html ─────────────────────────────────────────────────────
+# ─── 1. Leer archivos ────────────────────────────────────────────────────────
 print("Leyendo nosotros.html ...")
 with open(NOSOTROS, "r", encoding="utf-8") as f:
     nos = f.read()
 
-# ── 3. Encontrar posiciones clave ─────────────────────────────────────────────
-# Todo lo ANTES de section_1 = head + header + hero
-CUT_START = nos.find('<div class="et_pb_section et_pb_section_1 et_section_regular">')
-assert CUT_START > 0, "No se encontro section_1"
+print("Leyendo portalproveedores-form.html (Vue SPA) ...")
+with open(FORM_SPA, "r", encoding="utf-8") as f:
+    spa = f.read()
 
-# Footer
-FOOTER_START = nos.find('<footer class="et-l et-l--footer">')
-assert FOOTER_START > 0, "No se encontro footer"
+# ─── 2. Extraer partes del Vue SPA ──────────────────────────────────────────
+# --- Head del SPA (scripts + styles de Vue/Quasar) ---
+spa_head_start = spa.find("<head>") + len("<head>")
+spa_head_end   = spa.find("</head>")
+spa_head       = spa[spa_head_start:spa_head_end]
 
-PART_HEAD   = nos[:CUT_START]          # head + header + hero
-PART_FOOTER = nos[FOOTER_START:]       # footer hasta </html>
+# --- Quasar CSS vars del <body> ---
+spa_body_tag   = spa[spa.find("<body"):spa.find(">", spa.find("<body"))+1]
+quasar_style   = ""
+style_m        = re.search(r'style="([^"]*--q-[^"]*)"', spa_body_tag)
+if style_m:
+    quasar_style = style_m.group(1)
 
-# ── 4. Definir el topbar CGM ──────────────────────────────────────────────────
+# --- div#app hasta </body> (incluye scripts de hidratacion) ---
+app_start  = spa.find('<div id="app" data-v-app="">')
+body_end   = spa.rfind("</body>")
+spa_app    = spa[app_start:body_end]   # div#app + trailing scripts
+
+# ─── 3. Extraer partes de nosotros.html ─────────────────────────────────────
+# Head completo de nosotros (1..head_end) lo tomamos tal cual
+nos_head_end   = nos.find("</head>")
+nos_head       = nos[:nos_head_end + len("</head>")]
+
+# Desde </head> hasta el inicio de et_pb_section_1 → header + hero
+section1_start = nos.find('<div class="et_pb_section et_pb_section_1 et_section_regular">')
+nos_header_hero = nos[nos_head_end + len("</head>"):section1_start]
+
+# Footer: desde <footer class="et-l et-l--footer"> hasta el final
+footer_start = nos.find('<footer class="et-l et-l--footer">')
+nos_footer   = nos[footer_start:]
+
+# ─── 4. Topbar CGM ──────────────────────────────────────────────────────────
 TOPBAR = '''<div id="cgm-topbar" style="background:#0c534c;color:white;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;font-family:Arial,sans-serif;font-size:13px;flex-wrap:wrap;gap:8px;position:relative;z-index:99999;">
   <div style="display:flex;align-items:center;gap:24px;">
     <span style="display:flex;align-items:center;gap:6px;">
@@ -57,139 +74,216 @@ TOPBAR = '''<div id="cgm-topbar" style="background:#0c534c;color:white;padding:8
   </div>
 </div>'''
 
-# ── 5. Definir la nueva seccion con empresa + formulario ──────────────────────
-NEW_SECTION = '''
-<div class="et_pb_section et_pb_section_proveedor et_section_regular" style="background:#f4f4f4;padding:40px 0 60px;">
-  <style>
-    /* Layout principal proveedores */
-    .cgm-pp-row {
-      display: flex;
-      flex-wrap: wrap;
-      max-width: 1200px;
-      margin: 0 auto;
-      gap: 32px;
-      padding: 0 20px;
-      align-items: flex-start;
-    }
-    .cgm-pp-info {
-      flex: 0 0 360px;
-      max-width: 360px;
-      background: white;
-      border-radius: 8px;
-      padding: 32px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.09);
-    }
-    .cgm-pp-form-col {
-      flex: 1 1 500px;
-      min-width: 300px;
-    }
-    .cgm-pp-info h2 {
-      font-family: inherit;
-      font-size: 20px;
-      font-weight: 700;
-      color: #222;
-      margin: 0 0 6px;
-      letter-spacing: 1px;
-    }
-    .cgm-pp-info .cgm-pp-line {
-      width: 40px; height: 3px;
-      background: linear-gradient(90deg, #0c534c 60%, #bed46e 100%);
-      margin-bottom: 18px;
-    }
-    .cgm-pp-info p {
-      font-size: 14px;
-      color: #444;
-      line-height: 1.7;
-      margin-bottom: 12px;
-    }
-    .cgm-pp-iso {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin: 20px 0 24px;
-    }
-    .cgm-pp-iso img { width: 72px; height: auto; }
-    .cgm-pp-info h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #222;
-      letter-spacing: 1px;
-      margin: 0 0 6px;
-    }
-    .cgm-pp-map-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 4px;
-      margin-top: 10px;
-    }
-    .cgm-pp-map-wrap .col { display:flex; flex-direction:column; gap:6px; justify-content:center; }
-    .cgm-pp-map-wrap .col img { width: 88px; height: auto; }
-    .cgm-pp-map-wrap .mapcenter img { width: 130px; height: auto; }
-    /* iframe formulario */
-    #cgm-portal-iframe {
-      width: 100%;
-      height: 1100px;
-      border: none;
-      border-radius: 8px;
-      display: block;
-    }
-    @media (max-width: 800px) {
-      .cgm-pp-info { flex: 1 1 100%; max-width: 100%; }
-      .cgm-pp-form-col { flex: 1 1 100%; }
-      #cgm-portal-iframe { height: 1300px; }
-    }
-  </style>
+# ─── 5. Nueva seccion de contenido ──────────────────────────────────────────
+NEW_SECTION = f'''
+<!-- ╔══ PORTAL DE PROVEEDORES ══╗ -->
+<div id="cgm-proveedores-page">
+<style>
+  /* ── Quasar CSS vars (necesarios para los componentes Vue) ── */
+  #cgm-proveedores-page {{
+    {quasar_style};
+  }}
+
+  /* ── Layout principal ── */
+  #cgm-pp-wrapper {{
+    background: #f0f2f4;
+    padding: 36px 20px 60px;
+  }}
+  #cgm-pp-inner {{
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }}
+
+  /* ── Panel izquierdo: info empresa ── */
+  #cgm-pp-info {{
+    flex: 0 0 320px;
+    max-width: 320px;
+    background: white;
+    border-radius: 8px;
+    padding: 28px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }}
+  #cgm-pp-info h2 {{
+    font-size: 19px;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 5px;
+    letter-spacing: 1px;
+    font-family: inherit;
+  }}
+  .cgm-pp-divline {{
+    width: 38px; height: 3px;
+    background: linear-gradient(90deg, #0c534c 55%, #bed46e 100%);
+    margin-bottom: 16px;
+  }}
+  #cgm-pp-info p {{
+    font-size: 13.5px;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 10px;
+    font-family: inherit;
+  }}
+  #cgm-pp-iso {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin: 16px 0 22px;
+  }}
+  #cgm-pp-iso img {{
+    width: 68px;
+    height: auto;
+    /* SIN animacion */
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }}
+  #cgm-pp-info h3 {{
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    letter-spacing: 1px;
+    margin: 0 0 5px;
+    font-family: inherit;
+  }}
+
+  /* ── Mapa sucursales SIN animacion ── */
+  #cgm-pp-mapwrap {{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px;
+    margin-top: 10px;
+  }}
+  #cgm-pp-mapwrap .mpcol {{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+  }}
+  #cgm-pp-mapwrap .mpcol img,
+  #cgm-pp-mapwrap .mpcenter img {{
+    /* BLOQUEAR animaciones de nosotros.html */
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+    pointer-events: none;
+  }}
+  #cgm-pp-mapwrap .mpcol img   {{ width: 86px;  height: auto; }}
+  #cgm-pp-mapwrap .mpcenter img {{ width: 128px; height: auto; }}
+
+  /* ── Panel derecho: formulario Vue ── */
+  #cgm-pp-form {{
+    flex: 1 1 500px;
+    min-width: 300px;
+    background: transparent;
+  }}
+
+  /* ── Overrides del Vue SPA embebido ── */
+  /* Ocultar partes del SPA que no necesitamos */
+  #cgm-proveedores-page #cgm-topbar,
+  #cgm-proveedores-page .header-container,
+  #cgm-proveedores-page .back-button-container,
+  #cgm-proveedores-page .left-column,
+  #cgm-proveedores-page .footer {{
+    display: none !important;
+  }}
+  /* El contenedor del formulario ocupa todo el ancho disponible */
+  #cgm-proveedores-page .registro-proveedores {{
+    padding: 0 !important;
+    background: transparent !important;
+    min-height: unset !important;
+  }}
+  #cgm-proveedores-page .container {{
+    padding: 0 !important;
+    max-width: 100% !important;
+  }}
+  #cgm-proveedores-page .main-row {{
+    display: block !important;
+    padding: 0 !important;
+  }}
+  #cgm-proveedores-page .right-column {{
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    padding: 0 !important;
+  }}
+  #cgm-proveedores-page .form-container {{
+    max-width: 100% !important;
+    border-radius: 8px;
+  }}
+
+  /* ── Responsive ── */
+  @media (max-width: 820px) {{
+    #cgm-pp-info  {{ flex: 1 1 100%; max-width: 100%; }}
+    #cgm-pp-form  {{ flex: 1 1 100%; }}
+  }}
+
+  /* ── Boton volver ── */
+  #cgm-pp-back {{
+    max-width: 1200px;
+    margin: 0 auto 16px;
+    padding: 0 20px;
+  }}
+  #cgm-pp-back a {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0c534c;
+    font-family: inherit;
+    font-size: 13px;
+    text-decoration: none;
+    font-weight: 600;
+    background: white;
+    padding: 7px 14px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  }}
+</style>
+
+<div id="cgm-pp-wrapper">
 
   <!-- Boton volver -->
-  <div style="max-width:1200px;margin:0 auto 20px;padding:0 20px;">
-    <a href="https://peru.cgmrental.com.pe/" style="display:inline-flex;align-items:center;gap:6px;color:#0c534c;font-family:inherit;font-size:13px;text-decoration:none;font-weight:600;background:white;padding:7px 14px;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,0.1);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#0c534c" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+  <div id="cgm-pp-back">
+    <a href="https://peru.cgmrental.com.pe/">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="#0c534c" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
       Regresar a la p&aacute;gina principal
     </a>
   </div>
 
-  <div class="cgm-pp-row">
+  <div id="cgm-pp-inner">
 
-    <!-- Columna izquierda: info empresa -->
-    <div class="cgm-pp-info">
+    <!-- ── Columna izquierda: info empresa ── -->
+    <div id="cgm-pp-info">
 
       <h2>NOSOTROS</h2>
-      <div class="cgm-pp-line"></div>
-
+      <div class="cgm-pp-divline"></div>
       <p>Somos una empresa especializada en alquiler de maquinaria y venta de equipos usados. Poseemos una flota amplia con marcas reconocidas en el mercado.</p>
       <p>CGM Rental, empresa cuatrinorma, cuenta con las certificaciones de calidad ISO&nbsp;9001, de gesti&oacute;n ambiental ISO&nbsp;14001, de salud ocupacional ISO&nbsp;45001 y antisoborno ISO&nbsp;37001.</p>
 
-      <!-- Certificaciones ISO -->
-      <div class="cgm-pp-iso">
-        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/Ea6-_Dkh879IvujtrR7TfTEBGGNrgpV1ppT_jb0D6xB5Ug" target="_blank">
-          <img src="/static/pages-assets/nosotros/img_003_fb545bc7c7f8.svg" alt="ISO 9001">
-        </a>
-        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/EYH1CuY98idFmskstpnLA7UBiA0rdxfuqisnWkJB6N3Eow" target="_blank">
-          <img src="/static/pages-assets/nosotros/img_004_dfefff5967a2.svg" alt="ISO 14001">
-        </a>
-        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/ETUgIbCZ515DqB6rs3k-66gBbCfANnlJAUicKYOPOq2Pfw" target="_blank">
-          <img src="/static/pages-assets/nosotros/img_005_ad79e3b0e4c0.svg" alt="ISO 45001">
-        </a>
-        <a href="https://drive.google.com/file/d/19qnIJfz98Cf2zVgtVmsQVreEnNjTSpJC/view" target="_blank">
-          <img src="/static/pages-assets/nosotros/img_006_6952da2acf22.svg" alt="ISO 37001">
-        </a>
+      <div id="cgm-pp-iso">
+        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/Ea6-_Dkh879IvujtrR7TfTEBGGNrgpV1ppT_jb0D6xB5Ug" target="_blank"><img src="/static/pages-assets/nosotros/img_003_fb545bc7c7f8.svg" alt="ISO 9001"></a>
+        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/EYH1CuY98idFmskstpnLA7UBiA0rdxfuqisnWkJB6N3Eow" target="_blank"><img src="/static/pages-assets/nosotros/img_004_dfefff5967a2.svg" alt="ISO 14001"></a>
+        <a href="https://cgmrentalsocac-my.sharepoint.com/:b:/g/personal/diego_hinojosa_cgmrental_com_pe/ETUgIbCZ515DqB6rs3k-66gBbCfANnlJAUicKYOPOq2Pfw" target="_blank"><img src="/static/pages-assets/nosotros/img_005_ad79e3b0e4c0.svg" alt="ISO 45001"></a>
+        <a href="https://drive.google.com/file/d/19qnIJfz98Cf2zVgtVmsQVreEnNjTSpJC/view" target="_blank"><img src="/static/pages-assets/nosotros/img_006_6952da2acf22.svg" alt="ISO 37001"></a>
       </div>
 
-      <!-- Sucursales -->
       <h3>SUCURSALES</h3>
-      <div class="cgm-pp-line"></div>
-      <div class="cgm-pp-map-wrap">
-        <div class="col">
+      <div class="cgm-pp-divline"></div>
+      <div id="cgm-pp-mapwrap">
+        <div class="mpcol">
           <img src="/static/pages-assets/nosotros/img_007_9ea763ca75c0.svg" alt="Piura">
           <img src="/static/pages-assets/nosotros/img_008_4b79c0e906c2.svg" alt="Pucallpa">
           <img src="/static/pages-assets/nosotros/img_009_b1753af0d05e.svg" alt="Ica">
         </div>
-        <div class="col mapcenter">
-          <img src="/static/pages-assets/nosotros/img_010_781146d1ab62.svg" alt="Mapa de Per&uacute;">
+        <div class="mpcol mpcenter">
+          <img src="/static/pages-assets/nosotros/img_010_781146d1ab62.svg" alt="Mapa Peru">
         </div>
-        <div class="col">
+        <div class="mpcol">
           <img src="/static/pages-assets/nosotros/img_011_955fa2bcc966.svg" alt="Pucallpa">
           <img src="/static/pages-assets/nosotros/img_012_8a4583c34ffa.svg" alt="Cusco">
           <img src="/static/pages-assets/nosotros/img_013_8919a1947859.svg" alt="Arequipa">
@@ -198,64 +292,39 @@ NEW_SECTION = '''
 
     </div><!-- /cgm-pp-info -->
 
-    <!-- Columna derecha: formulario -->
-    <div class="cgm-pp-form-col">
-      <iframe id="cgm-portal-iframe" src="/portalproveedores-form/"
-        title="Formulario de Registro de Proveedores"
-        scrolling="no"
-        allowtransparency="true">
-      </iframe>
-      <script>
-      (function() {
-        var iframe = document.getElementById("cgm-portal-iframe");
-        iframe.addEventListener("load", function() {
-          try {
-            var doc = iframe.contentDocument || iframe.contentWindow.document;
-            var s = doc.createElement("style");
-            s.textContent = [
-              "#cgm-topbar { display:none !important; }",
-              ".header-container { display:none !important; }",
-              ".left-column { display:none !important; }",
-              ".footer { display:none !important; }",
-              ".back-button-container { display:none !important; }",
-              ".main-row { padding:0 !important; }",
-              ".right-column { width:100% !important; max-width:100% !important; flex:1 1 auto !important; padding:0 !important; }",
-              ".registro-proveedores { padding:0 !important; }",
-              ".container { padding:0 !important; max-width:100% !important; }"
-            ].join(" ");
-            doc.head.appendChild(s);
-            // Auto-altura
-            function resize() {
-              try { iframe.style.height = doc.body.scrollHeight + "px"; } catch(e) {}
-            }
-            resize();
-            setInterval(resize, 500);
-          } catch(e) {}
-        });
-      })();
-      </script>
-    </div><!-- /cgm-pp-form-col -->
+    <!-- ── Columna derecha: Vue SPA directo ── -->
+    <div id="cgm-pp-form">
+      {spa_app}
+    </div><!-- /cgm-pp-form -->
 
-  </div><!-- /cgm-pp-row -->
-</div>
+  </div><!-- /cgm-pp-inner -->
+</div><!-- /cgm-pp-wrapper -->
+</div><!-- /cgm-proveedores-page -->
+<!-- ╚══ FIN PORTAL DE PROVEEDORES ══╝ -->
 '''
 
-# ── 6. Inyectar el topbar en PART_HEAD (antes de <div id="page-container">) ───
+# ─── 6. Ensamblar pagina final ───────────────────────────────────────────────
+# Inyectar head del SPA antes de </head> de nosotros
+nos_head_with_spa = nos_head + "\n<!-- Vue/Quasar scripts -->\n" + spa_head + "\n</head>"
+
+# Inyectar topbar antes de <div id="page-container">
 PAGE_CONTAINER = '<div id="page-container">'
-if PAGE_CONTAINER in PART_HEAD:
-    PART_HEAD = PART_HEAD.replace(PAGE_CONTAINER, TOPBAR + '\n' + PAGE_CONTAINER, 1)
-    print("Topbar inyectado antes de #page-container")
-else:
-    print("WARN: no se encontro #page-container, topbar no inyectado")
+nos_header_hero = nos_header_hero.replace(PAGE_CONTAINER, TOPBAR + "\n" + PAGE_CONTAINER, 1)
 
-# ── 7. Ensamblar la nueva pagina ──────────────────────────────────────────────
-new_page = PART_HEAD + NEW_SECTION + PART_FOOTER
+final_page = (
+    nos_head_with_spa
+    + "\n"
+    + nos_header_hero
+    + "\n"
+    + NEW_SECTION
+    + "\n"
+    + nos_footer
+)
 
-# ── 8. Guardar ────────────────────────────────────────────────────────────────
-with open(PORTAL_OUT, "w", encoding="utf-8") as f:
-    f.write(new_page)
+# ─── 7. Guardar ─────────────────────────────────────────────────────────────
+with open(OUTPUT, "w", encoding="utf-8") as f:
+    f.write(final_page)
 
-size_mb = os.path.getsize(PORTAL_OUT) / 1024 / 1024
-print(f"portalproveedores.html guardado ({size_mb:.1f} MB)")
-print(f"portalproveedores-form.html guardado ({os.path.getsize(PORTAL_FORM)/1024/1024:.1f} MB)")
-print("LISTO")
+size_mb = os.path.getsize(OUTPUT) / 1024 / 1024
+print(f"portalproveedores.html guardado: {size_mb:.1f} MB")
+print("LISTO - Vue SPA incrustado directamente, sin iframe")
