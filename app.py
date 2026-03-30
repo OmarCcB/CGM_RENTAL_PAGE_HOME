@@ -1294,11 +1294,16 @@ PAGINAS_ESTATICAS = {
 }
 
 
-# ── Portal de Proveedores ── (redirige al sitio externo original)
+# ── Portal de Proveedores ──
 @app.route("/portalproveedores/")
 @app.route("/portalproveedores/index.html")
 def portal_proveedores():
     return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
+
+# ── Portal de Proveedores – solo formulario (embebido como iframe) ──
+@app.route("/portalproveedores-form/")
+def portal_proveedores_form():
+    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores-form.html")
 
 
 # ── Canal de Denuncias ──
