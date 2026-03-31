@@ -318,20 +318,37 @@ NEW_SECTION = f'''
 # (en produccion Cloudflare la sirve desde /cf-fonts/ pero localmente no existe)
 GFONTS_OPEN_SANS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600&display=swap" rel="stylesheet">'
 
-# CSS global para forzar Open Sans en todo el portal (incluye el Vue SPA embebido)
+# CSS: forzar Open Sans SOLO en el area del formulario/contenido nuevo,
+# NO en el header/nav (que usa CGMBOLD del sitio principal)
 FONT_OVERRIDE = """<style>
-/* Fuente principal del sitio CGM - Open Sans */
-body, #cgm-proveedores-page, #cgm-proveedores-page *,
-.et_pb_section, .et_pb_row, .et_pb_column, .et_pb_module,
-.registro-proveedores, .form-container, .form-section,
-.form-group, .form-input, .q-field, .q-btn, .q-select,
-input, select, textarea, label, button, p, h1, h2, h3, h4, h5, h6, a, span, div {
+/* Fuente principal CGM solo en el area de contenido del portal proveedores */
+#cgm-proveedores-page,
+#cgm-proveedores-page p,
+#cgm-proveedores-page span,
+#cgm-proveedores-page div,
+#cgm-proveedores-page label,
+#cgm-proveedores-page input,
+#cgm-proveedores-page select,
+#cgm-proveedores-page textarea,
+#cgm-proveedores-page button,
+#cgm-proveedores-page a,
+#cgm-proveedores-page .registro-proveedores,
+#cgm-proveedores-page .form-container,
+#cgm-proveedores-page .form-section,
+#cgm-proveedores-page .form-group,
+#cgm-proveedores-page .form-input,
+#cgm-proveedores-page .q-field,
+#cgm-proveedores-page .q-btn,
+#cgm-proveedores-page .q-select,
+#cgm-proveedores-page .q-field__label,
+#cgm-proveedores-page .q-field__native {
   font-family: 'Open Sans', Arial, sans-serif !important;
 }
-/* Titulos con peso correcto */
-h1, h2, h3, h4, .section-title, .form-section h3 {
+/* Titulos del panel info */
+#cgm-pp-info h2,
+#cgm-pp-info h3,
+#cgm-pp-info p {
   font-family: 'Open Sans', Arial, sans-serif !important;
-  font-weight: 700 !important;
 }
 </style>"""
 
