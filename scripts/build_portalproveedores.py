@@ -42,13 +42,23 @@ body_end   = spa.rfind("</body>")
 spa_app    = spa[app_start:body_end]   # div#app + trailing scripts
 
 # ─── 3. Extraer partes de nosotros.html ─────────────────────────────────────
-# Head completo de nosotros (1..head_end) lo tomamos tal cual
+# Head completo de nosotros
 nos_head_end   = nos.find("</head>")
 nos_head       = nos[:nos_head_end + len("</head>")]
 
-# Desde </head> hasta el inicio de et_pb_section_1 → header + hero
+# Desde </head> hasta section_1: contiene body tag, header nav, wrappers y hero
 section1_start = nos.find('<div class="et_pb_section et_pb_section_1 et_section_regular">')
-nos_header_hero = nos[nos_head_end + len("</head>"):section1_start]
+full_header_region = nos[nos_head_end + len("</head>"):section1_start]
+
+# Separar: (1) solo la navegacion/header, (2) los divs wrapper, (3) el hero
+header_tpl_end   = full_header_region.rfind("</header>")
+nos_nav_header   = full_header_region[:header_tpl_end + len("</header>")]  # <body> + <header>...</header>
+after_header_str = full_header_region[header_tpl_end + len("</header>"):]
+
+# Los divs wrapper (et-main-area, main-content, article, entry-content, etc.)
+# terminan ANTES del et_pb_section_0 (hero/LA EVOLUCION que queremos omitir)
+section0_in_ah = after_header_str.find('<div class="et_pb_section et_pb_section_0')
+nos_wrappers   = after_header_str[:section0_in_ah]   # solo los divs abrientes, sin el hero
 
 # Footer: desde <footer class="et-l et-l--footer"> hasta el final
 footer_start = nos.find('<footer class="et-l et-l--footer">')
@@ -304,21 +314,23 @@ NEW_SECTION = f'''
 '''
 
 # ─── 6. Ensamblar pagina final ───────────────────────────────────────────────
-# Inyectar head del SPA antes de </head> de nosotros
+# Head: nosotros + scripts Vue/Quasar
 nos_head_with_spa = nos_head + "\n<!-- Vue/Quasar scripts -->\n" + spa_head + "\n</head>"
 
-# Inyectar topbar antes de <div id="page-container">
+# Inyectar topbar antes de <div id="page-container"> (esta dentro de nos_nav_header)
 PAGE_CONTAINER = '<div id="page-container">'
-nos_header_hero = nos_header_hero.replace(PAGE_CONTAINER, TOPBAR + "\n" + PAGE_CONTAINER, 1)
+nos_nav_header = nos_nav_header.replace(PAGE_CONTAINER, TOPBAR + "\n" + PAGE_CONTAINER, 1)
 
 final_page = (
     nos_head_with_spa
     + "\n"
-    + nos_header_hero
+    + nos_nav_header       # <body> + <header> nav (SIN hero/LA EVOLUCION)
     + "\n"
-    + NEW_SECTION
+    + nos_wrappers         # divs abrientes: et-main-area, main-content, article, entry-content...
     + "\n"
-    + nos_footer
+    + NEW_SECTION          # nuestro contenido: info empresa + formulario Vue
+    + "\n"
+    + nos_footer           # footer con divs cerrantes + </html>
 )
 
 # ─── 7. Guardar ─────────────────────────────────────────────────────────────
