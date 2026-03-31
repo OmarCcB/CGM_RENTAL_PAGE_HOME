@@ -317,14 +317,10 @@ NEW_SECTION = f'''
 # Head: nosotros + scripts Vue/Quasar
 nos_head_with_spa = nos_head + "\n<!-- Vue/Quasar scripts -->\n" + spa_head + "\n</head>"
 
-# Inyectar topbar antes de <div id="page-container"> (esta dentro de nos_nav_header)
-PAGE_CONTAINER = '<div id="page-container">'
-nos_nav_header = nos_nav_header.replace(PAGE_CONTAINER, TOPBAR + "\n" + PAGE_CONTAINER, 1)
-
 final_page = (
     nos_head_with_spa
     + "\n"
-    + nos_nav_header       # <body> + <header> nav (SIN hero/LA EVOLUCION)
+    + nos_nav_header       # <body> + <header> nav (SIN hero/LA EVOLUCION, SIN topbar duplicado)
     + "\n"
     + nos_wrappers         # divs abrientes: et-main-area, main-content, article, entry-content...
     + "\n"
