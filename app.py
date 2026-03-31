@@ -11,7 +11,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import Flask, abort, request, send_from_directory, make_response, redirect, jsonify
+from flask import Flask, abort, request, send_from_directory, make_response, redirect, jsonify, Response
+import requests as req_lib
 from flask_compress import Compress
 
 # ── Cargar variables de entorno ──
@@ -1295,15 +1296,72 @@ PAGINAS_ESTATICAS = {
 
 
 # ── Portal de Proveedores ──
-@app.route("/portalproveedores/")
-@app.route("/portalproveedores/index.html")
+# Se sirve en /proveedores para que Vue Router (base="/") matchee la ruta /proveedores.
+# /portalproveedores/ redirige a /proveedores.
+@app.route("/proveedores", strict_slashes=False)
 def portal_proveedores():
     return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
+
+@app.route("/portalproveedores/")
+@app.route("/portalproveedores/index.html")
+def portal_proveedores_redirect():
+    return redirect("/proveedores", code=301)
 
 # ── Portal de Proveedores – solo formulario (embebido como iframe) ──
 @app.route("/portalproveedores-form/")
 def portal_proveedores_form():
     return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores-form.html")
+
+
+# ── Portal de Proveedores – proxy assets Vue SPA ──
+# Los imports estáticos del módulo Vue resuelven como ./xxx.js → /portalproveedores/xxx.js
+# Los imports dinámicos (Vite mapDeps) resuelven como assets/xxx → /portalproveedores/assets/xxx
+_PP_BASE = "https://portalproveedores.cgmrental.com"
+
+def _pp_patch_js(content_bytes):
+    """Parchea un archivo JS del portal de proveedores:
+    1. __vite__mapDeps: "assets/xxx" → "portalproveedores/assets/xxx"
+       (la función un() de Vite prepend "/" → queda "/portalproveedores/assets/xxx")
+    2. Previene doble mount: .mount("#app") → solo si no hay ya [data-v-app]
+    """
+    text = content_bytes.decode("utf-8", errors="replace")
+    # Parchear array de mapDeps (paths sin slash inicial — Vite agrega "/" solo)
+    text = re.sub(r'"assets/([^"]+)"', r'"portalproveedores/assets/\1"', text)
+    # Prevenir que index-R6e3UxXP.js monte la app por segunda vez
+    text = re.sub(
+        r'(\w+)\.mount\("#app"\)',
+        r'document.querySelector("[data-v-app]")||\1.mount("#app")',
+        text
+    )
+    return text.encode("utf-8")
+
+@app.route("/portalproveedores/assets/<path:filename>")
+def portal_proveedores_assets(filename):
+    """Proxy: /portalproveedores/assets/<file> → producción/assets/<file>"""
+    try:
+        r = req_lib.get(f"{_PP_BASE}/assets/{filename}", timeout=20)
+        ct = r.headers.get("Content-Type", "application/octet-stream")
+        content = _pp_patch_js(r.content) if filename.endswith(".js") else r.content
+        return Response(content, status=r.status_code,
+                        headers={"Content-Type": ct, "Cache-Control": "no-store"})
+    except Exception:
+        return "", 502
+
+@app.route("/portalproveedores/<path:filename>")
+def portal_proveedores_file(filename):
+    """Proxy: /portalproveedores/<file.js|css> → producción/assets/<file>
+    Cubre los imports estáticos: from './vue-vendor-xxx.js' y './quasar-xxx.js'
+    que el módulo inline resuelve relativo a la URL de la página."""
+    if filename in ("", "index.html"):
+        return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
+    try:
+        r = req_lib.get(f"{_PP_BASE}/assets/{filename}", timeout=20)
+        ct = r.headers.get("Content-Type", "application/octet-stream")
+        content = _pp_patch_js(r.content) if filename.endswith(".js") else r.content
+        return Response(content, status=r.status_code,
+                        headers={"Content-Type": ct, "Cache-Control": "no-store"})
+    except Exception:
+        return "", 502
 
 
 # ── Canal de Denuncias ──

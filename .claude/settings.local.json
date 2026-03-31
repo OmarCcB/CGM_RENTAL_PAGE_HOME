@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree -L 3 /c/Users/DiegoCoaquira/Documents/GitHub/CGM_RENTAL_PAGE_HOME --ignore-dir=__pycache__)",
+      "Bash(find /c/Users/DiegoCoaquira/Documents/GitHub/CGM_RENTAL_PAGE_HOME -not -path */.git/* -not -path */__pycache__/* -not -path */.claude/worktrees/* -type d)",
+      "Bash(python3:*)",
+      "Bash(cp \"C:/Users/DiegoCoaquira/Desktop/cgm/Nueva carpeta/proveedores.html\" \"C:/Users/DiegoCoaquira/Documents/GitHub/CGM_RENTAL_PAGE_HOME/static/pages/portalproveedores.html\")",
+      "Bash(cp \"C:/Users/DiegoCoaquira/Desktop/cgm/Nueva carpeta/index.html\" \"C:/Users/DiegoCoaquira/Documents/GitHub/CGM_RENTAL_PAGE_HOME/static/pages/canal-de-denuncias.html\")",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i 's|https://canal-de-denuncias\\\\.cgmrental\\\\.com/|/canal-de-denuncias/|g' \"$f\")",
+      "Bash(echo \"Updated: $f\")",
+      "Bash(done)",
+      "Bash(head -20 echo \"---\" grep -n \"<form\" \"C:/Users/DiegoCoaquira/Documents/GitHub/CGM_RENTAL_PAGE_HOME/static/pages/canal-de-denuncias.html\")",
+      "Bash(grep -v \"base64\\\\|//\\\\s*//\")"
+    ]
+  }
+}

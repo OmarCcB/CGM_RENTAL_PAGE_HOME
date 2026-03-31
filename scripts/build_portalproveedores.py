@@ -24,6 +24,54 @@ with open(FORM_SPA, "r", encoding="utf-8") as f:
     spa = f.read()
 
 # ─── 2. Extraer partes del Vue SPA ──────────────────────────────────────────
+# Reemplazar URLs absolutas de produccion en preloads por rutas locales proxy
+# Las preloads con href="https://portalproveedores.cgmrental.com/assets/xxx"
+# fallan en localhost por CORS; las redirigimos a /portalproveedores/assets/xxx
+spa = re.sub(
+    r'href="https://portalproveedores\.cgmrental\.com/assets/([^"]+)"',
+    r'href="/portalproveedores/assets/\1"',
+    spa
+)
+# También quitar el atributo crossorigin="" de esas preloads (ya son same-origin)
+spa = re.sub(
+    r'(<link rel="modulepreload")[^>]*(href="/portalproveedores/assets/[^"]+")([^>]*)>',
+    r'\1 \2>',
+    spa
+)
+
+# --- Parchear imports estáticos en el <script type="module"> ---
+# Los static imports usan './xxx.js' que resuelven relativo a import.meta.url.
+# Cuando la página se sirve en /proveedores (para que el router matchee), esos
+# imports resolverían a /vue-vendor.js (raíz), dando 404.
+# Solución: convertirlos a rutas absolutas que van al proxy de Flask.
+spa = spa.replace(
+    'from"./vue-vendor-B4QgBX2I.js"',
+    'from"/portalproveedores/assets/vue-vendor-B4QgBX2I.js"'
+).replace(
+    'from"./quasar-D_D5G-C2.js"',
+    'from"/portalproveedores/assets/quasar-D_D5G-C2.js"'
+)
+
+# --- Parchear __vite__mapDeps: "assets/xxx" → "portalproveedores/assets/xxx" ---
+# Estos paths se usan por la función un() de Vite que hace: "/" + dep para preload.
+# Si ponemos "/portalproveedores/assets/xxx", la función genera "//portalproveedores/..."
+# que el browser trata como URL protocol-relative (host=portalproveedores) → 404.
+# La solución: NO poner slash inicial aquí; la función un() lo agrega sola.
+spa = re.sub(
+    r'"assets/([^"]+)"',
+    r'"portalproveedores/assets/\1"',
+    spa
+)
+
+# --- Parchear imports dinámicos: import("./xxx") → import("/portalproveedores/assets/xxx") ---
+# Los lazy imports del router usan ./xxx.js relativo a import.meta.url.
+# Con la página en /proveedores, ./xxx.js resuelve a /xxx.js (raíz), dando 404.
+spa = re.sub(
+    r'import\("\./([\w\-\.]+\.js)"\)',
+    r'import("/portalproveedores/assets/\1")',
+    spa
+)
+
 # --- Head del SPA (scripts + styles de Vue/Quasar) ---
 spa_head_start = spa.find("<head>") + len("<head>")
 spa_head_end   = spa.find("</head>")
