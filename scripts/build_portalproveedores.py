@@ -314,8 +314,36 @@ NEW_SECTION = f'''
 '''
 
 # ─── 6. Ensamblar pagina final ───────────────────────────────────────────────
-# Head: nosotros + scripts Vue/Quasar
-nos_head_with_spa = nos_head + "\n<!-- Vue/Quasar scripts -->\n" + spa_head + "\n</head>"
+# Importar Open Sans desde Google Fonts para que cargue en cualquier servidor
+# (en produccion Cloudflare la sirve desde /cf-fonts/ pero localmente no existe)
+GFONTS_OPEN_SANS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600&display=swap" rel="stylesheet">'
+
+# CSS global para forzar Open Sans en todo el portal (incluye el Vue SPA embebido)
+FONT_OVERRIDE = """<style>
+/* Fuente principal del sitio CGM - Open Sans */
+body, #cgm-proveedores-page, #cgm-proveedores-page *,
+.et_pb_section, .et_pb_row, .et_pb_column, .et_pb_module,
+.registro-proveedores, .form-container, .form-section,
+.form-group, .form-input, .q-field, .q-btn, .q-select,
+input, select, textarea, label, button, p, h1, h2, h3, h4, h5, h6, a, span, div {
+  font-family: 'Open Sans', Arial, sans-serif !important;
+}
+/* Titulos con peso correcto */
+h1, h2, h3, h4, .section-title, .form-section h3 {
+  font-family: 'Open Sans', Arial, sans-serif !important;
+  font-weight: 700 !important;
+}
+</style>"""
+
+# Head: nosotros + Open Sans import + override + scripts Vue/Quasar
+nos_head_with_spa = (
+    nos_head
+    + "\n" + GFONTS_OPEN_SANS
+    + "\n" + FONT_OVERRIDE
+    + "\n<!-- Vue/Quasar scripts -->\n"
+    + spa_head
+    + "\n</head>"
+)
 
 final_page = (
     nos_head_with_spa
