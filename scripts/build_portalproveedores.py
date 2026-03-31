@@ -318,10 +318,34 @@ NEW_SECTION = f'''
 # (en produccion Cloudflare la sirve desde /cf-fonts/ pero localmente no existe)
 GFONTS_OPEN_SANS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600&display=swap" rel="stylesheet">'
 
-# CSS: forzar Open Sans SOLO en el area del formulario/contenido nuevo,
-# NO en el header/nav (que usa CGMBOLD del sitio principal)
+# Override de fuentes - va DESPUES del CSS de Quasar para ganar la cascada
 FONT_OVERRIDE = """<style>
-/* Fuente principal CGM solo en el area de contenido del portal proveedores */
+/* ══ OVERRIDE FUENTES - debe ir DESPUES del CSS de Quasar ══
+   Quasar inyecta: body { font-family: Roboto, Poppins }
+   Este bloque lo sobreescribe para igualar al sitio principal CGM */
+
+/* 1. Body principal: CGMBOLD igual que nosotros.html y pagina principal */
+body {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* 2. Header / topbar / nav: CGMBOLD */
+.et_pb_section_0_tb_header,
+.et_pb_section_0_tb_header *,
+.et_pb_section_1_tb_header,
+.et_pb_section_1_tb_header *,
+header, header * {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+/* 3. Footer: CGMBOLD */
+footer, footer * {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+/* 4. Contenido del portal (panel info + formulario): Open Sans
+   igual que el cuerpo de texto en nosotros.html */
 #cgm-proveedores-page,
 #cgm-proveedores-page p,
 #cgm-proveedores-page span,
@@ -332,33 +356,26 @@ FONT_OVERRIDE = """<style>
 #cgm-proveedores-page textarea,
 #cgm-proveedores-page button,
 #cgm-proveedores-page a,
-#cgm-proveedores-page .registro-proveedores,
-#cgm-proveedores-page .form-container,
-#cgm-proveedores-page .form-section,
-#cgm-proveedores-page .form-group,
+#cgm-proveedores-page h2,
+#cgm-proveedores-page h3,
 #cgm-proveedores-page .form-input,
 #cgm-proveedores-page .q-field,
-#cgm-proveedores-page .q-btn,
-#cgm-proveedores-page .q-select,
 #cgm-proveedores-page .q-field__label,
-#cgm-proveedores-page .q-field__native {
-  font-family: 'Open Sans', Arial, sans-serif !important;
-}
-/* Titulos del panel info */
-#cgm-pp-info h2,
-#cgm-pp-info h3,
-#cgm-pp-info p {
+#cgm-proveedores-page .q-field__native,
+#cgm-proveedores-page .q-btn,
+#cgm-proveedores-page .q-select {
   font-family: 'Open Sans', Arial, sans-serif !important;
 }
 </style>"""
 
-# Head: nosotros + Open Sans import + override + scripts Vue/Quasar
+# Head: nosotros + Open Sans import + scripts Vue/Quasar + override AL FINAL
+# El override DEBE ir DESPUES del spa_head para ganar la cascada sobre Quasar
 nos_head_with_spa = (
     nos_head
     + "\n" + GFONTS_OPEN_SANS
-    + "\n" + FONT_OVERRIDE
     + "\n<!-- Vue/Quasar scripts -->\n"
     + spa_head
+    + "\n" + FONT_OVERRIDE   # <-- despues de Quasar para que !important gane
     + "\n</head>"
 )
 

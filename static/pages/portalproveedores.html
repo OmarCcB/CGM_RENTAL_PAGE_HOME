@@ -9559,37 +9559,6 @@ img.mfp-img {
 
 </head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600&display=swap" rel="stylesheet">
-<style>
-/* Fuente principal CGM solo en el area de contenido del portal proveedores */
-#cgm-proveedores-page,
-#cgm-proveedores-page p,
-#cgm-proveedores-page span,
-#cgm-proveedores-page div,
-#cgm-proveedores-page label,
-#cgm-proveedores-page input,
-#cgm-proveedores-page select,
-#cgm-proveedores-page textarea,
-#cgm-proveedores-page button,
-#cgm-proveedores-page a,
-#cgm-proveedores-page .registro-proveedores,
-#cgm-proveedores-page .form-container,
-#cgm-proveedores-page .form-section,
-#cgm-proveedores-page .form-group,
-#cgm-proveedores-page .form-input,
-#cgm-proveedores-page .q-field,
-#cgm-proveedores-page .q-btn,
-#cgm-proveedores-page .q-select,
-#cgm-proveedores-page .q-field__label,
-#cgm-proveedores-page .q-field__native {
-  font-family: 'Open Sans', Arial, sans-serif !important;
-}
-/* Titulos del panel info */
-#cgm-pp-info h2,
-#cgm-pp-info h3,
-#cgm-pp-info p {
-  font-family: 'Open Sans', Arial, sans-serif !important;
-}
-</style>
 <!-- Vue/Quasar scripts -->
 <meta charset="utf-8"><meta name="download_date" content="2026-03-30T19:05:17.815Z"/><meta http-equiv="origin-trial" content="A7vZI3v+Gz7JfuRolKNM4Aff6zaGuT7X0mf3wtoZTnKv6497cVMnhy03KDqX7kBz/q/iidW7srW31oQbBt4VhgoAAACUeyJvcmlnaW4iOiJodHRwczovL3d3dy5nb29nbGUuY29tOjQ0MyIsImZlYXR1cmUiOiJEaXNhYmxlVGhpcmRQYXJ0eVN0b3JhZ2VQYXJ0aXRpb25pbmczIiwiZXhwaXJ5IjoxNzU3OTgwODAwLCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==">
     
@@ -9639,6 +9608,54 @@ function en(e,t){return Array.isArray(e)?e[0]:e[t]}function tn(e){return null==e
       font-display: swap;
     }
   </style>
+<style>
+/* ══ OVERRIDE FUENTES - debe ir DESPUES del CSS de Quasar ══
+   Quasar inyecta: body { font-family: Roboto, Poppins }
+   Este bloque lo sobreescribe para igualar al sitio principal CGM */
+
+/* 1. Body principal: CGMBOLD igual que nosotros.html y pagina principal */
+body {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+  font-size: 14px !important;
+}
+
+/* 2. Header / topbar / nav: CGMBOLD */
+.et_pb_section_0_tb_header,
+.et_pb_section_0_tb_header *,
+.et_pb_section_1_tb_header,
+.et_pb_section_1_tb_header *,
+header, header * {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+/* 3. Footer: CGMBOLD */
+footer, footer * {
+  font-family: CGMBOLD, Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+/* 4. Contenido del portal (panel info + formulario): Open Sans
+   igual que el cuerpo de texto en nosotros.html */
+#cgm-proveedores-page,
+#cgm-proveedores-page p,
+#cgm-proveedores-page span,
+#cgm-proveedores-page div,
+#cgm-proveedores-page label,
+#cgm-proveedores-page input,
+#cgm-proveedores-page select,
+#cgm-proveedores-page textarea,
+#cgm-proveedores-page button,
+#cgm-proveedores-page a,
+#cgm-proveedores-page h2,
+#cgm-proveedores-page h3,
+#cgm-proveedores-page .form-input,
+#cgm-proveedores-page .q-field,
+#cgm-proveedores-page .q-field__label,
+#cgm-proveedores-page .q-field__native,
+#cgm-proveedores-page .q-btn,
+#cgm-proveedores-page .q-select {
+  font-family: 'Open Sans', Arial, sans-serif !important;
+}
+</style>
 </head>
 
 <body class="wp-singular page-template-default page page-id-25957993 wp-theme-Divi theme-Divi grow_below_left dipi-custom-archive-page dipi-archive- dipi-fix-search-icon dipi-mobile-menu-fullscreen dipi-collapse-submenu-mobile dipi-anim-preload et-tb-has-template et-tb-has-header et-tb-has-footer woocommerce-no-js et_pb_button_helper_class et_cover_background et_pb_gutter windows et_pb_gutters3 et_pb_pagebuilder_layout et_no_sidebar et_divi_theme et-db woocommerce">
