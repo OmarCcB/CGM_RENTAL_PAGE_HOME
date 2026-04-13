@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Política Integrada — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Conoce la Política Integrada de Gestión de CGM Rental, nuestro compromiso con la calidad, el medio ambiente y la seguridad.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ BANNER ══════════ -->
+<section class="cgm-page-hero">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/banners/cat-contacto.png') }}')"></div>
+  <div class="cgm-page-hero-content">
+    <h1>Política Integrada</h1>
+  </div>
+</section>
+
+<!-- ══════════ TEXTO + PDF ══════════ -->
+<section class="cgm-section bg-white pb-0">
+  <div class="container">
+
+    <div class="row g-5 align-items-center justify-content-center mb-5 fade-up">
+      <div class="col-12 col-md-3 text-center">
+        <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
+             alt="CGM Rental"
+             style="width:160px; height:auto; filter:drop-shadow(0 4px 18px rgba(2,83,76,.15));">
+      </div>
+      <div class="col-12 col-md-1 d-none d-md-flex justify-content-center">
+        <div style="width:1px; height:80px; background:var(--cgm-verde); opacity:.3;"></div>
+      </div>
+      <div class="col-12 col-md-6">
+        <p style="font-size:1.05rem; color:#444; line-height:1.9; margin:0;">
+          La Política Integrada de Gestión de CGM Rental establece los lineamientos que guían
+          nuestro compromiso con la calidad, el cuidado del medio ambiente, la seguridad y salud
+          de nuestros colaboradores, y la conducta ética en todas nuestras operaciones.
+        </p>
+      </div>
+    </div>
+
+    <!-- Visor PDF -->
+    <div class="cgm-iso-pdf-wrap fade-up">
+      <div id="cgm-pdf-controls" class="cgm-pdf-controls">
+        <button id="pdfPrev"    class="cgm-pdf-btn" title="Página anterior"><i class="bi bi-chevron-left"></i></button>
+        <span class="cgm-pdf-pageinfo">Página <span id="pdfPage">1</span> de <span id="pdfTotal">—</span></span>
+        <button id="pdfNext"    class="cgm-pdf-btn" title="Página siguiente"><i class="bi bi-chevron-right"></i></button>
+        <button id="pdfZoomOut" class="cgm-pdf-btn" title="Alejar"><i class="bi bi-zoom-out"></i></button>
+        <button id="pdfZoomIn"  class="cgm-pdf-btn" title="Acercar"><i class="bi bi-zoom-in"></i></button>
+      </div>
+      <div id="cgm-pdf-canvas-wrap">
+        <canvas id="cgmPdfCanvas"></canvas>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function () {
+  const pdfUrl = "{{ url_for('static', filename='images/docs/política-integrada.pdf') }}";
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const canvas  = document.getElementById('cgmPdfCanvas');
+  const ctx     = canvas.getContext('2d');
+  let pdfDoc    = null;
+  let pageNum   = 1;
+  let scale     = 1.0;
+  let rendering = false;
+
+  function renderPage(num) {
+    if (rendering) return;
+    rendering = true;
+    pdfDoc.getPage(num).then(page => {
+      const vp = page.getViewport({ scale });
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      page.render({ canvasContext: ctx, viewport: vp }).promise.then(() => {
+        rendering = false;
+        document.getElementById('pdfPage').textContent  = num;
+        document.getElementById('pdfTotal').textContent = pdfDoc.numPages;
+      });
+    });
+  }
+
+  pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
+    pdfDoc = doc;
+    renderPage(pageNum);
+  }).catch(err => {
+    document.getElementById('cgm-pdf-canvas-wrap').innerHTML =
+      '<p style="padding:40px;text-align:center;color:#999;">No se pudo cargar el documento.</p>';
+  });
+
+  document.getElementById('pdfPrev').addEventListener('click', () => {
+    if (pageNum <= 1) return;
+    pageNum--; renderPage(pageNum);
+  });
+  document.getElementById('pdfNext').addEventListener('click', () => {
+    if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+    pageNum++; renderPage(pageNum);
+  });
+  document.getElementById('pdfZoomIn').addEventListener('click', () => {
+    scale = Math.min(scale + 0.25, 3); renderPage(pageNum);
+  });
+  document.getElementById('pdfZoomOut').addEventListener('click', () => {
+    scale = Math.max(scale - 0.25, 0.5); renderPage(pageNum);
+  });
+})();
+</script>
+{% endblock %}

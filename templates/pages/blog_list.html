@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Novedades — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Últimas noticias, artículos y entrevistas del sector de maquinaria pesada. CGM Rental {{ country.nombre }}.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ HERO ══════════ -->
+<section class="cgm-page-hero">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/blog/cap-blog.jpg') }}')"></div>
+  <div class="cgm-page-hero-content">
+    <h1>Blog & Novedades</h1>
+  </div>
+</section>
+
+<!-- ══════════ FILTROS + GRID ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+
+    <!-- Filtro dropdown centrado -->
+    <div class="d-flex justify-content-center mb-5">
+      <div class="cgm-blog-dropdown">
+        <button class="cgm-blog-dropdown-btn" id="blogDropBtn">
+          {{ 'Artículos de Interés' if cat_filter == 'articulos' else 'Entrevistas' if cat_filter == 'entrevistas' else 'Selecciona un tipo' }}
+          <i class="bi bi-chevron-down ms-2"></i>
+        </button>
+        <ul class="cgm-blog-dropdown-list" id="blogDropList">
+          <li class="cgm-blog-drop-item {% if not cat_filter %}selected{% endif %}" data-cat="">Todos</li>
+          <li class="cgm-blog-drop-item {% if cat_filter == 'articulos' %}selected{% endif %}" data-cat="articulos">Artículos de Interés</li>
+          <li class="cgm-blog-drop-item {% if cat_filter == 'entrevistas' %}selected{% endif %}" data-cat="entrevistas">Entrevistas</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Grid de posts -->
+    {% if posts %}
+    <div class="row g-4">
+      {% for post in posts %}
+      <div class="col-12 col-sm-6 col-lg-4 fade-up fade-up-delay-{{ (loop.index0 % 3) + 1 }}">
+        <a href="/{{ country_code }}/novedades/{{ post.slug }}/" class="d-block h-100 text-decoration-none">
+          <div class="cgm-blog-card">
+            <div class="cgm-blog-img-wrap">
+              <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
+                   alt="{{ post.titulo }}" class="cgm-blog-img" loading="lazy"
+                   onerror="this.style.background='#ddd'">
+            </div>
+            <div class="cgm-blog-body">
+              <span class="cgm-blog-cat cgm-cat-{{ post.categoria }}">
+                {{ 'Artículos' if post.categoria == 'articulos' else 'Entrevistas' }}
+              </span>
+              <div class="cgm-blog-title">{{ post.titulo }}</div>
+              <div class="cgm-blog-date">
+                <i class="bi bi-calendar3 me-1"></i>{{ post.fecha | replace('-', '/') }}
+              </div>
+              <div class="cgm-blog-excerpt">{{ post.extracto }}</div>
+              <span class="cgm-blog-read">LEER MÁS <i class="bi bi-arrow-right ms-1"></i></span>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if pages > 1 %}
+    <nav class="cgm-pagination mt-5" aria-label="Paginación">
+      {% if page > 1 %}
+      <a href="/{{ country_code }}/novedades/page/{{ page - 1 }}/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}"
+         aria-label="Anterior">‹</a>
+      {% endif %}
+
+      {% for p in range(1, pages + 1) %}
+      {% if p == page %}
+      <span class="active">{{ p }}</span>
+      {% else %}
+      <a href="/{{ country_code }}/novedades/page/{{ p }}/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}">{{ p }}</a>
+      {% endif %}
+      {% endfor %}
+
+      {% if page < pages %}
+      <a href="/{{ country_code }}/novedades/page/{{ page + 1 }}/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}"
+         aria-label="Siguiente">›</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+      <i class="bi bi-newspaper" style="font-size:64px;color:#ddd;"></i>
+      <h3 style="font-size:20px;color:#999;margin-top:16px;">No hay artículos en esta categoría</h3>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const btn = document.getElementById('blogDropBtn');
+const list = document.getElementById('blogDropList');
+btn.addEventListener('click', () => list.classList.toggle('open'));
+document.addEventListener('click', e => {
+  if (!btn.contains(e.target) && !list.contains(e.target)) list.classList.remove('open');
+});
+list.querySelectorAll('.cgm-blog-drop-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const cat = item.dataset.cat;
+    const url = new URL(window.location.href);
+    if (cat) url.searchParams.set('cat', cat);
+    else url.searchParams.delete('cat');
+    window.location.href = url.toString();
+  });
+});
+</script>
+{% endblock %}

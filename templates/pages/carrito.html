@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Carrito de Cotización — CGM Rental{% endblock %}
+
+{% block content %}
+
+<section class="cgm-page-hero cgm-carrito-hero">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/banners/cat-carrito.jpg') }}');
+              background-color:#555;"
+       onerror="this.style.backgroundImage='none'"></div>
+  <div class="cgm-page-hero-overlay" style="background:rgba(0,0,0,.45);"></div>
+  <div class="cgm-page-hero-content" style="flex-direction:column;gap:20px;">
+
+    <h1 style="margin:0;">Mi carrito</h1>
+
+    <!-- Barra de pasos -->
+    <div class="cgm-cart-steps">
+      <div class="cgm-cart-step cgm-cart-step-done">
+        <div class="cgm-cart-step-icon">
+          <i class="bi bi-clipboard"></i>
+        </div>
+        <span>TIENDA</span>
+      </div>
+      <div class="cgm-cart-step-line"></div>
+      <div class="cgm-cart-step cgm-cart-step-active">
+        <div class="cgm-cart-step-icon">
+          <i class="bi bi-cart3"></i>
+        </div>
+        <span>CARRITO</span>
+      </div>
+      <div class="cgm-cart-step-line"></div>
+      <div class="cgm-cart-step">
+        <div class="cgm-cart-step-icon">
+          <i class="bi bi-send"></i>
+        </div>
+        <span>FINALIZAR</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+
+    <!-- ── VACÍO ── -->
+    <div id="cartEmpty" {% if cart %}style="display:none;"{% endif %} class="text-center py-5">
+      <i class="bi bi-cart-x" style="font-size:80px;color:#ddd;"></i>
+      <h3 style="font-size:22px;color:#999;margin-top:20px;">Tu carrito está vacío</h3>
+      <p style="color:#bbb;font-size:14px;margin-bottom:24px;">
+        Agrega equipos desde el catálogo para solicitar una cotización
+      </p>
+      <a href="/{{ country_code }}/categoria-producto/alquiler/" class="cgm-btn cgm-btn-verde">
+        <i class="bi bi-search me-2"></i>VER CATÁLOGO
+      </a>
+    </div>
+
+    <!-- ── CON ITEMS: 2 columnas ── -->
+    {% if cart %}
+    <div class="row g-4">
+
+      <!-- Columna izquierda: tabla de equipos -->
+      <div class="col-12 col-lg-6">
+        <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+          <div style="padding:18px 24px;border-bottom:1px solid #eee;
+                      display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:'CGM BOLD',sans-serif;color:var(--cgm-verde);font-size:15px;">
+              <i class="bi bi-cart3 me-2"></i>EQUIPOS SELECCIONADOS
+            </span>
+            <button onclick="clearCart()"
+                    style="background:none;border:none;color:#e53935;font-size:12px;cursor:pointer;font-weight:600;">
+              <i class="bi bi-trash me-1"></i>Vaciar
+            </button>
+          </div>
+          <table class="table mb-0" id="cartTable">
+            <thead style="background:var(--cgm-gris);">
+              <tr>
+                <th style="font-size:11px;font-weight:700;color:#999;letter-spacing:.5px;padding:10px 20px;">EQUIPO</th>
+                <th style="font-size:11px;font-weight:700;color:#999;letter-spacing:.5px;text-align:center;">CANT.</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for slug, item in cart.items() %}
+              <tr id="cart-row-{{ slug }}">
+                <td style="padding:10px 16px;vertical-align:middle;">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
+                         alt="{{ item.nombre }}"
+                         style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
+                         onerror="this.style.display='none'">
+                    <div>
+                      <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                      <a href="/{{ country_code }}/producto/{{ slug }}/"
+                         style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
+                    </div>
+                  </div>
+                </td>
+                <td style="text-align:center;vertical-align:middle;">
+                  <span style="background:var(--cgm-gris);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;">
+                    {{ item.qty }}
+                  </span>
+                </td>
+                <td style="vertical-align:middle;text-align:center;">
+                  <button onclick="removeFromCart('{{ slug }}')"
+                          style="background:none;border:none;color:#e53935;font-size:17px;cursor:pointer;padding:4px;">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div style="padding:14px 20px;border-top:1px solid #eee;text-align:center;">
+            <a href="/{{ country_code }}/categoria-producto/alquiler/"
+               style="font-size:12px;color:var(--cgm-gris-txt);">
+              <i class="bi bi-plus-circle me-1"></i>Agregar más equipos
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: formulario Salesforce -->
+      <div class="col-12 col-lg-6">
+        <div style="background:#fff;border-radius:10px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+          <h2 class="cgm-section-title" style="font-size:20px;margin-bottom:4px;">
+            Solicita tu <span style="color:var(--cgm-lima);">Cotización</span>
+          </h2>
+          <p style="font-size:12px;color:var(--cgm-gris-txt);margin-bottom:20px;">
+            Completa tus datos y te contactaremos a la brevedad.
+          </p>
+
+          <form id="sfCartForm"
+                action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D41000002lCbB"
+                method="POST">
+
+            <!-- Campos ocultos Salesforce -->
+            <input type="hidden" name="oid"       value="00D41000002lCbB">
+            <input type="hidden" name="retURL"    value="https://cgmrental.com/{{ country_code }}/gracias/">
+            <input type="hidden" name="last_name" value="Web Lead">
+            <!-- Detalle del carrito (se llena por JS antes de enviar) -->
+            <input type="hidden" name="00NUU000001HmSf" id="sfCarritoDetalle">
+
+            <div class="row g-3">
+
+              <!-- Alquiler / Compra -->
+              <div class="col-12">
+                <label class="cgm-form-label">Tipo de operación</label>
+                <div class="d-flex gap-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox"
+                           id="chkAlquiler" name="00NUU000001AZFF" value="1" checked>
+                    <label class="form-check-label" for="chkAlquiler" style="font-size:13px;">Alquiler</label>
+                  </div>
+                  {% if country_code != 'arg' %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox"
+                           id="chkCompra" name="00NUU000001AZK5" value="1">
+                    <label class="form-check-label" for="chkCompra" style="font-size:13px;">Compra</label>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="cgm-form-label" for="sfNombre">Nombres y Apellidos *</label>
+                <input type="text" id="sfNombre" name="company" class="cgm-form-control"
+                       placeholder="Juan Pérez" required>
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfRazon">Razón Social</label>
+                <input type="text" id="sfRazon" name="00NUU000001uW6H" class="cgm-form-control"
+                       placeholder="Mi Empresa S.A.C.">
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfRuc">RUC / DNI</label>
+                <input type="text" id="sfRuc" name="00N4100000TT12H" class="cgm-form-control"
+                       placeholder="20123456789" maxlength="11">
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfEmail">Email *</label>
+                <input type="email" id="sfEmail" name="00NUU000001NBa5" class="cgm-form-control"
+                       placeholder="correo@empresa.com" required>
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfCelular">Celular</label>
+                <input type="tel" id="sfCelular" name="00NUU000001NBtR" class="cgm-form-control"
+                       placeholder="999 999 999" maxlength="9">
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfPais">País</label>
+                <select id="sfPais" name="00NUU000001uSU5" class="cgm-form-control">
+                  <option value="Perú" {% if country_code == 'per' %}selected{% endif %}>Perú</option>
+                  <option value="Argentina" {% if country_code == 'arg' %}selected{% endif %}>Argentina</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <label class="cgm-form-label" for="sfDepto">Departamento</label>
+                <select id="sfDepto" name="00NUU000001uSST" class="cgm-form-control">
+                  <option value="">Selecciona...</option>
+                  {% for d in ['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca',
+                               'Callao','Cusco','Huancavelica','Huánuco','Ica','Junín',
+                               'La Libertad','Lambayeque','Lima','Loreto','Madre de Dios',
+                               'Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'] %}
+                  <option value="{{ d }}">{{ d }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="sfPolitica" required>
+                  <label class="form-check-label" for="sfPolitica" style="font-size:11px;color:var(--cgm-gris-txt);">
+                    Acepto la política de privacidad y autorizo el tratamiento de mis datos personales
+                  </label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <button type="submit" class="cgm-btn cgm-btn-lima w-100 justify-content-center"
+                        style="font-size:14px;padding:14px;">
+                  <i class="bi bi-send-fill me-2"></i>SOLICITAR COTIZACIÓN
+                </button>
+              </div>
+
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div><!-- /row -->
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ── Modal de éxito ── -->
+<div id="sfSuccessModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.80);
+     z-index:9999;align-items:center;justify-content:center;">
+  <div style="text-align:center;padding:40px;">
+    <div style="font-size:60px;color:var(--cgm-lima);">✓</div>
+    <h2 style="color:#fff;font-family:'CGM BOLD',sans-serif;margin:16px 0 8px;">¡Solicitud enviada!</h2>
+    <p style="color:#ccc;font-size:15px;">Nos contactaremos contigo a la brevedad.</p>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('sfCartForm').addEventListener('submit', function(e) {
+  // Validar política
+  if (!document.getElementById('sfPolitica').checked) {
+    e.preventDefault();
+    alert('Debes aceptar la política de privacidad.');
+    return;
+  }
+
+  // Empaquetar carrito en el campo oculto
+  const rows = document.querySelectorAll('#cartTable tbody tr');
+  const items = [];
+  rows.forEach(row => {
+    const nombre = row.querySelector('td:first-child div')?.textContent?.trim();
+    const qty    = row.querySelector('td:nth-child(2) span')?.textContent?.trim();
+    if (nombre) items.push(`${qty || 1} x ${nombre.toUpperCase()}`);
+  });
+  document.getElementById('sfCarritoDetalle').value = items.join('<br>');
+
+  // Mostrar modal de éxito y dejar que el form envíe
+  const modal = document.getElementById('sfSuccessModal');
+  modal.style.display = 'flex';
+});
+</script>
+{% endblock %}

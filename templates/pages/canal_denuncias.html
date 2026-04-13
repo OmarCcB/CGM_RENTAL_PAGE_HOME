@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Canal de Denuncias — CGM Rental{% endblock %}
+{% block meta_desc %}Canal de denuncias confidencial de CGM Rental. Reporta conductas contrarias a nuestro código de ética de forma segura.{% endblock %}
+
+{% block content %}
+
+<section class="cgm-page-hero" style="height:240px;">
+  <div class="cgm-page-hero-bg" style="background-color:var(--cgm-verde);"></div>
+  <div class="cgm-page-hero-content"><h1>Canal de Denuncias</h1></div>
+</section>
+
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <div style="background:#fff;border-radius:10px;padding:36px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
+
+          <!-- Cabecera -->
+          <div class="text-center mb-4">
+            <div style="width:72px;height:72px;background:var(--cgm-gris);border-radius:50%;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:32px;color:var(--cgm-verde);margin:0 auto 16px;">
+              <i class="bi bi-shield-check-fill"></i>
+            </div>
+            <h2 style="font-family:'CGM BOLD',sans-serif;font-size:22px;color:var(--cgm-negro);margin-bottom:6px;">
+              Canal de Denuncias
+            </h2>
+            <p style="font-size:13px;color:var(--cgm-gris-txt);max-width:500px;margin:0 auto;">
+              Este canal es <strong>completamente confidencial</strong>. Úsalo para reportar
+              conductas contrarias a nuestro código de ética.
+            </p>
+          </div>
+
+          <!-- Aviso éxito -->
+          <div id="denunciaSuccess" style="display:none;background:#e8f5e9;border-left:4px solid var(--cgm-lima);
+               padding:20px;border-radius:6px;text-align:center;margin-bottom:20px;">
+            <i class="bi bi-check-circle-fill" style="font-size:36px;color:var(--cgm-verde);"></i>
+            <h4 style="color:var(--cgm-verde);margin:12px 0 6px;">Denuncia enviada exitosamente</h4>
+            <p style="font-size:13px;color:var(--cgm-gris-txt);">
+              Tu reporte ha sido recibido y será revisado con la máxima confidencialidad.
+            </p>
+          </div>
+
+          <!-- Formulario -->
+          <form id="cgmDenunciaForm" novalidate>
+
+            <!-- Sección: Datos del denunciante -->
+            <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
+              <div style="font-family:'CGM BOLD',sans-serif;font-size:13px;color:var(--cgm-verde);
+                          letter-spacing:.06em;margin-bottom:14px;">
+                <i class="bi bi-person-fill me-2"></i>DATOS DEL DENUNCIANTE
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-sm-6">
+                  <label class="cgm-form-label" for="denNombre">Nombre completo</label>
+                  <input type="text" id="denNombre" name="form_fields[field_445d8c0]"
+                         class="cgm-form-control" placeholder="Opcional — puedes omitirlo">
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="cgm-form-label" for="denEmpresa">Empresa</label>
+                  <input type="text" id="denEmpresa" name="form_fields[field_096e4a6]"
+                         class="cgm-form-control" placeholder="Tu empresa">
+                </div>
+                <div class="col-12">
+                  <label class="cgm-form-label" for="denEmail">Email de contacto</label>
+                  <input type="email" id="denEmail" name="form_fields[field_8f13678]"
+                         class="cgm-form-control" placeholder="Para darte seguimiento (opcional)">
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección: Datos del denunciado -->
+            <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
+              <div style="font-family:'CGM BOLD',sans-serif;font-size:13px;color:var(--cgm-verde);
+                          letter-spacing:.06em;margin-bottom:14px;">
+                <i class="bi bi-person-dash-fill me-2"></i>DATOS DEL DENUNCIADO
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-sm-6">
+                  <label class="cgm-form-label" for="denNombreD">Nombre del denunciado *</label>
+                  <input type="text" id="denNombreD" name="form_fields[field_c4b8638]"
+                         class="cgm-form-control" placeholder="Nombre completo" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="cgm-form-label" for="denEmpresaD">Empresa del denunciado</label>
+                  <input type="text" id="denEmpresaD" name="form_fields[name]"
+                         class="cgm-form-control" placeholder="Empresa o área">
+                </div>
+              </div>
+            </div>
+
+            <!-- Tipo de denuncia + descripción -->
+            <div class="row g-3 mb-4">
+              <div class="col-12">
+                <label class="cgm-form-label" for="denTipo">Tipo de denuncia *</label>
+                <select id="denTipo" name="form_fields[field_16ea685]"
+                        class="cgm-form-control" required>
+                  <option value="">Selecciona una categoría</option>
+                  <option value="Corrupción o soborno">Corrupción o soborno</option>
+                  <option value="Acoso laboral o sexual">Acoso laboral o sexual</option>
+                  <option value="Fraude o malversación">Fraude o malversación</option>
+                  <option value="Discriminación">Discriminación</option>
+                  <option value="Incumplimiento de normas de seguridad">Incumplimiento de normas de seguridad</option>
+                  <option value="Daño medioambiental">Daño medioambiental</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="cgm-form-label" for="denDesc">Descripción de los hechos *</label>
+                <textarea id="denDesc" name="form_fields[message]"
+                          class="cgm-form-control" rows="7" required
+                          placeholder="Describe los hechos con el mayor detalle posible: cuándo, dónde, quiénes estuvieron involucrados y qué ocurrió."></textarea>
+                <div style="font-size:11px;color:#aaa;margin-top:4px;">
+                  <i class="bi bi-lock-fill me-1"></i>Tu identidad será tratada con absoluta confidencialidad.
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="denunciaSubmitBtn"
+                    class="cgm-btn cgm-btn-verde w-100 justify-content-center"
+                    style="font-size:15px;padding:14px;">
+              <i class="bi bi-send-fill me-2"></i>ENVIAR DENUNCIA
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('cgmDenunciaForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = this;
+  const btn  = document.getElementById('denunciaSubmitBtn');
+
+  // Validar campos requeridos
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+
+  const data = {
+    nombre_denunciante:  document.getElementById('denNombre').value,
+    empresa_denunciante: document.getElementById('denEmpresa').value,
+    email_denunciante:   document.getElementById('denEmail').value,
+    nombre_denunciado:   document.getElementById('denNombreD').value,
+    empresa_denunciado:  document.getElementById('denEmpresaD').value,
+    tipo:                document.getElementById('denTipo').value,
+    descripcion:         document.getElementById('denDesc').value,
+  };
+
+  try {
+    const resp = await fetch('/api/denuncia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const json = await resp.json();
+    if (json.ok) {
+      form.style.display = 'none';
+      document.getElementById('denunciaSuccess').style.display = 'block';
+    } else {
+      alert('Ocurrió un error al enviar. Inténtalo nuevamente.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send-fill me-2"></i>ENVIAR DENUNCIA';
+    }
+  } catch {
+    alert('Error de conexión. Inténtalo nuevamente.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send-fill me-2"></i>ENVIAR DENUNCIA';
+  }
+});
+</script>
+{% endblock %}

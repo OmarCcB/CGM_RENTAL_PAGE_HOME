@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.nombre }} — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}{{ product.nombre }} de {{ product.marca }} disponible para {{ product.tags }} en {{ country.nombre }}. CGM Rental.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ BREADCRUMB ══════════ -->
+<div style="background:var(--cgm-verde);padding:14px 0;">
+  <div class="container">
+    <nav class="cgm-breadcrumb" aria-label="breadcrumb">
+      <a href="/{{ country_code }}/" style="color:rgba(255,255,255,.7);">Inicio</a>
+      <span class="sep" style="color:rgba(255,255,255,.5);">›</span>
+      <a href="/{{ country_code }}/categoria-producto/{{ product.tags }}/" style="color:rgba(255,255,255,.7);">{{ product.tags|capitalize }}</a>
+      <span class="sep" style="color:rgba(255,255,255,.5);">›</span>
+      <span style="color:#fff;font-weight:600;">{{ product.nombre }}</span>
+    </nav>
+  </div>
+</div>
+
+<!-- ══════════ DETALLE PRODUCTO ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="row g-5">
+
+      <!-- ── Col Izq: Galería ── -->
+      <div class="col-12 col-lg-5">
+        <!-- Imagen principal -->
+        <div style="border-radius:10px;border:1px solid #eee;overflow:hidden;
+                    background:#fafafa;aspect-ratio:4/3;display:flex;
+                    align-items:center;justify-content:center;">
+          <img id="mainImg"
+               src="{{ url_for('static', filename='products/' + product.imagen) if product.imagen else '' }}"
+               alt="{{ product.nombre }}"
+               style="width:100%;height:100%;object-fit:cover;transition:opacity .25s;"
+               onerror="this.style.display='none';document.getElementById('mainImgPlaceholder').style.display='flex'">
+          <div id="mainImgPlaceholder"
+               style="display:none;width:100%;height:100%;align-items:center;
+                      justify-content:center;font-size:80px;color:#ccc;">
+            <i class="bi bi-truck"></i>
+          </div>
+        </div>
+
+        <!-- Thumbnails -->
+        {% if product.imagen %}
+        <div class="swiper cgm-prod-thumb-swiper mt-3">
+          <div class="swiper-wrapper">
+            {% set slug = product.slug %}
+            {% for i in range(1, 5) %}
+            <div class="swiper-slide" style="width:auto;">
+              <img src="{{ url_for('static', filename='products/' + slug + '/' + i|string + '.webp') }}"
+                   alt="{{ product.nombre }} — foto {{ i }}"
+                   class="cgm-thumb-img {% if i == 1 %}active{% endif %}"
+                   loading="lazy"
+                   onerror="this.parentElement.style.display='none'"
+                   onclick="swapMainImg(this)">
+            </div>
+            {% endfor %}
+          </div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next"></div>
+        </div>
+        {% endif %}
+
+        <!-- Botones acción -->
+        <div class="d-flex gap-3 mt-4">
+          <button class="cgm-btn cgm-btn-lima flex-fill justify-content-center cgm-btn-clip"
+                  style="font-size:13px;padding:13px 8px;"
+                  onclick="addToCart('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}')">
+            <i class="bi bi-cart3 me-2"></i>AÑADIR AL CARRITO
+          </button>
+          <a href="/{{ country_code }}/contacto/?tipo={{ product.tags|capitalize }}&equipo={{ product.nombre|urlencode }}"
+             class="cgm-btn cgm-btn-verde flex-fill justify-content-center cgm-btn-clip"
+             style="font-size:13px;padding:13px 8px;">
+            <i class="bi bi-envelope-fill me-2"></i>COTIZAR
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Col Der: Info ── -->
+      <div class="col-12 col-lg-7">
+
+        <!-- Nombre + Badge -->
+        <div class="d-flex align-items-start gap-3 mb-3 flex-wrap">
+          <h1 style="font-size:clamp(20px,2.8vw,32px);font-weight:800;
+                     text-transform:uppercase;color:var(--cgm-negro);margin:0;flex:1;">
+            {{ product.nombre }}
+          </h1>
+          {% if product.tags %}
+          <span style="background:var(--cgm-verde);color:#fff;font-size:12px;font-weight:700;
+                       padding:5px 14px;border-radius:20px;white-space:nowrap;margin-top:4px;">
+            {{ product.tags|capitalize }}
+          </span>
+          {% endif %}
+        </div>
+        {% if product.marca %}
+        <p style="font-size:13px;color:#999;font-weight:600;text-transform:uppercase;
+                  letter-spacing:.6px;margin-bottom:24px;">{{ product.marca }}</p>
+        {% endif %}
+
+        <!-- Card: Características -->
+        {% if product.features %}
+        <div style="background:#f8f9fa;border-left:4px solid var(--cgm-verde);border-radius:0 10px 10px 0;
+                    padding:20px 24px;margin-bottom:16px;">
+          <h3 style="font-size:15px;font-weight:700;color:var(--cgm-negro);margin-bottom:16px;">
+            Características
+          </h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            {% for f in product.features %}
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;
+                        background:#fff;border-radius:6px;border:1px solid #eee;">
+              <i class="bi bi-check-circle-fill" style="color:var(--cgm-lima);font-size:15px;margin-top:1px;flex-shrink:0;"></i>
+              <span style="font-size:13px;color:#444;line-height:1.5;">{{ f }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Card: Descripción -->
+        {% if product.descripcion_texto %}
+        <div style="background:#fff;border:1px solid #e8e8e8;border-radius:10px;
+                    padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);">
+          <h3 style="font-size:15px;font-weight:700;color:var(--cgm-negro);margin-bottom:14px;">
+            Descripción
+          </h3>
+          <p style="font-size:13px;color:#555;line-height:1.8;margin:0 0 16px;">
+            {{ product.descripcion_texto }}
+          </p>
+          {% if product.ficha_url %}
+          <a href="/{{ country_code }}/producto/{{ product.slug }}/ficha/"
+             class="cgm-btn cgm-btn-verde cgm-btn-clip"
+             style="font-size:13px;padding:10px 20px;">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i>Ver Ficha Técnica
+          </a>
+          {% endif %}
+        </div>
+        {% elif product.ficha_url %}
+        <div style="margin-bottom:16px;">
+          <a href="/{{ country_code }}/producto/{{ product.slug }}/ficha/"
+             class="cgm-btn cgm-btn-verde cgm-btn-clip"
+             style="font-size:13px;padding:10px 20px;">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i>Ver Ficha Técnica
+          </a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ MAQUINARIAS RELACIONADAS ══════════ -->
+{% if relacionados %}
+<section class="cgm-section" style="background:var(--cgm-gris);">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="cgm-section-title fade-up">Maquinarias Relacionadas</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="swiper cgm-relacionados-swiper fade-up">
+      <div class="swiper-wrapper">
+        {% for r in relacionados %}
+        <div class="swiper-slide">
+          <div class="cgm-prod-card">
+            <img src="{{ url_for('static', filename='products/' + r.slug + '/1.webp') }}"
+                 alt="{{ r.nombre }}" class="cgm-prod-img" loading="lazy"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="cgm-prod-img-placeholder" style="display:none;">
+              <i class="bi bi-truck"></i>
+            </div>
+            <div class="cgm-prod-body">
+              <div class="cgm-prod-marca">{{ r.marca }}</div>
+              <div class="cgm-prod-name">{{ r.nombre }}</div>
+              {% if r.descripcion %}
+              <ul class="cgm-prod-features">
+                {% for spec in r.descripcion.split('|')[:3] %}
+                {% if spec.strip() %}<li>{{ spec.strip() }}</li>{% endif %}
+                {% endfor %}
+              </ul>
+              {% endif %}
+              <a href="/{{ country_code }}/producto/{{ r.slug }}/"
+                 class="cgm-btn cgm-btn-verde cgm-btn-clip mt-auto"
+                 style="font-size:12px;padding:8px 18px;justify-content:center;">
+                COTIZAR
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function swapMainImg(thumb) {
+  const main = document.getElementById('mainImg');
+  if (!main) return;
+  document.querySelectorAll('.cgm-thumb-img').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+  main.style.opacity = '0';
+  setTimeout(() => { main.src = thumb.src; main.style.opacity = '1'; }, 180);
+}
+new Swiper('.cgm-prod-thumb-swiper', {
+  slidesPerView: 4,
+  spaceBetween: 8,
+  navigation: {
+    prevEl: '.cgm-prod-thumb-swiper .swiper-button-prev',
+    nextEl: '.cgm-prod-thumb-swiper .swiper-button-next'
+  }
+});
+new Swiper('.cgm-relacionados-swiper', {
+  slidesPerView: 1,
+  spaceBetween: 20,
+  navigation: {
+    prevEl: '.cgm-relacionados-swiper .swiper-button-prev',
+    nextEl: '.cgm-relacionados-swiper .swiper-button-next'
+  },
+  breakpoints: {
+    576:  { slidesPerView: 2 },
+    992:  { slidesPerView: 3 },
+    1200: { slidesPerView: 4 }
+  }
+});
+</script>
+{% endblock %}

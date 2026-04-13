@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Alquiler de {{ titulo }} en {{ country.nombre }}. Flota moderna con disponibilidad mecánica garantizada. CGM Rental.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ BANNER CATEGORÍA ══════════ -->
+<!-- Alto del banner: cambia este valor para ajustar la altura -->
+<section class="cgm-page-hero" style="height:600px;">
+  {% if cat_path == 'alquiler' %}
+    {% set banner = 'cat-alquiler.webp' %}
+  {% elif cat_path == 'usados' %}
+    {% set banner = 'cat-usados.webp' %}
+  {% elif cat_path.startswith('usados/') %}
+    {% set banner = 'cat-usados-' + cat_path.split('/')[1] + '.webp' %}
+  {% elif '/' in cat_path %}
+    {% set banner = 'cat-' + cat_path.split('/')[1] + '.webp' %}
+  {% else %}
+    {% set banner = 'cat-' + cat_path + '.webp' %}
+  {% endif %}
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/banners/' + banner) }}')"></div>
+  <div class="cgm-page-hero-content">
+    <h1>{{ titulo }}</h1>
+  </div>
+</section>
+
+<!-- ══════════ CUERPO: SIDEBAR + PRODUCTOS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- ══ SIDEBAR FILTROS ══ -->
+      <div class="col-12 col-lg-3">
+
+        <!-- Toggle móvil -->
+        <button class="cgm-sidebar-toggle d-lg-none mb-2" id="sidebarToggleBtn" type="button">
+          <span><i class="bi bi-funnel-fill me-2"></i>FILTROS</span>
+          <span class="sidebar-arrow" style="transition:transform .3s;">▼</span>
+        </button>
+
+        <div id="sidebarCollapse" class="d-none d-lg-block">
+          <div class="cgm-filter-box">
+
+            <!-- ── UNIDADES ── -->
+            <div class="cgm-filter-section">
+              <div class="cgm-filter-header">Unidades</div>
+              {% for u_name, u_slug in UNIDAD_NAV %}
+                {% if u_name in unidad_counts %}
+                <a href="/categoria-producto/{{ unidad_counts[u_name]['path'] }}/"
+                   class="cgm-filter-item {% if unidad == u_name %}active{% endif %} {% if unidad_counts[u_name]['count'] == 0 %}cgm-filter-empty{% endif %}">
+                  <span>{{ u_name }}</span>
+                  <span class="cgm-filter-count">{{ unidad_counts[u_name]['count'] }}</span>
+                </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <!-- ── ETIQUETAS ── -->
+            <div class="cgm-filter-section">
+              <div class="cgm-filter-header">Etiquetas</div>
+              {% if tags == 'alquiler' %}
+                <a href="/categoria-producto/{{ cat_path }}/"
+                   class="cgm-filter-item active">
+                  <span>Alquiler</span>
+                  <span class="cgm-filter-count">{{ tag_counts['alquiler'] }}</span>
+                </a>
+                <a href="/categoria-producto/{{ other_tag_path }}/"
+                   class="cgm-filter-item">
+                  <span>Usados</span>
+                  <span class="cgm-filter-count">{{ tag_counts['usados'] }}</span>
+                </a>
+              {% else %}
+                <a href="/categoria-producto/{{ other_tag_path }}/"
+                   class="cgm-filter-item">
+                  <span>Alquiler</span>
+                  <span class="cgm-filter-count">{{ tag_counts['alquiler'] }}</span>
+                </a>
+                <a href="/categoria-producto/{{ cat_path }}/"
+                   class="cgm-filter-item active">
+                  <span>Usados</span>
+                  <span class="cgm-filter-count">{{ tag_counts['usados'] }}</span>
+                </a>
+              {% endif %}
+            </div>
+
+            <!-- ── MAQUINARIA ── -->
+            {% if tipo_counts %}
+            <div class="cgm-filter-section">
+              <div class="cgm-filter-header">Maquinaria</div>
+              {% for t_name, t_cnt in tipo_counts.items() %}
+              <a href="?tipo={{ t_name }}"
+                 class="cgm-filter-item {% if tipo_sel == t_name %}active{% endif %} {% if t_cnt == 0 %}cgm-filter-empty{% endif %} {% if loop.index > 5 %}cgm-tipo-extra{% endif %}"
+                 {% if loop.index > 5 %}style="display:none"{% endif %}>
+                <span>{{ t_name }}</span>
+                <span class="cgm-filter-count">{{ t_cnt }}</span>
+              </a>
+              {% endfor %}
+              {% if tipo_counts|length > 5 %}
+              <button class="cgm-filter-more" id="tipoMoreBtn" onclick="toggleMasTipos(this)">
+                Mostrar más ↓
+              </button>
+              {% endif %}
+              <a href="/categoria-producto/{{ cat_path }}/"
+                 class="cgm-btn cgm-btn-lima w-100 mt-3 justify-content-center"
+                 style="font-size:12px;padding:9px 16px;">
+                Restablecer
+              </a>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PRODUCTOS GRID ══ -->
+      <div class="col-12 col-lg-9">
+
+        {% if products %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span style="font-size:13px;color:var(--cgm-gris-txt);">
+            <strong style="color:var(--cgm-negro);">{{ products|length }}</strong> equipos encontrados
+            {% if tipo_sel %}— <strong>{{ tipo_sel }}</strong>{% endif %}
+          </span>
+        </div>
+
+        <div class="row g-4">
+          {% for p in products %}
+          <div class="col-12 col-sm-6 col-xl-4 fade-up fade-up-delay-{{ (loop.index0 % 3) + 1 }}">
+            <div class="cgm-prod-card">
+              {% if p.imagen %}
+              <img src="{{ url_for('static', filename='products/' + p.slug + '/1.webp') }}"
+                   alt="{{ p.nombre }}" class="cgm-prod-img" loading="lazy"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+              {% endif %}
+              <div class="cgm-prod-img-placeholder" {% if p.imagen %}style="display:none"{% endif %}>
+                <i class="bi bi-truck"></i>
+              </div>
+              <div class="cgm-prod-body">
+                <div class="cgm-prod-marca">{{ p.marca }}</div>
+                <div class="cgm-prod-name">{{ p.nombre }}</div>
+                {% if p.descripcion %}
+                <ul class="cgm-prod-features">
+                  {% for spec in p.descripcion.split('|')[:3] %}
+                  {% if spec.strip() %}<li>{{ spec.strip() }}</li>{% endif %}
+                  {% endfor %}
+                </ul>
+                {% endif %}
+                <a href="/{{ country_code }}/producto/{{ p.slug }}/"
+                   class="cgm-btn cgm-btn-verde mt-auto"
+                   style="font-size:12px;padding:8px 18px;justify-content:center;">
+                  COTIZAR
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-truck" style="font-size:64px;color:#ddd;"></i>
+          <h3 style="font-size:20px;color:#999;margin-top:16px;">No hay equipos en esta categoría</h3>
+          <p style="font-size:14px;color:#bbb;">Prueba con otro filtro o contáctanos.</p>
+          <a href="/{{ country_code }}/contacto/" class="cgm-btn cgm-btn-verde mt-3">
+            CONTACTAR <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ NUESTRAS DIVISIONES ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="cgm-section-title fade-up">Nuestras <span style="color:var(--cgm-verde);">divisiones</span></h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="cgm-unidades-grid cgm-unidades-grid--row fade-up fade-up-delay-1">
+
+      <a href="/{{ country_code }}/categoria-producto/alquiler/construccion/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/construccion.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">CONSTRUCCIÓN</span>
+      </a>
+
+      {% if country.show_mineria %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/mineria/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">MEDIANA MINERÍA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">MEDIANA MINERÍA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+      {% if country.show_agricola %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/agricola/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">AGRÍCOLA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">AGRÍCOLA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+      {% if country.show_energia %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/energia/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">ENERGÍA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">ENERGÍA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Toggle sidebar móvil
+(function(){
+  const btn = document.getElementById('sidebarToggleBtn');
+  const col = document.getElementById('sidebarCollapse');
+  if (!btn || !col) return;
+  btn.addEventListener('click', function(){
+    col.classList.toggle('d-none');
+    const arr = btn.querySelector('.sidebar-arrow');
+    if (arr) arr.style.transform = col.classList.contains('d-none') ? '' : 'rotate(180deg)';
+  });
+})();
+
+// Mostrar más tipos en Maquinaria
+function toggleMasTipos(btn) {
+  const extras = document.querySelectorAll('.cgm-tipo-extra');
+  const expanded = btn.dataset.expanded === '1';
+  extras.forEach(el => el.style.display = expanded ? 'none' : 'flex');
+  btn.dataset.expanded = expanded ? '0' : '1';
+  btn.textContent = expanded ? 'Mostrar más ↓' : 'Mostrar menos ↑';
+}
+</script>
+{% endblock %}

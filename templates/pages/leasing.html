@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}Leasing Operativo — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Alquila maquinaria pesada bajo la modalidad de Leasing Operativo en {{ country.nombre }}. Cuota fija mensual, sin desembolso inicial, liquidez garantizada.{% endblock %}
+
+{% block extra_head %}<style>
+
+/* ── SECCIÓN 1: QUÉ ES ── */
+.cgm-leasing-que-es {
+  background: #fff;
+  padding: 70px 0;  /* ← espacio arriba y abajo de la sección */
+}
+.cgm-que-es-img-wrap {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 100%;
+  min-height: 420px; /* ← ALTURA mínima del bloque imagen */
+}
+.cgm-que-es-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    /* cover=llena el espacio, contain=muestra completa */
+  object-position: center; /* ← posición de la imagen dentro del recorte */
+  display: block;
+}
+.cgm-que-es-label {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  background: var(--cgm-lima);
+  color: #1a2e1a;
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  padding: 10px 22px;
+}
+.cgm-que-es-text {
+  background: #f4f4f4;
+  padding: 48px 44px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.cgm-que-es-text p {
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: #111;
+  margin: 0;
+}
+
+/* ── SECCIÓN 2: CARACTERÍSTICAS ── */
+.cgm-leasing-caract {
+  background: var(--cgm-verde);
+  padding: 80px 0;
+}
+.cgm-caract-card {
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 32px 24px;
+  text-align: center;
+  height: 100%;
+  transition: border-color .25s, transform .25s;
+  background: rgba(255,255,255,.04);
+}
+.cgm-caract-card:hover {
+  border-color: var(--cgm-lima);
+  transform: translateY(-4px);
+}
+.cgm-caract-card img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 18px;
+}
+.cgm-caract-card h4 {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 10px;
+  letter-spacing: .5px;
+}
+.cgm-caract-card p {
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  line-height: 1.8;
+  margin: 0;
+}
+.cgm-highlight-title em {
+  font-style: normal;
+  color: var(--cgm-lima);
+  background: rgba(203,222,116,.12);
+  border-radius: 4px;
+  padding: 0 6px;
+}
+
+/* ── SECCIÓN 3: VENTAJAS ── */
+.cgm-leasing-ventajas {
+  background: #fff;
+  padding: 80px 0;
+}
+
+/*
+  TIMELINE:
+  - Los laterales (Flexibilidad y Gestión): ícono arriba → línea → caja ABAJO
+  - El central (Conservación): caja ARRIBA → línea → ícono abajo
+*/
+.cgm-ventajas-timeline {
+  position: relative;
+  display: flex;
+  align-items: center;   /* centra verticalmente respecto a la línea */
+  justify-content: center;
+  gap: 0;
+  margin-top: 40px;
+  padding: 160px 0;      /* espacio para que quepan cajas arriba y abajo */
+}
+/* línea horizontal */
+.cgm-ventajas-timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: var(--cgm-lima);
+  z-index: 0;
+}
+
+/* columna base */
+.cgm-ventaja-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 16px;
+}
+
+/* ícono círculo */
+.cgm-ventaja-icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: absolute;  /* posicionado sobre la línea */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.cgm-ventaja-icon-circle svg {
+  width: 32px;
+  height: 32px;
+  opacity: .5;
+}
+
+/* caja de texto laterales → DEBAJO de la línea */
+.cgm-ventaja-box {
+  background: #f0f0f0;
+  border-radius: 4px;
+  padding: 22px 18px;
+  text-align: center;
+  width: 100%;
+  position: absolute;
+  top: calc(50% + 52px);  /* 52px = radio del círculo + gap */
+}
+/* triángulo apuntando ARRIBA (hacia la línea) */
+.cgm-ventaja-box::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #f0f0f0;
+}
+
+/* caja del CENTRO → ARRIBA de la línea */
+.cgm-ventaja-col.active .cgm-ventaja-box {
+  background: #eaeee8;
+  border: 1px solid #c8d8c0;
+  top: auto;
+  bottom: calc(50% + 52px); /* encima de la línea */
+}
+/* triángulo apuntando ABAJO (hacia la línea) */
+.cgm-ventaja-col.active .cgm-ventaja-box::before {
+  top: auto;
+  bottom: -10px;
+  border-bottom: none;
+  border-top: 10px solid #eaeee8;
+}
+.cgm-ventaja-col.active .cgm-ventaja-icon-circle {
+  background: #d0e0cc;
+}
+
+.cgm-ventaja-box h5 {
+  font-family: 'Estricta', sans-serif;
+  font-size: 15px;
+  color: var(--cgm-verde);
+  margin-bottom: 10px;
+}
+.cgm-ventaja-box p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* Sección casos con fondo imagen dividida en 2 */
+.cgm-casos-uso {
+  position: relative;
+  overflow: hidden;
+}
+.cgm-casos-bg-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+/* Mitad superior: overlay verde con título — ocupa 50% de la imagen */
+.cgm-casos-top {
+  position: relative;
+  z-index: 2;
+  background: rgba(2,83,76,.82);
+  min-height: 300px;         /* ← misma altura que la parte de abajo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+.cgm-casos-top h2 {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: clamp(22px, 3.5vw, 38px);
+  color: #fff;
+  margin: 0 0 14px;
+  line-height: 1.25;
+}
+/* Mitad inferior: fondo blanco semitransparente — misma altura */
+.cgm-casos-bottom {
+  position: relative;
+  z-index: 2;
+  background: rgba(255,255,255,.88);
+  min-height: 300px;         /* ← igual que la parte de arriba */
+  padding: 50px 20px 60px;
+}
+.cgm-uso-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 20px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  height: 100%;
+  border-top: 3px solid var(--cgm-lima);
+}
+.cgm-uso-card img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+.cgm-uso-card h5 {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 14px;
+  color: var(--cgm-negro);
+  margin-bottom: 8px;
+}
+.cgm-uso-card p {
+  font-size: 12.5px;
+  color: var(--cgm-gris-txt);
+  line-height: 1.75;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .cgm-ventajas-timeline { flex-direction: column; gap: 32px; }
+  .cgm-ventajas-timeline::before { display: none; }
+  .cgm-ventaja-col.active .cgm-ventaja-box { margin-top: 0; }
+  .cgm-ventaja-col.active .cgm-ventaja-icon-circle { margin-top: 0; }
+  .cgm-que-es-text { padding: 32px 24px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 0 — HERO BANNER
+══════════════════════════════════════════ -->
+<section class="cgm-page-hero" style="height:500px;">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/leasing_operativo/img_003_9202e3d7ba7d.svg') }}');
+              background-size: 100%;
+              background-repeat: no-repeat;
+              background-color: #0a1e1c;"></div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 1 — ¿QUÉ ES EL LEASING OPERATIVO?
+══════════════════════════════════════════ -->
+<section class="cgm-leasing-que-es">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <h2 class="cgm-section-title">¿Qué es el Leasing Operativo?</h2>
+      <div class="cgm-title-line mx-auto"></div>
+    </div>
+    <div class="row g-0 align-items-stretch justify-content-center fade-up">
+
+      <!-- Imagen izquierda con label -->
+      <div class="col-12 col-lg-5">
+        <div class="cgm-que-es-img-wrap">
+          <img src="{{ url_for('static', filename='images/leasing_operativo/img_004_b90268271cb3.svg') }}"
+               alt="Leasing Operativo CGM Rental">
+        </div>
+      </div>
+
+      <!-- Texto derecha gris -->
+      <div class="col-12 col-lg-5">
+        <div class="cgm-que-es-text">
+          <p>
+            El leasing operativo, también conocido como arrendamiento operativo, es un contrato mediante el
+            cual una empresa (arrendataria) alquila un activo, como maquinaria, equipos, vehículos, o inmuebles,
+            de otra empresa (arrendadora) por un período determinado, sin la intención de adquirir la propiedad
+            del activo al final del contrato.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 2 — CARACTERÍSTICAS
+══════════════════════════════════════════ -->
+<section class="cgm-leasing-caract">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <h2 class="cgm-section-title cgm-highlight-title" style="color:#fff;">
+        CARACTERÍSTICAS DEL <em>LEASING OPERATIVO</em>
+      </h2>
+      <div class="cgm-title-line mx-auto" style="background:var(--cgm-lima);"></div>
+    </div>
+
+    <div class="row g-4">
+
+      <div class="col-12 col-md-6 fade-up">
+        <div class="cgm-caract-card">
+          <img src="{{ url_for('static', filename='images/leasing_operativo/img_005_ce3f11ff9f73.svg') }}"
+               alt="Duración del Contrato" onerror="this.style.display='none'">
+          <h4>Duración del Contrato</h4>
+          <p>Los contratos tienen una duración determinada, generalmente entre 12 y 60 meses, adaptados a las necesidades operativas y financieras de cada empresa.</p>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6 fade-up fade-up-delay-1">
+        <div class="cgm-caract-card">
+          <img src="{{ url_for('static', filename='images/leasing_operativo/propiedad.svg') }}"
+               alt="Propiedad" onerror="this.style.display='none'">
+          <h4>Propiedad</h4>
+          <p>El activo permanece en propiedad de CGM Rental durante toda la vigencia del contrato. Al finalizar puedes devolver, renovar o adquirir el equipo.</p>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6 fade-up fade-up-delay-1">
+        <div class="cgm-caract-card">
+          <img src="{{ url_for('static', filename='images/leasing_operativo/img_006_e074807060d8.svg') }}"
+               alt="Mantenimiento y Servicios" onerror="this.style.display='none'">
+          <h4>Mantenimiento y Servicios</h4>
+          <p>El contrato puede incluir servicios de mantenimiento preventivo y correctivo, seguros y soporte técnico especializado, todo en una sola cuota mensual.</p>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6 fade-up fade-up-delay-2">
+        <div class="cgm-caract-card">
+          <img src="{{ url_for('static', filename='images/leasing_operativo/contrato.svg') }}"
+               alt="Opciones al Final del Contrato" onerror="this.style.display='none'">
+          <h4>Opciones al Final del Contrato</h4>
+          <p>Al vencer el plazo tienes tres alternativas: devolver el equipo, renovar el contrato con maquinaria actualizada o ejercer la opción de compra a valor residual.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 3 — VENTAJAS (TIMELINE 3 CARDS)
+══════════════════════════════════════════ -->
+<section class="cgm-leasing-ventajas">
+  <div class="container">
+
+    <div class="text-center fade-up">
+      <h2 class="cgm-section-title">
+        Conoce las ventajas del
+        <span style="color:var(--cgm-lima)">Leasing Operativo</span>
+      </h2>
+      <div class="cgm-title-line mx-auto"></div>
+    </div>
+
+    <div class="cgm-ventajas-timeline fade-up">
+
+      <!-- Flexibilidad -->
+      <div class="cgm-ventaja-col">
+        <div class="cgm-ventaja-icon-circle">
+          <!-- ícono lupa / ajuste -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </div>
+        <div class="cgm-ventaja-box">
+          <h5>Flexibilidad</h5>
+          <p>Permite a las empresas ajustar su capacidad operativa rápidamente sin comprometerse a largo plazo.</p>
+        </div>
+      </div>
+
+      <!-- Conservación de Capital (activo / centro) -->
+      <div class="cgm-ventaja-col active">
+        <div class="cgm-ventaja-icon-circle">
+          <!-- ícono capas / stack -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+        </div>
+        <div class="cgm-ventaja-box">
+          <h5>Conservación de Capital</h5>
+          <p>No es necesario hacer un desembolso inicial significativo, lo que permite a las empresas conservar su capital para otras inversiones o necesidades operativas.</p>
+        </div>
+      </div>
+
+      <!-- Gestión del Activo -->
+      <div class="cgm-ventaja-col">
+        <div class="cgm-ventaja-icon-circle">
+          <!-- ícono maletín / gestión -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/>
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          </svg>
+        </div>
+        <div class="cgm-ventaja-box">
+          <h5>Gestión del Activo</h5>
+          <p>Permite a las empresas ajustar su capacidad operativa rápidamente sin comprometerse a largo plazo.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 4 — CASOS DE USO
+══════════════════════════════════════════ -->
+<section class="cgm-casos-uso">
+  <!-- Fondo imagen -->
+  <div class="cgm-casos-bg-img"
+       style="background-image:url('{{ url_for('static', filename='images/leasing_operativo/Por-que-elegir-Leasing-Operativo.png') }}')"></div>
+
+  <!-- Mitad superior: overlay verde + título -->
+  <div class="cgm-casos-top">
+    <h2>
+      Casos en los que una Empresa podría<br>
+      Optar por el Leasing Operativo
+    </h2>
+    <div class="cgm-title-line mx-auto" style="background:var(--cgm-lima);opacity:.7;"></div>
+  </div>
+
+  <!-- Mitad inferior: carousel + botón -->
+  <div class="cgm-casos-bottom">
+    <div class="container">
+      <div class="swiper cgm-uso-swiper pb-4 fade-up">
+        <div class="swiper-wrapper align-items-stretch">
+
+          <div class="swiper-slide" style="height:auto;">
+            <div class="cgm-uso-card">
+              <img src="{{ url_for('static', filename='images/leasing_operativo/img_007_89aa7297970c.svg') }}"
+                   alt="Necesidad Temporal" onerror="this.style.display='none'">
+              <h5>Necesidad Temporal</h5>
+              <p>Cuando una empresa necesita un activo por un período limitado y no tiene sentido adquirirlo de forma permanente.</p>
+            </div>
+          </div>
+
+          <div class="swiper-slide" style="height:auto;">
+            <div class="cgm-uso-card">
+              <img src="{{ url_for('static', filename='images/leasing_operativo/gestion_liquidez.svg') }}"
+                   alt="Gestión de Liquidez" onerror="this.style.display='none'">
+              <h5>Gestión de Liquidez</h5>
+              <p>Empresas que desean mantener su flujo de caja y evitar grandes desembolsos de capital en la adquisición de activos.</p>
+            </div>
+          </div>
+
+          <div class="swiper-slide" style="height:auto;">
+            <div class="cgm-uso-card">
+              <img src="{{ url_for('static', filename='images/leasing_operativo/img_008_2e5dc7718da0.svg') }}"
+                   alt="Proyectos Específicos" onerror="this.style.display='none'">
+              <h5>Proyectos Específicos</h5>
+              <p>Para proyectos breves o iniciativas especiales que requieren activos específicos temporalmente, sin necesidad de adquisición permanente.</p>
+            </div>
+          </div>
+
+          <div class="swiper-slide" style="height:auto;">
+            <div class="cgm-uso-card">
+              <img src="{{ url_for('static', filename='images/leasing_operativo/img_009_62d85329c0f9.svg') }}"
+                   alt="Optimización Fiscal" onerror="this.style.display='none'">
+              <h5>Optimización Fiscal</h5>
+              <p>Empresas que buscan optimizar sus impuestos mediante la deducción de los pagos de arrendamiento como gastos operativos deducibles.</p>
+            </div>
+          </div>
+
+        </div>
+        <div class="swiper-pagination mt-3"></div>
+      </div>
+
+      <!-- Botón CTA dentro de la sección -->
+      <div class="text-center mt-4 fade-up">
+        <a href="/{{ country_code }}/contacto/?tipo=Leasing"
+           class="cgm-btn cgm-btn-lima cgm-btn-lg">
+          SOLICITA TU COTIZACIÓN
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+new Swiper('.cgm-uso-swiper', {
+  loop: true,
+  autoplay: { delay: 2800, disableOnInteraction: false },
+  slidesPerView: 4,
+  spaceBetween: 24,
+  speed: 800,
+  pagination: { el: '.cgm-uso-swiper .swiper-pagination', clickable: true },
+  breakpoints: {
+    0:   { slidesPerView: 1 },
+    576: { slidesPerView: 2 },
+    992: { slidesPerView: 4 }
+  }
+});
+</script>
+{% endblock %}

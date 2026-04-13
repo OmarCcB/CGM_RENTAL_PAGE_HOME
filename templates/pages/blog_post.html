@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.titulo }} — CGM Rental{% endblock %}
+{% block meta_desc %}{{ post.extracto }}{% endblock %}
+{% block og_title %}{{ post.titulo }}{% endblock %}
+{% block og_desc %}{{ post.extracto }}{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ HERO ══════════ -->
+<section class="cgm-page-hero" style="height:300px;">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/' + post.imagen) }}')"></div>
+  <div class="cgm-page-hero-content px-3" style="max-width:800px;">
+    <span class="cgm-blog-cat cgm-cat-{{ post.categoria }} mb-3 d-inline-block">
+      {{ 'Artículos' if post.categoria == 'articulos' else 'Entrevistas' }}
+    </span>
+    <h1 style="font-size:clamp(20px,3vw,36px);">{{ post.titulo }}</h1>
+  </div>
+</section>
+
+<!-- ══════════ CONTENIDO ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+
+        <!-- Meta -->
+        <div class="d-flex align-items-center gap-3 mb-4 pb-3"
+             style="border-bottom:1px solid #eee;">
+          <div style="background:var(--cgm-gris);border-radius:50%;width:42px;height:42px;
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:18px;color:var(--cgm-verde);">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--cgm-negro);">CGM Rental</div>
+            <div style="font-size:12px;color:#999;">
+              <i class="bi bi-calendar3 me-1"></i>{{ post.fecha | replace('-', '/') }}
+            </div>
+          </div>
+          <span class="cgm-blog-cat cgm-cat-{{ post.categoria }} ms-auto">
+            {{ 'Artículos' if post.categoria == 'articulos' else 'Entrevistas' }}
+          </span>
+        </div>
+
+        <!-- Imagen destacada -->
+        <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
+             alt="{{ post.titulo }}"
+             class="img-fluid rounded-3 mb-4 w-100"
+             style="max-height:420px;object-fit:cover;"
+             onerror="this.style.display='none'">
+
+        <!-- Extracto -->
+        <p style="font-size:17px;font-weight:600;color:var(--cgm-negro);
+                  line-height:1.7;border-left:4px solid var(--cgm-lima);
+                  padding-left:16px;margin-bottom:28px;">
+          {{ post.extracto }}
+        </p>
+
+        <!-- Contenido -->
+        <div class="cgm-post-content" style="font-size:15px;line-height:1.9;color:var(--cgm-gris-txt);">
+          {{ post.contenido | safe }}
+        </div>
+
+        <!-- Video embed -->
+        {% if post.video_url %}
+        <div class="mt-5">
+          <h3 style="font-family:'CGM BOLD',sans-serif;font-style:italic;
+                     color:var(--cgm-verde);font-size:20px;margin-bottom:16px;">
+            <i class="bi bi-play-circle-fill me-2"></i>Video relacionado
+          </h3>
+          {% set video_id = post.video_url.split('v=')[-1].split('&')[0] if 'v=' in post.video_url else post.video_url.split('/')[-1] %}
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+            <iframe src="https://www.youtube.com/embed/{{ video_id }}"
+                    style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    title="{{ post.titulo }}"></iframe>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Compartir -->
+        <div class="mt-5 pt-4" style="border-top:1px solid #eee;">
+          <p style="font-size:13px;font-weight:700;color:var(--cgm-negro);margin-bottom:12px;">
+            COMPARTIR ESTE ARTÍCULO:
+          </p>
+          <div class="d-flex gap-3">
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url }}"
+               target="_blank" rel="noopener"
+               class="cgm-btn cgm-btn-verde" style="padding:8px 18px;font-size:12px;">
+              <i class="bi bi-linkedin me-1"></i>LinkedIn
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}"
+               target="_blank" rel="noopener"
+               class="cgm-btn" style="background:#1877f2;color:#fff;padding:8px 18px;font-size:12px;">
+              <i class="bi bi-facebook me-1"></i>Facebook
+            </a>
+            <a href="https://api.whatsapp.com/send?text={{ post.titulo|urlencode }}%20{{ request.url|urlencode }}"
+               target="_blank" rel="noopener"
+               class="cgm-btn" style="background:#25d366;color:#fff;padding:8px 18px;font-size:12px;">
+              <i class="bi bi-whatsapp me-1"></i>WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- Volver -->
+        <div class="mt-5">
+          <a href="/{{ country_code }}/novedades/" class="cgm-btn cgm-btn-outline-verde">
+            <i class="bi bi-arrow-left me-1"></i>Volver al Blog
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-12 col-lg-4 mt-5 mt-lg-0">
+        <div style="position:sticky;top:calc(var(--cgm-header-h) + 24px);">
+
+          <!-- CTA Cotizar -->
+          <div style="background:var(--cgm-verde);border-radius:10px;padding:28px;
+                      text-align:center;margin-bottom:24px;">
+            <div style="font-family:'CGM BOLD',sans-serif;font-size:18px;font-style:italic;
+                        color:#fff;margin-bottom:10px;">¿Necesitas maquinaria?</div>
+            <p style="font-size:13px;color:rgba(255,255,255,.8);margin-bottom:16px;">
+              Cotiza ahora y recibe una propuesta personalizada
+            </p>
+            <a href="/{{ country_code }}/contacto/"
+               class="cgm-btn cgm-btn-lima w-100 justify-content-center">
+              SOLICITAR COTIZACIÓN
+            </a>
+            <a href="{{ country.whatsapp_link }}" target="_blank" rel="noopener"
+               class="cgm-btn mt-2 w-100 justify-content-center"
+               style="background:#25d366;color:#fff;">
+              <i class="bi bi-whatsapp me-1"></i>WhatsApp
+            </a>
+          </div>
+
+          <!-- Categorías -->
+          <div class="cgm-sidebar">
+            <div class="cgm-sidebar-title">CATEGORÍAS</div>
+            <ul class="list-unstyled mb-0">
+              <li class="mb-2">
+                <a href="/{{ country_code }}/novedades/?cat=articulos"
+                   style="font-size:13px;color:var(--cgm-negro);display:flex;align-items:center;gap:8px;">
+                  <i class="bi bi-arrow-right-circle text-cgm-lima"></i>
+                  Artículos de Interés
+                </a>
+              </li>
+              <li>
+                <a href="/{{ country_code }}/novedades/?cat=entrevistas"
+                   style="font-size:13px;color:var(--cgm-negro);display:flex;align-items:center;gap:8px;">
+                  <i class="bi bi-arrow-right-circle text-cgm-lima"></i>
+                  Entrevistas
+                </a>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.cgm-post-content h2, .cgm-post-content h3 {
+  font-family: 'CGM BOLD', sans-serif;
+  font-style: italic;
+  color: var(--cgm-negro);
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+.cgm-post-content h3 { color: var(--cgm-verde); font-size: 19px; }
+.cgm-post-content p { margin-bottom: 16px; }
+.cgm-post-content ul, .cgm-post-content ol { margin-bottom: 16px; padding-left: 24px; }
+.cgm-post-content li { margin-bottom: 6px; }
+.cgm-post-content strong { color: var(--cgm-negro); }
+</style>
+{% endblock %}

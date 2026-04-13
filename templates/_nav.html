@@ -1,0 +1,217 @@
+<header class="cgm-header" id="cgmHeader">
+  <!-- Topbar -->
+  <div class="cgm-topbar">
+    <div class="container-fluid px-4">
+      <div class="d-flex align-items-center justify-content-between h-100">
+        <!-- Izquierda: teléfono + email -->
+        <div class="d-flex align-items-center gap-3">
+          <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-topbar-link">
+            <i class="bi bi-telephone-fill me-1"></i>{{ country.telefono }}
+          </a>
+          <span class="cgm-topbar-sep d-none d-md-inline">|</span>
+          <a href="mailto:{{ country.email }}" class="cgm-topbar-link d-none d-md-inline-flex">
+            <i class="bi bi-envelope-fill me-1"></i>{{ country.email }}
+          </a>
+        </div>
+
+        <!-- Centro: Portal Proveedores (solo Perú) -->
+        <div class="d-flex align-items-center h-100 cgm-topbar-center-fix">
+          {% if country.show_portal_proveedores %}
+          <a href="/{{ country_code }}/portalproveedores/">
+            <img src="{{ url_for('static', filename='images/btn-portal-proveedores.webp') }}"
+                 alt="Portal de Proveedores" height="22" style="width:auto;max-height:30px">
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- Derecha: redes sociales -->
+        <div class="d-flex align-items-center gap-2">
+          <a href="{{ country.facebook }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="Facebook">
+            <i class="fa-brands fa-facebook-f"></i>
+          </a>
+          <a href="{{ country.instagram }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="Instagram">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+          <a href="{{ country.linkedin }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="LinkedIn">
+            <i class="fa-brands fa-linkedin-in"></i>
+          </a>
+          <a href="{{ country.youtube }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="YouTube">
+            <i class="fa-brands fa-youtube"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra principal -->
+  <nav class="cgm-main-nav navbar navbar-expand-md">
+    <div class="container-fluid px-4">
+      <!-- Logo -->
+      <a class="navbar-brand cgm-logo" href="/{{ country_code }}/">
+        <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
+             alt="CGM Rental" height="20" style="width:auto;max-height:40px">
+      </a>
+
+      <!-- Hamburguesa -->
+      <button class="navbar-toggler cgm-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#cgmNav"
+              aria-controls="cgmNav" aria-expanded="false" aria-label="Abrir menú">
+        <span class="toggler-bar"></span>
+        <span class="toggler-bar"></span>
+        <span class="toggler-bar"></span>
+      </button>
+
+      <!-- Menú -->
+      <div class="collapse navbar-collapse" id="cgmNav">
+        <ul class="navbar-nav mx-auto gap-lg-1">
+
+          <!-- NOSOTROS -->
+          <li class="nav-item">
+            <a class="nav-link cgm-nav-link" href="/{{ country_code }}/nosotros/">NOSOTROS</a>
+          </li>
+
+          <!-- ALQUILER -->
+          <li class="nav-item dropdown cgm-dropdown">
+            <a class="nav-link cgm-nav-link dropdown-toggle"
+               href="/{{ country_code }}/categoria-producto/alquiler/" role="button">ALQUILER</a>
+            <ul class="dropdown-menu cgm-drop">
+              <!-- Construcción -->
+              <li class="dropdown-submenu">
+                <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/construccion/">
+                  Construcción <i class="bi bi-chevron-right float-end"></i>
+                </a>
+                <ul class="dropdown-menu cgm-drop cgm-sub-drop">
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/excavadora/">Excavadoras</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/cargador-frontal/">Cargadores Frontales</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/tractor-de-orugas/">Tractores de Orugas</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/rodillo-compactador/">Rodillos Compactadores</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/motoniveladora/">Motoniveladoras</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/retroexcavadora/">Retroexcavadoras</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/minicargador/">Minicargadores</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/camion-cisterna/">Camiones Cisterna</a></li>
+                  {% if country_code != 'arg' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/camion-grua/">Camiones Grúa</a></li>{% endif %}
+                  {% if country_code != 'arg' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/compresora/">Compresoras</a></li>{% endif %}
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/torre-de-iluminacion/">Torres de Iluminación</a></li>
+                  {% if country_code != 'arg' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/aditamentos/">Aditamentos</a></li>{% endif %}
+                </ul>
+              </li>
+
+              <!-- Minería (solo Perú) -->
+              {% if country.show_mineria %}
+              <li class="dropdown-submenu">
+                <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/mineria/">
+                  Minería <i class="bi bi-chevron-right float-end"></i>
+                </a>
+                <ul class="dropdown-menu cgm-drop cgm-sub-drop">
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/">Excavadoras</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Aditamento">Aditamentos</a></li>
+                </ul>
+              </li>
+              {% endif %}
+
+              <!-- Agrícola (solo Perú) -->
+              {% if country.show_agricola %}
+              <li class="dropdown-submenu">
+                <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/agricola/">
+                  Agrícola <i class="bi bi-chevron-right float-end"></i>
+                </a>
+                <ul class="dropdown-menu cgm-drop cgm-sub-drop">
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Especializados">Tractores Especializados/Fruteros</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Utilitarios">Tractores Utilitarios de 75 a 100 HP</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Grande">Tractores Grandes 150 HP a Más</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Mediano">Tractores Medianos de 100 a 150 HP</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Aditamento">Aditamentos</a></li>
+                </ul>
+              </li>
+              {% endif %}
+
+              <!-- Energía (solo Perú) -->
+              {% if country.show_energia %}
+              <li class="dropdown-submenu">
+                <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/energia/">
+                  Energía <i class="bi bi-chevron-right float-end"></i>
+                </a>
+                <ul class="dropdown-menu cgm-drop cgm-sub-drop">
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/energia/">Grupos Electrógenos</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/energia/?tipo=Aditamento">Aditamentos</a></li>
+                </ul>
+              </li>
+              {% endif %}
+
+              {% if country.show_leasing %}
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item cgm-drop-item fw-bold" href="/{{ country_code }}/leasing-operativo/">Leasing Operativo</a></li>
+              {% endif %}
+            </ul>
+          </li>
+
+          <!-- USADOS (solo Perú) -->
+          {% if country.show_usados %}
+          <li class="nav-item dropdown cgm-dropdown">
+            <a class="nav-link cgm-nav-link dropdown-toggle"
+               href="/{{ country_code }}/categoria-producto/usados/" role="button">USADOS</a>
+            <ul class="dropdown-menu cgm-drop">
+              <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/construccion/">Construcción</a></li>
+              <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/agricola/">Agrícola</a></li>
+              {% if country.show_energia %}
+              <li class="dropdown-submenu">
+                <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/usados/energia/">
+                  Energía <i class="bi bi-chevron-right float-end"></i>
+                </a>
+                <ul class="dropdown-menu cgm-drop cgm-sub-drop">
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/energia/?tipo=Generador">Grupos Electrógenos</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/energia/?tipo=Aditamento">Aditamentos</a></li>
+                </ul>
+              </li>
+              {% endif %}
+            </ul>
+          </li>
+          {% endif %}
+
+          <!-- REPUESTOS (deshabilitado) -->
+          <li class="nav-item">
+            <span class="nav-link cgm-nav-link cgm-disabled">REPUESTOS</span>
+          </li>
+
+          <!-- BLOG -->
+          <li class="nav-item">
+            <a class="nav-link cgm-nav-link" href="/{{ country_code }}/novedades/">BLOG</a>
+          </li>
+
+          <!-- CONTACTO -->
+          <li class="nav-item">
+            <a class="nav-link cgm-nav-link" href="/{{ country_code }}/contacto/">CONTACTO</a>
+          </li>
+
+        </ul>
+      </div><!-- /collapse -->
+
+      <!-- Carrito + selector de país: FUERA del collapse, dentro del container -->
+      <div class="d-flex align-items-center gap-3 ms-3">
+        <a href="/{{ country_code }}/carrito/" class="cgm-cart-btn" aria-label="Carrito">
+          <i class="bi bi-cart3"></i>
+          <span class="cgm-cart-badge" id="cartBadge">{{ cart_count }}</span>
+        </a>
+        <div class="dropdown cgm-country-sel">
+          <button class="cgm-country-btn" type="button" aria-expanded="false">
+            <img src="{{ url_for('static', filename='flags/' + country.bandera_svg) }}"
+                 alt="{{ country.nombre }}" width="20" height="14"
+                 onerror="this.style.display='none'">
+            <span>{{ country.nombre }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end cgm-drop">
+            {% for code, c in COUNTRIES.items() %}
+            <li>
+              <a class="dropdown-item cgm-drop-item {% if code == country_code %}active{% endif %}"
+                 href="/{{ code }}/">
+                {{ c.bandera }} {{ c.nombre }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+    </div><!-- /container-fluid -->
+  </nav>
+</header>

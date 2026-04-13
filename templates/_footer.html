@@ -1,0 +1,96 @@
+<footer class="cgm-footer">
+  <div class="container-fluid px-4 py-5">
+    <div class="row g-5">
+
+      <!-- Col 1: Logo + botones -->
+      <div class="col-12 col-sm-6 col-lg-2">
+        <a href="/{{ country_code }}/" class="d-inline-block mb-4">
+          <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
+               alt="CGM Rental" height="60" style="width:auto">
+        </a>
+        <div class="d-flex flex-column gap-2 ps-5">
+          <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
+                 alt="Bolsa de Trabajo" class="cgm-footer-btn-img">
+          </a>
+          <a href="/{{ country_code }}/canal-de-denuncias/">
+            <img src="{{ url_for('static', filename='images/footer/btn-canal-denuncias.webp') }}"
+                 alt="Canal de Denuncias" class="cgm-footer-btn-img">
+          </a>
+          {% if country.show_portal_proveedores %}
+          <a href="{{ country.operadores_url }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('static', filename='images/footer/btn-operadores.webp') }}"
+                 alt="Operadores Fuerza Perú" class="cgm-footer-btn-img">
+          </a>
+          <a href="{{ country.huella_carbono_url }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('static', filename='images/footer/btn-huella-carbono.webp') }}"
+                 alt="Certificado Huella Carbono" class="cgm-footer-btn-img">
+          </a>
+          {% endif %}
+          <a href="{{ country.libro_reclamaciones_url }}" target="_blank" rel="noopener">
+            <img src="{{ url_for('static', filename='images/footer/btn-libro-reclamaciones.webp') }}"
+                 alt="Libro de Reclamaciones" class="cgm-footer-btn-img">
+          </a>
+          {% if country.show_portal_proveedores %}
+          <a href="/{{ country_code }}/portalproveedores/">
+            <img src="{{ url_for('static', filename='images/footer/btn-portal-proveedores.webp') }}"
+                 alt="Portal de Proveedores" class="cgm-footer-btn-img">
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Col 2: Contáctanos -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <h5 class="cgm-footer-title">CONTÁCTANOS</h5>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Sede Principal:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-geo-alt-fill me-1 text-cgm-lima"></i>{{ country.direccion }}
+          </p>
+        </div>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Correo Electrónico:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-envelope-fill me-1 text-cgm-lima"></i>
+            <a href="mailto:{{ country.email }}" class="cgm-footer-link">{{ country.email }}</a>
+          </p>
+        </div>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Número Telefónico:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-telephone-fill me-1 text-cgm-lima"></i>
+            <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-footer-link">{{ country.telefono }}</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Col 3: Sucursales -->
+      <div class="col-12 col-lg-7">
+        <h5 class="cgm-footer-title">SUCURSALES</h5>
+        <div class="cgm-footer-suc-grid">
+          {% for s in country.sucursales %}
+          <div class="cgm-footer-suc-item">
+            <img src="{{ url_for('static', filename='images/footer/pin-ubicacion.webp') }}"
+                 alt="ubicación" class="cgm-footer-pin">
+            <div>
+              <div class="cgm-footer-suc-name">{{ s.nombre.split('(')[0].strip() }}</div>
+              <div class="cgm-footer-small">{{ s.direccion }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Franja inferior -->
+  <div class="cgm-footer-bottom">
+    <div class="container-fluid px-4">
+      <div class="d-flex flex-column flex-md-row align-items-center justify-content-center py-3 gap-2">
+        <span class="cgm-footer-copy">© CGM Rental | Todos los derechos reservados</span>
+      </div>
+    </div>
+  </div>
+</footer>

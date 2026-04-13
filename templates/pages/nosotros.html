@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Nosotros — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Conoce CGM Rental: más de 15 años de trayectoria en alquiler y venta de maquinaria pesada en {{ country.nombre }}.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ BANNER ══════════ -->
+<section class="cgm-page-hero">
+  <div class="cgm-page-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/nosotros/evolucion.png') }}');
+              background-size: contain;
+              background-repeat: no-repeat;
+              background-position: center;
+              background-color: #fff;"></div>
+
+</section>
+
+<!-- ══════════ 1. EVOLUCIÓN TIMELINE (imagen) ══════════ -->
+<section class="cgm-evolucion">
+  <img src="{{ url_for('static', filename='images/nosotros/evolucion-timeline.jpg') }}"
+       alt="Evolución CGM Rental" class="cgm-evolucion-img"
+       onerror="this.parentElement.style.display='none'">
+</section>
+
+<!-- ══════════ 2. NUESTRA HISTORIA ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Nuestra historia</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="row g-4 align-items-start">
+      <div class="col-12 col-lg-6 fade-up">
+        <div class="cgm-video-wrap">
+          <iframe src="https://www.youtube.com/embed/Dz-E6I-nd48"
+                  title="CGM Rental — Nuestra Historia"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6 fade-up fade-up-delay-2">
+        <div class="cgm-historia-card">
+          <div class="cgm-historia-card-header">NOSOTROS</div>
+          <div class="cgm-historia-card-body">
+            <p>Somos una empresa especializada en alquiler de maquinaria y venta de equipos usados.
+               Poseemos una flota amplia con marcas reconocidas en el mercado.</p>
+            <p>CGM Rental, empresa contratista, cuenta con las certificaciones de calidad ISO 9001,
+               de gestión ambiental ISO 14001, de salud ocupacional ISO 45001 y antisoborno ISO 37001.</p>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+              {% for badge in ['sig/iso-9001.svg','sig/iso-14001.svg','sig/iso-45001.svg','sig/iso-37001.svg'] %}
+              <img src="{{ url_for('static', filename='images/' + badge) }}"
+                   alt="ISO badge" style="height:58px;width:auto;"
+                   onerror="this.parentElement.classList.add('d-none')">
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3. POLÍTICA INTEGRADA ══════════ -->
+<section class="cgm-section bg-white pt-0">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Política integrada</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="cgm-politica-wrap fade-up">
+      <!-- Swiper fondo -->
+      <div class="swiper cgm-politica-swiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide cgm-politica-slide"
+               style="background-image:url('{{ url_for('static', filename='images/nosotros/politica-vision.jpg') }}')">
+          </div>
+          <div class="swiper-slide cgm-politica-slide"
+               style="background-image:url('{{ url_for('static', filename='images/nosotros/politica-mision.jpg') }}')">
+          </div>
+          <div class="swiper-slide cgm-politica-slide"
+               style="background-image:url('{{ url_for('static', filename='images/nosotros/politica-valores.jpg') }}')">
+          </div>
+          <div class="swiper-slide cgm-politica-slide"
+               style="background-image:url('{{ url_for('static', filename='images/nosotros/politica-doc.jpg') }}')">
+          </div>
+        </div>
+      </div>
+      <!-- 4 Cards -->
+      <div class="cgm-politica-cards">
+        <div class="cgm-politica-card cgm-politica-card-active" data-politica-idx="0">
+          <div class="cgm-politica-card-icon"><i class="bi bi-eye-fill"></i></div>
+          <div class="cgm-politica-card-name">VISIÓN</div>
+        </div>
+        <div class="cgm-politica-card" data-politica-idx="1">
+          <div class="cgm-politica-card-icon"><i class="bi bi-bullseye"></i></div>
+          <div class="cgm-politica-card-name">MISIÓN</div>
+        </div>
+        <div class="cgm-politica-card" data-politica-idx="2">
+          <div class="cgm-politica-card-icon"><i class="bi bi-stars"></i></div>
+          <div class="cgm-politica-card-name">VALORES</div>
+        </div>
+        <a href="/{{ country_code }}/politica-integrada/"
+           class="cgm-politica-card cgm-politica-card-cta" data-politica-idx="3">
+          <div class="cgm-politica-card-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+          <div class="cgm-politica-card-name">POLÍTICA INTEGRADA</div>
+          <div class="cgm-politica-card-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4. UBICANOS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Ubicanos</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <!-- Rectángulo dos colores -->
+    <div class="cgm-ubicanos-rect fade-up">
+      <div class="cgm-ubicanos-rect-label">OFICINA PRINCIPAL</div>
+      <div class="cgm-ubicanos-rect-info">
+        <div class="cgm-ubicanos-rect-city">{{ country.ciudad_principal | default('Lima') }}</div>
+        <div class="cgm-ubicanos-rect-addr">
+          <i class="bi bi-geo-alt-fill me-1"></i>{{ country.direccion }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if country.sucursales | length > 1 %}
+<!-- ══════════ 5. SUCURSALES + MAPA ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Sucursales</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+
+    {% set suc_map = {} %}
+    {% for s in country.sucursales %}
+      {% set _ = suc_map.update({s.nombre.split('(')[0].strip(): s.direccion}) %}
+    {% endfor %}
+
+    <div class="cgm-suc-mapa-layout fade-up">
+
+      <!-- Col izquierda: Piura, Trujillo, Ica -->
+      <div class="cgm-suc-col">
+        {% for img in ['suc-piura', 'suc-trujillo', 'suc-ica'] %}
+        <img src="{{ url_for('static', filename='images/nosotros/' + img + '.svg') }}"
+             alt="{{ img }}" class="cgm-suc-svg">
+        {% endfor %}
+      </div>
+
+      <!-- Mapa Centro -->
+      <div class="cgm-suc-mapa-centro">
+        <img src="{{ url_for('static', filename='images/nosotros/mapa-peru.svg') }}"
+             alt="Mapa Sucursales CGM Rental" class="cgm-suc-mapa-img">
+      </div>
+
+      <!-- Col derecha: Pucallpa, Cusco, Arequipa -->
+      <div class="cgm-suc-col">
+        {% for img in ['suc-pucallpa', 'suc-cusco', 'suc-arequipa'] %}
+        <img src="{{ url_for('static', filename='images/nosotros/' + img + '.svg') }}"
+             alt="{{ img }}" class="cgm-suc-svg">
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════ 5. SOCIOS ESTRATÉGICOS ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Socios Estratégicos</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="swiper cgm-socios-swiper fade-up">
+      <div class="swiper-wrapper align-items-center">
+        {% for p in ['stracon.svg','ajani.svg','cosapi.svg','cumbre.svg','montaengil.svg','mur.svg','san-martin.svg'] %}
+        <div class="swiper-slide">
+          <div class="cgm-partner-logo">
+            <img src="{{ url_for('static', filename='images/nosotros/' + p) }}"
+                 alt="{{ p.replace('.svg','') }}" loading="lazy"
+                 onerror="this.parentElement.style.display='none'">
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 6. TESTIMONIOS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Testimonios</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="swiper cgm-testimonios-swiper position-relative fade-up">
+      <div class="swiper-wrapper">
+
+        {% set testimonios = [
+          {'avatar':'nosotros/testimonio-1.webp', 'stars':5,
+           'texto':'Llevamos 7 años con CGM Rental comprando equipos de segunda mano y estamos muy satisfechos, siempre atentos a nuestras necesidades.',
+           'nombre':'Roberto Nelmigto'},
+          {'avatar':'nosotros/testimonio-2.webp', 'stars':5,
+           'texto':'Somos una empresa innovadora en el mercado agrícola, maximizando el rendimiento con los equipos de CGM Rental. Excelente servicio.',
+           'nombre':'Conceptos Galería'},
+          {'avatar':'nosotros/testimonio-3.webp', 'stars':4,
+           'texto':'CGM Rental ha sido nuestro socio estratégico durante los últimos años, brindándonos confiabilidad suprema en cada proyecto.',
+           'nombre':'Carlos Investigamos'},
+          {'avatar':'nosotros/testimonio-4.webp', 'stars':5,
+           'texto':'La atención al cliente es excepcional. Siempre disponibles y con equipos en perfectas condiciones para nuestras obras.',
+           'nombre':'María Fernández'},
+          {'avatar':'nosotros/testimonio-5.webp', 'stars':5,
+           'texto':'Recomendamos ampliamente a CGM Rental por su profesionalismo y la calidad de su flota. Sin duda el mejor aliado del sector.',
+           'nombre':'Grupo Constructor SAC'},
+        ] %}
+
+        {% for t in testimonios %}
+        <div class="swiper-slide">
+          <div class="cgm-testimonio-card">
+            <img src="{{ url_for('static', filename='images/' + t.avatar) }}"
+                 alt="{{ t.nombre }}" class="cgm-testimonio-avatar"
+                 onerror="this.style.background='var(--cgm-gris)';this.src=''">
+            <div class="cgm-testimonio-stars">
+              {% for i in range(t.stars) %}★{% endfor %}{% for i in range(5 - t.stars) %}☆{% endfor %}
+            </div>
+            <p class="cgm-testimonio-texto">{{ t.texto }}</p>
+            <a href="#" class="cgm-testimonio-link">Leer más</a>
+            <div class="cgm-testimonio-nombre">{{ t.nombre }}</div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+      <div class="swiper-button-prev cgm-test-prev"></div>
+      <div class="swiper-button-next cgm-test-next"></div>
+      <div class="swiper-pagination cgm-test-pag mt-4"></div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Política Integrada ──
+const politicaSwiper = new Swiper('.cgm-politica-swiper', {
+  loop: true,
+  autoplay: { delay: 3500, disableOnInteraction: false },
+  effect: 'fade',
+  fadeEffect: { crossFade: true },
+  speed: 800,
+  on: {
+    slideChange: function () {
+      const idx = this.realIndex;
+      document.querySelectorAll('.cgm-politica-card').forEach((c, i) => {
+        c.classList.toggle('cgm-politica-card-active', i === idx);
+      });
+    }
+  }
+});
+
+// Click en card → cambia slide
+document.querySelectorAll('.cgm-politica-card').forEach((card, i) => {
+  card.addEventListener('click', function (e) {
+    if (this.tagName === 'A') return;
+    e.preventDefault();
+    politicaSwiper.slideToLoop(i);
+  });
+});
+
+// ── Socios Estratégicos ──
+new Swiper('.cgm-socios-swiper', {
+  loop: true,
+  speed: 1200,
+  autoplay: { delay: 1800, disableOnInteraction: false },
+  slidesPerView: 2,
+  spaceBetween: 32,
+  breakpoints: {
+    480: { slidesPerView: 3, spaceBetween: 32 },
+    768: { slidesPerView: 4, spaceBetween: 40 },
+    992: { slidesPerView: 5, spaceBetween: 48 }
+  }
+});
+
+// ── Testimonios ──
+new Swiper('.cgm-testimonios-swiper', {
+  loop: true,
+  autoplay: { delay: 4500, disableOnInteraction: false },
+  slidesPerView: 1,
+  spaceBetween: 28,
+  pagination: { el: '.cgm-test-pag', clickable: true },
+  navigation: { prevEl: '.cgm-test-prev', nextEl: '.cgm-test-next' },
+  breakpoints: {
+    768: { slidesPerView: 2 },
+    992: { slidesPerView: 3 }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}CGM Rental — Alquiler de Maquinaria Pesada | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Alquiler de maquinaria pesada para construcción, minería, agricultura y energía en {{ country.nombre }}. Flota moderna con disponibilidad garantizada.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ 1. HERO ══════════ -->
+<section class="cgm-hero" aria-label="Hero principal">
+  <div class="cgm-hero-bg"
+       style="background-image:url('{{ url_for('static', filename='images/banners/hero-principal.png') }}')"></div>
+</section>
+
+<!-- ══════════ 2. BARRA DE BÚSQUEDA ══════════ -->
+<section class="cgm-search-bar">
+  <div class="container">
+    <p class="cgm-search-title">Alquila tu próxima <span>maquinaria</span></p>
+    <div class="cgm-search-form">
+      <div class="cgm-search-field">
+        <label class="cgm-search-label">Unidades de Negocio</label>
+        <select id="searchUnidad" class="cgm-search-select" onchange="actualizarCategorias()">
+          <option value="">Seleccione</option>
+          <option value="construccion">Construcción</option>
+          {% if country.show_mineria %}<option value="mineria">Minería</option>{% endif %}
+          {% if country.show_agricola %}<option value="agricola">Agrícola</option>{% endif %}
+          {% if country.show_energia %}<option value="energia">Energía</option>{% endif %}
+          {% if country.show_usados %}<option value="usados">Usados</option>{% endif %}
+          {% if country.show_leasing %}<option value="leasing">Leasing Operativo</option>{% endif %}
+        </select>
+      </div>
+      <div class="cgm-search-field">
+        <label class="cgm-search-label">Categoría</label>
+        <select id="searchCategoria" class="cgm-search-select">
+          <option value="">Seleccione</option>
+        </select>
+      </div>
+      <div class="cgm-search-btns">
+        <button class="cgm-btn cgm-btn-lima" onclick="buscarEquipo()">BUSCAR</button>
+        <button class="cgm-btn cgm-btn-lima" onclick="limpiarBusqueda()">LIMPIAR</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3. UNIDADES DE NEGOCIO ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="cgm-section-title fade-up">Unidades de Negocio</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="cgm-unidades-grid fade-up fade-up-delay-1">
+
+      <!-- Construcción -->
+      <a href="/{{ country_code }}/categoria-producto/alquiler/construccion/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/construccion.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">CONSTRUCCIÓN</span>
+      </a>
+
+      <!-- Minería -->
+      {% if country.show_mineria %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/mineria/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">MINERÍA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">MINERÍA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+      <!-- Agrícola -->
+      {% if country.show_agricola %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/agricola/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">AGRÍCOLA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">AGRÍCOLA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+      <!-- Energía -->
+      {% if country.show_energia %}
+      <a href="/{{ country_code }}/categoria-producto/alquiler/energia/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">ENERGÍA</span>
+      </a>
+      {% else %}
+      <div class="cgm-unidad-card cgm-unidad-disabled"
+           style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+        <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
+        <span class="cgm-unidad-label">ENERGÍA</span>
+        <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
+      </div>
+      {% endif %}
+
+      <!-- Usados -->
+      {% if country.show_usados %}
+      <a href="/{{ country_code }}/categoria-producto/usados/" class="cgm-unidad-card"
+         style="background-image:url('{{ url_for('static', filename='images/banners/usados.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">USADOS</span>
+      </a>
+      {% endif %}
+
+      <!-- Capacita -->
+      <a href="/{{ country_code }}/nosotros/" class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
+         style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">CAPACITA</span>
+      </a>
+
+      <!-- Leasing Operativo (ancho completo) -->
+      {% if country.show_leasing %}
+      <a href="/{{ country_code }}/leasing-operativo/" class="cgm-unidad-card cgm-unidad-full"
+         style="background-image:url('{{ url_for('static', filename='images/banners/leasing-operativo.jpg') }}')">
+        <div class="cgm-unidad-overlay"></div>
+        <span class="cgm-unidad-label">LEASING OPERATIVO</span>
+      </a>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4. NOSOTROS ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="cgm-section-title fade-up">Nosotros</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="cgm-nosotros-wrap fade-up fade-up-delay-1">
+      <div class="swiper cgm-nosotros-swiper">
+        <div class="swiper-wrapper">
+
+          {% for img in ['nosotros/nosotros.png', 'nosotros/equipo.png', 'nosotros/evolucion.png'] %}
+          <div class="swiper-slide">
+            <div class="cgm-nosotros-slide"
+                 style="background-image:url('{{ url_for('static', filename='images/' + img) }}')">
+              <div class="cgm-nosotros-dark"></div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+        <div class="swiper-pagination cgm-nosotros-dots"></div>
+      </div>
+      <div class="text-center mt-4">
+        <a href="/{{ country_code }}/nosotros/" class="cgm-btn cgm-btn-verde">
+          CONOCER MÁS <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if country.show_portal_proveedores %}
+<!-- ══════════ 5. SISTEMA INTEGRADO DE GESTIÓN – SIG ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Sistema Integrado de Gestión – SIG</h2>
+      <div class="cgm-title-line mx-auto fade-up"></div>
+    </div>
+    <div class="cgm-sig-grid fade-up">
+      {% for badge in [
+        ('sig/iso-9001.svg',  'ISO 9001 — Calidad',    '9001'),
+        ('sig/iso-14001.svg', 'ISO 14001 — Ambiental', '14001'),
+        ('sig/iso-45001.svg', 'ISO 45001 — Seguridad', '45001'),
+        ('sig/iso-37001.svg', 'ISO 37001 — Antisoborno','37001')
+      ] %}
+      <a href="/{{ country_code }}/certificaciones/iso-{{ badge[2] }}/" class="cgm-sig-link">
+        <img src="{{ url_for('static', filename='images/' + badge[0]) }}"
+             alt="{{ badge[1] }}" class="cgm-sig-badge">
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ══════════ 6. GRUPO IPESA ══════════ -->
+<section class="cgm-section-sm bg-white">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="cgm-ipesa-title fade-up">GRUPO IPESA</h2>
+    </div>
+    <div class="row g-5 align-items-center justify-content-center">
+      <div class="col-auto fade-up fade-up-delay-1">
+        <a href="https://www.ipesa.com.pe/" target="_blank" rel="noopener">
+          <img src="{{ url_for('static', filename='images/partners/ipesa.webp') }}"
+               alt="IPESA" class="cgm-ipesa-logo">
+        </a>
+      </div>
+      <div class="col-auto fade-up fade-up-delay-2">
+        <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
+             alt="CGM Rental" class="cgm-ipesa-logo">
+      </div>
+      <div class="col-auto fade-up fade-up-delay-3">
+        <a href="https://www.facebook.com/ItaltracSelvaOficial/" target="_blank" rel="noopener">
+          <img src="{{ url_for('static', filename='images/partners/ital-trac.webp') }}"
+               alt="ITAL TRAC" class="cgm-ipesa-logo">
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 7. BLOG Y MÁS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="text-center mb-2">
+      <h2 class="cgm-section-title fade-up">
+        Blog y <span style="color:var(--cgm-lima)">más</span>
+      </h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+
+    <div class="row g-4 mt-2">
+      {% for post in posts[:3] %}
+      <div class="col-12 col-md-4 fade-up fade-up-delay-{{ loop.index }}">
+        <div class="cgm-blog-card h-100">
+          <div class="cgm-blog-img-wrap">
+            <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
+                 alt="{{ post.titulo }}" class="cgm-blog-img" loading="lazy"
+                 onerror="this.src=''; this.style.background='#ddd'">
+            <span class="cgm-blog-date-badge">
+              {{ post.fecha[8:10] }}<br><small>{{ post.fecha[5:7] }}/{{ post.fecha[:4] }}</small>
+            </span>
+          </div>
+          <div class="cgm-blog-body">
+            <span class="cgm-blog-cat cgm-cat-{{ post.categoria }}">
+              {{ 'Artículos' if post.categoria == 'articulos' else 'Entrevistas' }}
+            </span>
+            <div class="cgm-blog-title">{{ post.titulo }}</div>
+            <div class="cgm-blog-excerpt">{{ post.extracto }}</div>
+            <a href="/{{ country_code }}/novedades/{{ post.slug }}/" class="cgm-blog-read mt-auto">
+              LEER MÁS <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted">
+        <p>Próximamente nuevos artículos.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-5 fade-up">
+      <a href="/{{ country_code }}/novedades/" class="cgm-btn cgm-btn-verde">
+        VER TODAS LAS NOVEDADES <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Hero Swiper ──────────────────────────────────────────────
+new Swiper('.cgm-hero-swiper', {
+  loop: true,
+  effect: 'fade',
+  fadeEffect: { crossFade: true },
+  autoplay: { delay: 5000, disableOnInteraction: false },
+  pagination: { el: '.cgm-hero-swiper .swiper-pagination', clickable: true },
+  navigation: {
+    prevEl: '.cgm-hero-swiper .swiper-button-prev',
+    nextEl: '.cgm-hero-swiper .swiper-button-next'
+  }
+});
+
+// ── Nosotros Swiper ──────────────────────────────────────────
+new Swiper('.cgm-nosotros-swiper', {
+  loop: true,
+  autoplay: { delay: 4500, disableOnInteraction: false },
+  pagination: { el: '.cgm-nosotros-dots', clickable: true }
+});
+
+// ── Búsqueda de Equipos ──────────────────────────────────────
+const catOpciones = {
+  'construccion': [
+    {v: 'excavadora',            l: 'Excavadora'},
+    {v: 'cargador-frontal',      l: 'Cargador Frontal'},
+    {v: 'tractor-de-orugas',     l: 'Tractor de Orugas'},
+    {v: 'rodillo-compactador',   l: 'Rodillo Compactador'},
+    {v: 'motoniveladora',        l: 'Motoniveladora'},
+    {v: 'retroexcavadora',       l: 'Retroexcavadora'},
+    {v: 'minicargador',          l: 'Minicargador'},
+    {v: 'camion-cisterna',       l: 'Camión Cisterna'},
+    {% if country_code != 'arg' %}{v: 'camion-grua',           l: 'Camión Grúa'},{% endif %}
+    {% if country_code != 'arg' %}{v: 'compresora',            l: 'Compresora'},{% endif %}
+    {v: 'torre-de-iluminacion',  l: 'Torre de Iluminación'},
+    {% if country_code != 'arg' %}{v: 'aditamentos',           l: 'Aditamentos'},{% endif %}
+  ],
+  'mineria':  [],
+  'agricola': [],
+  'energia':  [],
+  'usados': [
+    {v: 'construccion', l: 'Construcción'},
+    {v: 'agricola',     l: 'Agrícola'},
+    {v: 'energia',      l: 'Energía'},
+  ],
+  'leasing': [],
+};
+
+const urlBase = {
+  'construccion': '/{{ country_code }}/categoria-producto/alquiler/construccion/',
+  'mineria':      '/{{ country_code }}/categoria-producto/alquiler/mineria/',
+  'agricola':     '/{{ country_code }}/categoria-producto/alquiler/agricola/',
+  'energia':      '/{{ country_code }}/categoria-producto/alquiler/energia/',
+  'usados':       '/{{ country_code }}/categoria-producto/usados/',
+  'leasing':      '/{{ country_code }}/leasing-operativo/',
+};
+
+function actualizarCategorias() {
+  const unidad = document.getElementById('searchUnidad').value;
+  const sel = document.getElementById('searchCategoria');
+  sel.innerHTML = '<option value="">Seleccione</option>';
+  (catOpciones[unidad] || []).forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.v;
+    o.textContent = opt.l;
+    sel.appendChild(o);
+  });
+}
+
+function buscarEquipo() {
+  const unidad = document.getElementById('searchUnidad').value;
+  const cat    = document.getElementById('searchCategoria').value;
+  if (!unidad) return;
+  let url = urlBase[unidad] || '/categoria-producto/alquiler/';
+  if (cat && unidad === 'construccion') url = `/categoria-producto/alquiler/construccion/${cat}/`;
+  if (cat && unidad === 'usados')       url = `/categoria-producto/usados/${cat}/`;
+  window.location.href = url;
+}
+
+function limpiarBusqueda() {
+  document.getElementById('searchUnidad').value = '';
+  document.getElementById('searchCategoria').innerHTML = '<option value="">Seleccione</option>';
+}
+</script>
+{% endblock %}

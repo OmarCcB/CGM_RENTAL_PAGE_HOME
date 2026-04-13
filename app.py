@@ -1,1552 +1,905 @@
-#!/usr/bin/env python3
-"""
-CGM Rental - Servidor Flask
-Sirve el sitio cgmrental.com con filtrado dinámico de productos por categoría.
-"""
 import os
 import json
-import re
 import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import sqlite3
 from datetime import datetime
-from dotenv import load_dotenv
-from flask import Flask, abort, request, send_from_directory, make_response, redirect, jsonify, Response
-import requests as req_lib
-from flask_compress import Compress
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-# ── Cargar variables de entorno ──
+from flask import (Flask, render_template, redirect, url_for, request,
+                   session, jsonify, abort, g)
+from flask_compress import Compress
+from dotenv import load_dotenv
+
+from countries import COUNTRIES, DEFAULT_COUNTRY
+from database import get_conn, init_db
+
 load_dotenv()
 
-# ── Configuración ──
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-
-app = Flask(__name__, static_folder=None)
-
-# ── Compresión Gzip/Brotli automática ──
-app.config["COMPRESS_REGISTER"] = True
-app.config["COMPRESS_LEVEL"] = 6          # balance velocidad/compresión
-app.config["COMPRESS_MIN_SIZE"] = 1000    # comprimir respuestas > 1 KB
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "cgm-dev-secret")
 Compress(app)
 
-# ── Cargar datos ──
-def _cargar_productos():
-    path = os.path.join(BASE_DIR, "products.json")
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-PRODUCTOS = _cargar_productos()
-
-# CSS fix: Divi JS no corre bien en local, el header queda con gap.
-# Usamos sticky en vez de fixed para evitar problemas de ancho.
-_HEADER_FIX = """<style>
-/* Fix: header fixed en todo el ancho - inmune a overflow:hidden/scroll de ancestros
-   (position:sticky falla cuando Divi animation JS pone overflow-y:hidden en
-   #page-container y overflow-x:hidden en body, como ocurre en la pagina nosotros) */
-.et-l.et-l--header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    z-index: 99999 !important;
-}
-#page-container {
-    padding-top: 0 !important;
-}
-/* Fix: desactivar el position:fixed que Divi JS pone en section_1 (barra blanca)
-   de forma independiente; el header completo ya es fixed, no necesitamos que
-   una seccion interna tambien lo sea (causaria doble fixed y romperia el layout). */
-.et_pb_section_1_tb_header.et_pb_sticky {
-    position: static !important;
-    top: auto !important;
-}
-.et_pb_section_1_tb_header.et_pb_sticky_placeholder {
-    display: none !important;
+# ── Categorías de productos ────────────────────────────────────────────────────
+CATEGORIAS = {
+    "alquiler":                                  ("alquiler", None,              None,                    "Alquiler"),
+    "alquiler/construccion":                     ("alquiler", "Construcción",    None,                    "Construcción"),
+    "alquiler/construccion/excavadora":          ("alquiler", "Construcción",    "Excavadora",            "Excavadoras"),
+    "alquiler/construccion/cargador-frontal":    ("alquiler", "Construcción",    "Cargador Frontal",      "Cargadores Frontales"),
+    "alquiler/construccion/tractor-de-orugas":   ("alquiler", "Construcción",    "Tractor de Orugas",     "Tractores de Orugas"),
+    "alquiler/construccion/rodillo-compactador": ("alquiler", "Construcción",    "Rodillo Compactador",   "Rodillos Compactadores"),
+    "alquiler/construccion/motoniveladora":      ("alquiler", "Construcción",    "Motoniveladora",        "Motoniveladoras"),
+    "alquiler/construccion/retroexcavadora":     ("alquiler", "Construcción",    "Retroexcavadora",       "Retroexcavadoras"),
+    "alquiler/construccion/minicargador":        ("alquiler", "Construcción",    "Minicargador",          "Minicargadores"),
+    "alquiler/construccion/camion-cisterna":     ("alquiler", "Construcción",    "Camión Cisterna",       "Camiones Cisterna"),
+    "alquiler/construccion/camion-grua":         ("alquiler", "Construcción",    "Camión Grúa",           "Camiones Grúa"),
+    "alquiler/construccion/compresora":          ("alquiler", "Construcción",    "Compresora",            "Compresoras"),
+    "alquiler/construccion/torre-de-iluminacion":("alquiler", "Construcción",    "Torre de Iluminación",  "Torres de Iluminación"),
+    "alquiler/construccion/aditamentos":         ("alquiler", "Construcción",    "Aditamento",            "Aditamentos"),
+    "alquiler/mineria":                          ("alquiler", "Mediana Minería", None,                    "Minería"),
+    "alquiler/agricola":                         ("alquiler", "Agrícola",        None,                    "Agrícola"),
+    "alquiler/energia":                          ("alquiler", "Energía",         None,                    "Energía"),
+    "usados":                                    ("usados",   None,              None,                    "Equipos Usados"),
+    "usados/construccion":                       ("usados",   "Construcción",    None,                    "Usados Construcción"),
+    "usados/agricola":                           ("usados",   "Agrícola",        None,                    "Usados Agrícola"),
+    "usados/energia":                            ("usados",   "Energía",         None,                    "Usados Energía"),
 }
 
-/* ── Filtros: toggle en pantallas < 981px ── */
-@media (max-width: 980px) {
-    /* Columna de filtros: colapsada por defecto, ocupa ancho completo */
-    .et_pb_column_1_tb_body {
-        width: 100% !important;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.35s ease;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    /* Cuando está abierto */
-    .et_pb_column_1_tb_body.cgm-filtros-visible {
-        max-height: 1200px;
-        padding: 16px 0 !important;
-    }
-    /* Columna de productos ocupa el 100% siempre */
-    .et_pb_column_2_tb_body {
-        width: 100% !important;
-    }
-    /* Botón toggle */
-    #cgm-toggle-filtros {
-        display: flex !important;
-        align-items: center;
-        gap: 8px;
-        background: #02534c;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 10px 20px;
-        font-family: 'CGM BOLD', sans-serif;
-        font-size: 15px;
-        cursor: pointer;
-        margin-bottom: 12px;
-        width: fit-content;
-    }
-    #cgm-toggle-filtros .cgm-arrow {
-        font-size: 11px;
-        display: inline-block;
-        transition: transform 0.25s;
-    }
-    #cgm-toggle-filtros.abierto .cgm-arrow {
-        transform: rotate(-180deg);
-    }
-}
-@media (min-width: 981px) {
-    #cgm-toggle-filtros { display: none !important; }
-    .et_pb_column_1_tb_body { max-height: none !important; overflow: visible !important; }
-}
-</style>
-<script>
-(function(){
-    document.addEventListener('DOMContentLoaded', function(){
-        /* ── Filtros toggle ── */
-        var col = document.querySelector('.et_pb_column_1_tb_body');
-        if (col) {
-            var btn = document.createElement('button');
-            btn.id = 'cgm-toggle-filtros';
-            btn.innerHTML = '<span class="cgm-arrow">&#9660;</span> Filtrar';
-            btn.addEventListener('click', function(){
-                col.classList.toggle('cgm-filtros-visible');
-                btn.classList.toggle('abierto');
-            });
-            col.parentNode.insertBefore(btn, col);
-        }
-
-        /* ── Fix: forzar position:fixed en el header usando inline !important
-              (maxima prioridad CSS - supera CUALQUIER regla de hoja de estilos,
-              incluido el ".et-l--header{position:relative}" de BerocketCommerce
-              que esta en el <head> de nosotros.html y otras paginas).
-              Un MutationObserver lo re-aplica si algun JS lo elimina. ── */
-        var header = document.querySelector('.et-l.et-l--header');
-        if (header) {
-            var forceHeaderFixed = function() {
-                header.style.setProperty('position', 'fixed', 'important');
-                header.style.setProperty('top',      '0',     'important');
-                header.style.setProperty('left',     '0',     'important');
-                header.style.setProperty('right',    '0',     'important');
-                header.style.setProperty('width',    '100%',  'important');
-                header.style.setProperty('z-index',  '99999', 'important');
-            };
-            forceHeaderFixed();
-            new MutationObserver(forceHeaderFixed).observe(header, {
-                attributes: true, attributeFilter: ['style']
-            });
-        }
-
-        /* ── Fix: compensar el espacio que ocupa el header fixed.
-              Medimos la altura real del header y se la damos como padding-top
-              a #et-main-area para que el contenido no quede tapado.
-              Tambien lo re-calculamos al cargar imagenes (window.load) y al
-              cambiar el tamaño de ventana (responsive / rotacion). ── */
-        var mainArea = document.getElementById('et-main-area');
-        if (header && mainArea) {
-            var applyHeaderPadding = function() {
-                mainArea.style.paddingTop = header.offsetHeight + 'px';
-            };
-            applyHeaderPadding();
-            window.addEventListener('load',   applyHeaderPadding);
-            window.addEventListener('resize', applyHeaderPadding);
-        }
-
-        /* ── Fix: Divi JS pone position:fixed !important inline en la barra blanca
-              (section_1). Como el header completo ya es fixed, si section_1 tambien
-              es fixed queda fuera del header y tapa la barra verde. Lo quitamos. ── */
-        var sec1 = document.querySelector('.et_pb_section_1_tb_header');
-        if (sec1) {
-            var fixStickyInline = function() {
-                if (sec1.style.getPropertyValue('position') === 'fixed') {
-                    sec1.style.removeProperty('position');
-                    sec1.style.removeProperty('top');
-                    sec1.style.removeProperty('left');
-                    sec1.style.removeProperty('width');
-                    sec1.style.removeProperty('z-index');
-                }
-            };
-            fixStickyInline();
-            new MutationObserver(fixStickyInline).observe(sec1, {attributes:true, attributeFilter:['style']});
-        }
-
-        /* ── Fix: icono hamburguesa invertido. DIPI chequea el estado DESPUES
-              de que Divi ya lo cambio, asi que is-active queda al reves.
-              Observamos .mobile_nav y sincronizamos el icono. ── */
-        var mobileNav = document.querySelector('.mobile_nav');
-        var hamburger = document.querySelector('.dipi_hamburger');
-        if (mobileNav && hamburger) {
-            new MutationObserver(function() {
-                var isOpen = mobileNav.classList.contains('opened');
-                hamburger.classList.toggle('is-active', isOpen);
-            }).observe(mobileNav, {attributes:true, attributeFilter:['class']});
-        }
-    });
-})();
-</script>
-</head>"""
-
-def _fix_nav_links(html):
-    """Corrige los hrefs relativos del menú de navegación a rutas absolutas."""
-    NAV_FIXES = [
-        # Alquiler - sub-sub-categorías (más específicos primero)
-        ('href="construccion-alquiler/excavadora/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/excavadora/"'),
-        ('href="construccion-alquiler/cargador-frontal/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/cargador-frontal/"'),
-        ('href="construccion-alquiler/tractor-de-orugas/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/tractor-de-orugas/"'),
-        ('href="construccion-alquiler/rodillo-compactador/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/rodillo-compactador/"'),
-        ('href="construccion-alquiler/motoniveladora/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/motoniveladora/"'),
-        ('href="construccion-alquiler/retroexcavadora/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/retroexcavadora/"'),
-        ('href="construccion-alquiler/minicargador/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/minicargador/"'),
-        ('href="construccion-alquiler/camion-cisterna/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/camion-cisterna/"'),
-        ('href="construccion-alquiler/compresora/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/compresora/"'),
-        ('href="construccion-alquiler/torre-de-iluminacion-construccion-alquiler/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/torre-de-iluminacion-construccion-alquiler/"'),
-        ('href="construccion-alquiler/aditamentos/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/aditamentos/"'),
-        # Alquiler - sub-categorías
-        ('href="construccion/index.html"',
-         'href="/categoria-producto/alquiler/construccion/"'),
-        ('href="mediana-mineria/index.html"',
-         'href="/categoria-producto/alquiler/mediana-mineria/"'),
-        ('href="energia/index.html"',
-         'href="/categoria-producto/alquiler/energia/"'),
-        # Energía > Aditamentos (ruta incorrecta)
-        ('href="/energia/construccion-alquiler/aditamentos/index.html"',
-         'href="/categoria-producto/alquiler/construccion-alquiler/aditamentos/"'),
-    ]
-    for old, new in NAV_FIXES:
-        html = html.replace(old, new)
-
-    # Fix sub-sub-categorías agrícolas (todas usan agricola/index.html)
-    # Reemplazar por contexto de texto del link
-    AGRICOLA_SUBS = [
-        ("Tractores especializados", "Tractor Especializados"),
-        ("Tractores Utilitarios", "Tractor Utilitarios"),
-        ("Tractores grandes", "Tractor Grande"),
-        ("Tractores medianos", "Tractor Mediano"),
-    ]
-    for text_match, maquinaria in AGRICOLA_SUBS:
-        html = re.sub(
-            rf'(<a\s+href=")agricola/index\.html("[^>]*>(?:<span>)?\s*{text_match})',
-            rf'\g<1>/categoria-producto/alquiler/agricola/?maquinaria_={maquinaria}\g<2>',
-            html
-        )
-    # Agrícola > Aditamentos (= Pulverizadora)
-    html = re.sub(
-        r'(<a\s+href=")agricola/index\.html("[^>]*>(?:<span>)?\s*Aditamentos)',
-        r'\g<1>/categoria-producto/alquiler/agricola/?maquinaria_=Pulverizadora\g<2>',
-        html
-    )
-    # Agrícola genérico (el que quede)
-    html = html.replace('href="agricola/index.html"',
-                         'href="/categoria-producto/alquiler/agricola/"')
-
-    # Fix sub-sub-categorías de minería
-    html = re.sub(
-        r'(<a\s+href=")mediana-mineria/index\.html("[^>]*>(?:<span>)?\s*Excavadoras)',
-        r'\g<1>/categoria-producto/alquiler/mediana-mineria/?maquinaria_=Excavadora\g<2>',
-        html
-    )
-
-    # Fix "Alquiler" y "Camiones grúa" que usan href="index.html" genérico
-    html = re.sub(
-        r'(<a\s+href=")index\.html("[^>]*>(?:<span>)?\s*Alquiler)',
-        r'\g<1>/categoria-producto/alquiler/\g<2>',
-        html
-    )
-    html = re.sub(
-        r'(<a\s+href=")index\.html("[^>]*>(?:<span>)?\s*Camiones)',
-        r'\g<1>/categoria-producto/alquiler/construccion-alquiler/camion-grua/\g<2>',
-        html
-    )
-    html = re.sub(
-        r'(<a\s+href=")index\.html("[^>]*>(?:<span>)?\s*Aditamentos)',
-        r'\g<1>/categoria-producto/alquiler/construccion-alquiler/aditamentos/\g<2>',
-        html
-    )
-    # Fix hrefs="#" para Camiones grúa y Aditamentos
-    html = re.sub(
-        r'(<a\s+href=")#("[^>]*>(?:<span>)?\s*Camiones)',
-        r'\g<1>/categoria-producto/alquiler/construccion-alquiler/camion-grua/\g<2>',
-        html
-    )
-    html = re.sub(
-        r'(<a\s+href=")#("[^>]*>(?:<span>)?\s*Aditamentos)',
-        r'\g<1>/categoria-producto/alquiler/construccion-alquiler/aditamentos/\g<2>',
-        html
-    )
-    # Limpiar query params de WooCommerce de links de categoría
-    # Para links que tienen ruta propia en RUTAS, eliminar query params
-    # Para links con ?maquinaria_=, convertir a ruta limpia + ?maquinaria_=
-    def _clean_cat_link(m):
-        base = m.group(1)  # ej: /categoria-producto/alquiler/agricola/
-        params = m.group(2)  # ej: filter=true&maquinaria_=Tractor%20Grande&...
-        # Extraer maquinaria_ si existe
-        maq = re.search(r'maquinaria_=([^&"]*)', params)
-        if maq:
-            return f'{base}?maquinaria_={maq.group(1)}"'
-        return f'{base}"'
-    html = re.sub(
-        r'(href="/categoria-producto/[^"?]*)\?([^"]*)"',
-        _clean_cat_link,
-        html
-    )
-    # Fix links externos a cgmrental.com → rutas locales
-    html = html.replace('href="https://cgmrental.com/nosotros/"', 'href="/nosotros/index.html"')
-    html = html.replace('href="https://cgmrental.com/novedades/"', 'href="/novedades/index.html"')
-    html = html.replace('href="https://cgmrental.com/contacto/"', 'href="/contacto/index.html"')
-    html = html.replace('href="https://cgmrental.com/leasing-operativo/"', 'href="/leasing-operativo/index.html"')
-    # Fix Energía > Aditamentos ruta incorrecta
-    html = html.replace(
-        '/categoria-producto/energia/construccion-alquiler/aditamentos/',
-        '/categoria-producto/alquiler/construccion-alquiler/aditamentos/'
-    )
-    # Fix: header fixed de Divi - el JS que agrega padding-top no corre
-    html = html.replace("</head>", _HEADER_FIX, 1)
-    return html
-
-def _cargar_template(nombre="categoria.html"):
-    path = os.path.join(TEMPLATES_DIR, nombre)
-    with open(path, "r", encoding="utf-8") as f:
-        return _fix_nav_links(f.read())
-
-_CATEGORIA_TEMPLATE = _cargar_template("categoria.html")
-_PRODUCTO_TEMPLATE = _cargar_template("producto.html")
-
-# ── Caché en RAM para páginas estáticas ──
-# Las páginas se leen del disco + _fix_nav_links() UNA sola vez y se guardan en RAM.
-# En modo debug se desactiva para poder editar en vivo.
-_PAGINAS_CACHE: dict[str, str] = {}
-
-def _servir_pagina_cached(filename):
-    if filename not in _PAGINAS_CACHE:
-        filepath = os.path.join(STATIC_DIR, "pages", filename)
-        if not os.path.exists(filepath):
-            return abort(404)
-        with open(filepath, "r", encoding="utf-8") as f:
-            html = f.read()
-        _PAGINAS_CACHE[filename] = _fix_nav_links(html)
-    return _PAGINAS_CACHE[filename]
-
-# ── Caché en RAM para las 21 páginas de categoría ──
-# Se pre-generan al inicio. Son páginas estáticas (el catálogo no cambia en caliente).
-_CATEGORIA_CACHE: dict[str, str] = {}
-
-def _precalentar_categorias():
-    """Pre-genera todas las páginas de categoría al arrancar el servidor."""
-    for path, (tags, unidad, tipo, titulo, taxterm) in RUTAS.items():
-        productos = _filtrar_productos(tags, unidad, tipo)
-        html = _CATEGORIA_TEMPLATE
-        html = html.replace("$CGM_TITULO$", titulo)
-        html = html.replace("$CGM_TAXTERM$", taxterm if taxterm else path.split("/")[-1])
-        html = html.replace("$CGM_TERM$", taxterm if taxterm else path.split("/")[-1])
-        html = html.replace("$CGM_PRODUCTOS$", _generar_grilla(productos))
-        html = html.replace("$CGM_BANNER$", _get_banner(path))
-        _CATEGORIA_CACHE[path] = html
-    print(f"Categorias precalentadas: {len(_CATEGORIA_CACHE)}")
-
-# ── Caché en RAM para páginas de producto individual ──
-_PRODUCTO_CACHE: dict[str, str] = {}
-
-# Recargar datos en cada request en modo debug
-@app.before_request
-def _reload_data():
-    global PRODUCTOS, _CATEGORIA_TEMPLATE, _PRODUCTO_TEMPLATE
-    if app.debug:
-        PRODUCTOS = _cargar_productos()
-        _CATEGORIA_TEMPLATE = _cargar_template("categoria.html")
-        _PRODUCTO_TEMPLATE = _cargar_template("producto.html")
-        _PAGINAS_CACHE.clear()
-        _CATEGORIA_CACHE.clear()
-        _PRODUCTO_CACHE.clear()
-
-
-# ══════════════════════════════════════════════════════════════════
-# TABLA DE RUTAS - Reemplaza todo el parseo complejo
-# Formato: path → (tags, unidad, tipo, titulo, taxterm)
-# ══════════════════════════════════════════════════════════════════
-RUTAS = {
-    # ── Alquiler ──
-    "alquiler":
-        ("alquiler", None, None, "Alquiler", "alquiler"),
-    "alquiler/construccion":
-        ("alquiler", "Construcción", None, "Construcción", "construccion"),
-    "alquiler/construccion-alquiler/excavadora":
-        ("alquiler", "Construcción", "Excavadora", "Excavadoras", "excavadora"),
-    "alquiler/construccion-alquiler/cargador-frontal":
-        ("alquiler", "Construcción", "Cargador Frontal", "Cargadores Frontales", "cargador-frontal"),
-    "alquiler/construccion-alquiler/tractor-de-orugas":
-        ("alquiler", "Construcción", "Tractor de Orugas", "Tractores de Orugas", "tractor-de-orugas"),
-    "alquiler/construccion-alquiler/rodillo-compactador":
-        ("alquiler", "Construcción", "Rodillo Compactador", "Rodillos Compactador", "rodillo-compactador"),
-    "alquiler/construccion-alquiler/motoniveladora":
-        ("alquiler", "Construcción", "Motoniveladora", "Motoniveladoras", "motoniveladora"),
-    "alquiler/construccion-alquiler/retroexcavadora":
-        ("alquiler", "Construcción", "Retroexcavadora", "Retroexcavadoras", "retroexcavadora"),
-    "alquiler/construccion-alquiler/minicargador":
-        ("alquiler", "Construcción", "Minicargador", "Minicargadores", "minicargador"),
-    "alquiler/construccion-alquiler/camion-cisterna":
-        ("alquiler", "Construcción", "Camion Cisterna", "Camiones Cisternas", "camion-cisterna"),
-    "alquiler/construccion-alquiler/camion-grua":
-        ("alquiler", "Construcción", "Camion Grua", "Camiones Grúa", "camion-grua"),
-    "alquiler/construccion-alquiler/compresora":
-        ("alquiler", "Construcción", "Compresora", "Compresoras", "compresora"),
-    "alquiler/construccion-alquiler/torre-de-iluminacion-construccion-alquiler":
-        ("alquiler", "Construcción", "Torre de Iluminacion", "Torres de Iluminación", "torre-de-iluminacion"),
-    "alquiler/construccion-alquiler/aditamentos":
-        ("alquiler", "Construcción", "Aditamento", "Aditamentos", "aditamentos"),
-    "alquiler/mediana-mineria":
-        ("alquiler", "Mediana Minería", None, "Mediana Minería", "mediana-mineria"),
-    "alquiler/agricola":
-        ("alquiler", "Agrícola", None, "Agrícola", "agricola"),
-    "alquiler/energia":
-        ("alquiler", "Energía", None, "Energía", "energia"),
-    # ── Usados ──
-    "usados":
-        ("usados", None, None, "Usados", "usados"),
-    "usados/agricola-usados":
-        ("usados", "Agrícola", None, "Agrícola - Usados", "agricola-usados"),
-    "usados/construccion-usados":
-        ("usados", "Construcción", None, "Construcción Usados", "construccion-usados"),
-    "usados/energia-usados":
-        ("usados", "Energía", None, "Energía Usados", "energia-usados"),
-}
-
-
-# ══════════════════════════════════════════════════════════════════
-# FILTRADO DE PRODUCTOS
-# ══════════════════════════════════════════════════════════════════
-def _filtrar_productos(tags=None, unidad=None, tipo=None):
-    """Filtra productos por tags, unidad de negocio y tipo de maquinaria."""
-    resultado = PRODUCTOS
-    if tags:
-        resultado = [p for p in resultado if p.get("tags") == tags]
-    if unidad:
-        resultado = [p for p in resultado
-                     if unidad in [u.strip() for u in p.get("unidad", "").split(",")]]
-    if tipo:
-        resultado = [p for p in resultado if p.get("tipo") == tipo]
-    return resultado
-
-
-# ══════════════════════════════════════════════════════════════════
-# GENERACIÓN DE GRILLA HTML
-# ══════════════════════════════════════════════════════════════════
-def _generar_producto_html(p, idx, total):
-    """Genera el HTML de un producto individual en la grilla."""
-    pos_classes = []
-    if idx == 0:
-        pos_classes.append("first")
-    elif (idx + 1) % 3 == 0:
-        pos_classes.append("last")
-    if idx == total - 1:
-        pos_classes.append("last")
-
-    pos_str = " ".join(pos_classes)
-
-    slug = p["slug"]
-    nombre = p["nombre"]
-    marca = p["marca"]
-    tags = p["tags"]
-    tipo = p["tipo"]
-    imagen = p["imagen"]
-
-    desc_html = ""
-    if p.get("descripcion"):
-        items = "".join(f"<li>{item}</li>" for item in p["descripcion"])
-        desc_html = f'<div class="card-text"><ul>{items}</ul></div>'
-
-    return f'''<div class="grid-col dmach-grid-item product_type-simple product_tag-{tags} post_id_{idx}" data-id="{idx}" data-posttype="product">
-    <div class="grid-item-cont">
-    <li class="daf-template-loop daf-product-template daf-product-template-default grid-item product type-product status-publish {pos_str} instock product_tag-{tags} has-post-thumbnail shipping-taxable purchasable product-type-simple" data-cgm-tags="{tags}" data-cgm-tipo="{tipo}">
-      <div class="grid-item-cont">
-      <a href="/producto/{slug}/index.html" class="woocommerce-LoopProduct-link woocommerce-loop-product__link"><span class="et_shop_image"><img width="300" height="300" src="{imagen}" alt="{nombre}" decoding="async" loading="lazy" class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail">
-<span class="et_overlay"></span></span><h2 class="woocommerce-loop-product__title">{nombre}</h2><div class="product-category">{marca}</div><div class="woocommerce-product-details__short-description">{desc_html}</div></a><a href="/producto/{slug}/index.html" class="button view-product-button">COTIZAR</a>
-        </div>
-    </li>
-    </div>
-</div>'''
-
-
-def _generar_grilla(productos):
-    """Genera el HTML completo de la grilla de productos."""
-    if not productos:
-        return '<div class="filtered-posts-cont"><p class="no-results">No se encontraron productos.</p></div>'
-
-    items_html = "\n".join(
-        _generar_producto_html(p, i, len(productos))
-        for i, p in enumerate(productos)
-    )
-
-    total = len(productos)
-    result_text = (
-        "Showing the single result" if total == 1
-        else f"Showing all {total} results"
-    )
-
-    return f'''<div class="filtered-posts-cont">
-    <div class="dmach-grid-sizes divi-filter-archive-loop main-loop grid"
-         data-gridstyle="grid" data-columnscount="3" data-postnumber="{total}"
-         data-current-page="1" data-max-page="1"
-         style="grid-auto-rows: 1px;">
-        <div class="divi-filter-loop-container default-layout col-desk-3 col-tab-2 col-mob-1">
-        <div class="grid-posts loop-grid">
-{items_html}
-        </div>
-        </div>
-    </div>
-</div>
-<div class="dmach-after-posts"></div>
-<p class="divi-filter-result-count result_count_right">{result_text}</p>'''
-
-
-# ══════════════════════════════════════════════════════════════════
-# UTILIDAD PARA SERVIR HTML ESTÁTICO
-# ══════════════════════════════════════════════════════════════════
-
-def _servir_pagina(filename):
-    """Lee y devuelve un archivo HTML desde static/pages/ (con caché en RAM)."""
-    return _servir_pagina_cached(filename)
-
-
-# ══════════════════════════════════════════════════════════════════
-# RUTAS DE FLASK
-# ══════════════════════════════════════════════════════════════════
-
-# ── Homepage ──
-@app.route("/")
-@app.route("/index.html")
-def home():
-    return _servir_pagina("index.html")
-
-
-# ── Banners por categoría ──
-BANNERS = {
-    # Alquiler
-    "alquiler":         "/images/banners/construccion.webp",
-    "construccion":     "/images/banners/construccion.webp",
-    "agricola":         "/images/banners/agricola.webp",
-    "energia":          "/images/banners/energia.webp",
-    "mediana-mineria":  "/images/banners/mediana-mineria.webp",
-    # Usados
-    "usados":              "/images/banners/usados.webp",
-    "construccion-usados": "/images/banners/usados.webp",
-    "agricola-usados":     "/images/banners/agricola-usados.webp",
-    "energia-usados":      "/images/banners/energia-usados.webp",
-}
-
-def _get_banner(path):
-    """Determina el banner correcto según la ruta de categoría."""
-    parts = path.split("/")
-    # usados con subcategorías
-    if parts[0] == "usados":
-        if len(parts) >= 2 and parts[1] in BANNERS:
-            return BANNERS[parts[1]]
-        return BANNERS["usados"]
-    # alquiler con subcategorías
-    if len(parts) >= 2:
-        sub = parts[1].replace("-alquiler", "").replace("-usados", "")
-        if sub in BANNERS:
-            return BANNERS[sub]
-    # alquiler raíz
-    if parts[0] == "alquiler":
-        return BANNERS["alquiler"]
-    return BANNERS["alquiler"]
-
-
-# ── Categorías de productos ──
-@app.route("/categoria-producto/<path:cat_path>")
-@app.route("/categoria-producto/<path:cat_path>/")
-@app.route("/categoria-producto/<path:cat_path>/index.html")
-def categoria_producto(cat_path):
-    """Handler unificado para todas las categorías de productos."""
-    path = cat_path.strip("/")
-    path = re.sub(r'/page/\d+/?$', '', path)
-
-    tipo_param = request.args.get("maquinaria_")
-
-    # Usar caché si no hay filtro extra por query param
-    if not tipo_param and path in _CATEGORIA_CACHE:
-        return _CATEGORIA_CACHE[path]
-
-    if path in RUTAS:
-        tags, unidad, tipo, titulo, taxterm = RUTAS[path]
-    else:
-        base_path = "/".join(path.split("/")[:2]) if "/" in path else path
-        if base_path in RUTAS:
-            tags, unidad, _, titulo, taxterm = RUTAS[base_path]
-            tipo = None
-        else:
-            return abort(404)
-
-    if tipo_param:
-        tipo = tipo_param
-        titulo = tipo_param
-
-    productos = _filtrar_productos(tags, unidad, tipo)
-
-    html = _CATEGORIA_TEMPLATE
-    html = html.replace("$CGM_TITULO$", titulo)
-    html = html.replace("$CGM_TAXTERM$", taxterm if taxterm else path.split("/")[-1])
-    html = html.replace("$CGM_TERM$", taxterm if taxterm else path.split("/")[-1])
-    html = html.replace("$CGM_PRODUCTOS$", _generar_grilla(productos))
-    html = html.replace("$CGM_BANNER$", _get_banner(path))
-
-    return html
-
-
-# ── Páginas de producto individual ──
-@app.route("/producto/<slug>/")
-@app.route("/producto/<slug>/index.html")
-def producto(slug):
-    """Página individual de producto - reutiliza el template de categoría."""
-    if slug in _PRODUCTO_CACHE:
-        return _PRODUCTO_CACHE[slug]
-
-    prod = None
-    for p in PRODUCTOS:
-        if p["slug"] == slug:
-            prod = p
-            break
-
-    if not prod:
-        return abort(404)
-
-    producto_html = _generar_detalle_producto(prod)
-
-    html = _PRODUCTO_TEMPLATE
-    html = html.replace("$CGM_NOMBRE$", prod["nombre"])
-    html = html.replace("$CGM_PRODUCTO$", producto_html)
-
-    _PRODUCTO_CACHE[slug] = html
-    return html
-
-
-def _generar_detalle_producto(prod):
-    """Genera el HTML del detalle de producto usando las clases CSS del template original."""
-    img_dir = os.path.join(STATIC_DIR, "images", prod["slug"])
-    imagenes = []
-    if os.path.isdir(img_dir):
-        imagenes = sorted([
-            f"/imagenes/{prod['slug']}/{f}"
-            for f in os.listdir(img_dir)
-            if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
-        ])
-
-    if not imagenes and prod.get("imagen"):
-        imagenes = [prod["imagen"]]
-
-    # ── Galería con Splide slider (igual al original) ──
-    slides_primary = ""
-    slides_thumb = ""
-    for img in imagenes:
-        slides_primary += (f'<li class="splide__slide">'
-                          f'<img decoding="async" src="{img}" alt=""/>'
-                          f'</li>')
-        slides_thumb += (f'<li class="splide__slide">'
-                        f'<img decoding="async" src="{img}" alt=""/>'
-                        f'</li>')
-
-    gallery_html = f'''<div class="thumbnail_slider">
-<div id="primary_slider" class="splide"><div class="splide__track"><ul class="splide__list">
-{slides_primary}
-</ul></div></div>
-<div id="thumbnail_slider" class="splide"><div class="splide__track"><ul class="splide__list">
-{slides_thumb}
-</ul></div></div>
-</div>'''
-
-    # ── Características (specs) ──
-    specs_html = ""
-    specs = prod.get("descripcion", [])
-    if specs:
-        items = "".join(f'<li class="punto-item">{s}</li>' for s in specs)
-        specs_html = f'''<div class="description-box"><h2>Características</h2>
-<div class="woocommerce-product-details__short-description">
-<div class="card-text"><ul>{items}</ul></div></div></div>'''
-
-    # ── Descripción + Ficha Técnica ──
-    desc_html = ""
-    desc_texto = prod.get("descripcion_texto", "")
-    ficha_url = prod.get("ficha_tecnica", "")
-    if desc_texto or ficha_url:
-        ficha_btn = ""
-        if ficha_url:
-            ficha_btn = (f'<a href="{ficha_url}" target="_blank" rel="noopener">'
-                        f'<button class="ver-ficha-tecnica">Ver Ficha Técnica</button></a>')
-        desc_html = f'''<div class="description-box"><h2>Descripción</h2>
-<div class="woocommerce-product-details__description">
-<div class="descripcion-larga">
-<p class="descripcion-larga-p">{desc_texto}</p>
-{ficha_btn}
-</div></div></div>'''
-
-    # ── Tag/Marca meta ──
-    tag_label = prod["tags"].capitalize()
-    marca = prod.get("marca", "")
-
-    # ── Botones (estructura original) ──
-    botones_html = f'''<div class="button-container" style="display: flex; gap: 20px; margin-top: 20px;">
-<div>
-    <button type="button" class="cgm-add-to-cart button alt"
-        data-slug="{prod['slug']}"
-        data-nombre="{prod['nombre']}"
-        data-imagen="{prod.get('imagen','')}"
-        style="border-radius: 0px;background-color: #C5E86C; color: #004c3f;
-        font-weight: bold; padding: 10px 50px; cursor:pointer; border:none;
-        background: linear-gradient(58deg, transparent 4%, #C5E86C 0%, #C5E86C 96%, transparent 10%);
-        font-family: 'CGM BOLD'">AÑADIR AL CARRITO</button>
-</div>
-<div>
-    <a href="https://wa.me/51943567445?text=Hola! Estoy interesado en {prod['nombre']}" target="_blank">
-    <button class="button" style="background-color: #004c3f; color: #ffffff;
-        font-weight: bold; padding: 11px 20px; cursor:pointer; border:none;
-        background: linear-gradient(58deg, transparent 4%, #0C534C 0%, #0C534C 96%, transparent 10%);
-        font-family: 'CGM BOLD';border-radius:0px">COTIZAR</button></a>
-</div>
-</div>'''
-
-    # ── Productos relacionados (escalonado: tipo → unidad → tags) ──
-    max_rel = 5
-    ya_usados = {prod["slug"]}
-
-    # 1) Mismo tipo (ej: otras Excavadoras)
-    relacionados = [p for p in PRODUCTOS
-                    if p["tipo"] == prod["tipo"] and p["slug"] not in ya_usados
-                    and p.get("activo", True)]
-    ya_usados.update(p["slug"] for p in relacionados)
-
-    # 2) Si faltan, completar con misma unidad (ej: otros equipos de Construcción)
-    if len(relacionados) < max_rel:
-        misma_unidad = [p for p in PRODUCTOS
-                        if p.get("unidad") == prod.get("unidad")
-                        and p["slug"] not in ya_usados
-                        and p.get("activo", True)]
-        relacionados.extend(misma_unidad[:max_rel - len(relacionados)])
-        ya_usados.update(p["slug"] for p in misma_unidad)
-
-    # 3) Si aún faltan, completar con mismo tag (alquiler/usados)
-    if len(relacionados) < max_rel:
-        mismo_tag = [p for p in PRODUCTOS
-                     if p.get("tags") == prod.get("tags")
-                     and p["slug"] not in ya_usados
-                     and p.get("activo", True)]
-        relacionados.extend(mismo_tag[:max_rel - len(relacionados)])
-
-    relacionados = relacionados[:max_rel]
-    rel_html = ""
-    if relacionados:
-        rel_items = ""
-        for rp in relacionados:
-            rp_specs = ""
-            if rp.get("descripcion"):
-                rp_specs = " | ".join(rp["descripcion"][:2])
-            rel_items += f'''<div class="item">
-<a href="/producto/{rp['slug']}/">
-<img width="300" height="300" src="{rp['imagen']}"
-     class="attachment-medium size-medium wp-post-image" alt="" decoding="async"/>
-<h5>{rp['nombre']}</h5>
-</a>
-<p>{rp_specs}</p>
-<a href="/producto/{rp['slug']}/" class="cotizar-button">Cotizar</a>
-</div>'''
-
-        rel_html = f'''
-<style>
-#carousel {{position:relative;width:100%;margin:0 auto;overflow:hidden}}
-.carousel-inner {{display:flex;transition:transform 0.6s ease;justify-content:center;gap:10px}}
-.carousel-inner .item {{flex:0 1 23%;margin:0 10px;text-align:center;box-sizing:border-box}}
-.carousel-inner .item img {{max-width:100%;height:auto;border-radius:8px}}
-.carousel-inner .item h5 {{font-family:CGMBOLD,sans-serif;color:#005335;font-size:14px;margin:8px 0 4px}}
-.carousel-inner .item p {{font-size:12px;color:#666;margin:0 0 8px}}
-.carousel-inner .item .cotizar-button {{display:inline-block;background:#005335;color:#fff;padding:8px 20px;
-    border-radius:4px;text-decoration:none;font-family:CGMBOLD,sans-serif;font-size:12px}}
-@media (max-width:480px) {{.carousel-inner .item {{flex:0 0 50%}}}}
-</style>
-<div class="et_pb_section et_pb_section_2_tb_body et_pb_with_background et_section_regular">
-<div class="et_pb_row et_pb_row_1_tb_body">
-<div class="et_pb_column et_pb_column_4_4 et_pb_column_4_tb_body et_pb_css_mix_blend_mode_passthrough et-last-child">
-<div class="et_pb_module et_pb_text et_pb_text_1_tb_body et_pb_text_align_left et_pb_bg_layout_light">
-<div class="et_pb_text_inner"><h3 style="text-align: center;">Maquinarias relacionados</h3></div>
-</div>
-<div class="et_pb_module et_pb_code et_pb_code_4_tb_body">
-<div class="et_pb_code_inner">
-<div id="carousel">
-<div class="carousel-inner">{rel_items}</div>
-</div>
-</div></div></div></div></div>'''
-
-    # ── CSS para elementos del producto ──
-    product_css = '''<style>
-.punto-item {list-style-type:disc;margin-left:20px;color:#333}
-.description-box {background:#f7f7f7;border-radius:10px;padding:20px 25px;margin-bottom:15px}
-.description-box h2 {font-family:CGMBOLD,Helvetica,sans-serif;color:#005335;font-size:18px;margin:0 0 10px}
-.descripcion-larga-p {font-size:13px;color:#333;line-height:1.6}
-.ver-ficha-tecnica {background-color:#0C534C;padding:15px 30px;margin-top:15px;color:#fff;font-size:17px;
-    font-family:'CGM BOLD',Helvetica,sans-serif;
-    background:linear-gradient(58deg,transparent 4%,#0C534C 0%,#0C534C 96%,transparent 10%);
-    border:0;border-radius:0;cursor:pointer}
-.thumbnail_slider {margin-top:10px}
-</style>'''
-
-    # ── Ensamblar producto completo ──
-    return f'''{product_css}
-<!-- Section 0: Título + Meta + Galería + Specs -->
-<div class="et_pb_section et_pb_section_0_tb_body et_pb_with_background et_section_specialty">
-<div class="et_pb_row">
-<div class="et_pb_column et_pb_column_2_3 et_pb_column_0_tb_body et_pb_specialty_column et_pb_css_mix_blend_mode_passthrough">
-
-<!-- Título -->
-<div class="et_pb_row_inner et_pb_row_inner_0_tb_body">
-<div class="et_pb_column et_pb_column_1_3 et_pb_column_inner et_pb_column_inner_0_tb_body">
-<div class="et_pb_module et_pb_db_product_title et_pb_db_product_title_0_tb_body clearfix et_pb_text_align_left">
-<div class="et_pb_module_inner">
-<h1 itemprop="name" class="entry-title de_title_module product_title">{prod['nombre']}</h1>
-</div></div>
-<div class="et_pb_module et_pb_divider et_pb_divider_0_tb_body et_pb_divider_position_ et_pb_space">
-<div class="et_pb_divider_internal"></div></div>
-</div>
-<div class="et_pb_column et_pb_column_1_3 et_pb_column_inner et_pb_column_inner_1_tb_body et-last-child">
-<div class="et_pb_module et_pb_wc_meta et_pb_wc_meta_0_tb_body et_pb_bg_layout_ et_pb_wc_no_sku et_pb_wc_no_categories et_pb_wc_meta_layout_inline">
-<div class="et_pb_module_inner">
-<div class="product_meta">
-<span class="category_wrapper"><span class="metatitle">Marca:</span> <span class="categories">{marca}</span></span>
-<span class="tag_wrapper"><span class="metatitle">Tag:</span> <span class="tags">{tag_label}</span></span>
-</div></div></div>
-</div></div>
-
-<!-- Galería -->
-<div class="et_pb_row_inner et_pb_row_inner_1_tb_body">
-<div class="et_pb_column et_pb_column_4_4 et_pb_column_inner et_pb_column_inner_2_tb_body et-last-child">
-<div class="et_pb_module et_pb_code et_pb_code_0_tb_body">
-<div class="et_pb_code_inner">{gallery_html}</div>
-</div></div></div>
-
-</div>
-
-<!-- Columna derecha: Specs + Desc -->
-<div class="et_pb_column et_pb_column_1_3 et_pb_column_1_tb_body et_pb_css_mix_blend_mode_passthrough">
-<div class="et_pb_module et_pb_code et_pb_code_1_tb_body">
-<div class="et_pb_code_inner">{specs_html}</div>
-</div>
-<div class="et_pb_module et_pb_code et_pb_code_2_tb_body">
-<div class="et_pb_code_inner">{desc_html}</div>
-</div>
-</div>
-
-</div></div>
-
-<!-- Section 1: Botones -->
-<div class="et_pb_section et_pb_section_1_tb_body et_pb_with_background et_section_regular">
-<div class="et_pb_row et_pb_row_0_tb_body">
-<div class="et_pb_with_border et_pb_column_2_3 et_pb_column et_pb_column_2_tb_body et_pb_css_mix_blend_mode_passthrough">
-<div class="et_pb_module et_pb_code et_pb_code_3_tb_body">
-<div class="et_pb_code_inner">{botones_html}</div>
-</div></div></div></div>
-
-<!-- Section 2: Relacionados -->
-{rel_html}'''
-
-
-# ── Página de Carrito / Cotizador con Salesforce ──
-@app.route("/carrito/")
-@app.route("/carrito/index.html")
-@app.route("/carrito-2/")
-@app.route("/carrito-2/index.html")
-def carrito():
-    """Página del carrito con formulario Salesforce Web-to-Lead.
-    Usa carrito2.html original como base para mantener el banner y pasos."""
-    path = os.path.join(STATIC_DIR, "pages", "carrito2.html")
-    with open(path, "r", encoding="utf-8") as f:
-        html = f.read()
-    html = _fix_nav_links(html)
-    # Reemplazar la sección vacía de WooCommerce con nuestra tabla + formulario
-    # La sección original: hidethis div + empty section + "Volver al inicio" button
-    old_content = '''<div class="hidethis" style="display:none !important;"> <div class="woocommerce-notices-wrapper"></div><div class="wc-empty-cart-message">\t\t\t<div class="cart-empty woocommerce-info">
-\t\t\t\tYour cart is currently empty.\t\t\t</div>
-\t\t</div> </div> <div class="et_pb_section et_pb_section_2 et_section_regular">
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t\t
-\t\t\t</div>
-\t\t\t\t</div>
-\t\t\t</div><div class="et_pb_button_module_wrapper et_pb_button_0_wrapper  et_pb_module ">
-\t\t\t\t<a class="et_pb_button et_pb_button_0 et_pb_bg_layout_light" href="/">Volver al inicio</a>
-\t\t\t</div>'''
-    html = html.replace(old_content, _generar_pagina_carrito())
-    return html
-
-
-def _generar_pagina_carrito():
-    """Genera el HTML del carrito + formulario Salesforce (diseño original carrito-2)."""
-    return r'''
-<style>
-/* ── Layout principal: tabla + formulario ── */
-.cgm-cart-layout {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 30px; max-width: 1100px; margin: 0 auto 40px; padding: 0 20px;
-}
-@media (max-width: 768px) {
-    .cgm-cart-layout { grid-template-columns: 1fr; }
-}
-
-/* ── Tabla del carrito ── */
-.cgm-cart-table-wrap {
-    background: #fff; border-radius: 10px; padding: 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
-.cgm-cart-table {
-    width: 100%; border-collapse: collapse;
-    font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;
-}
-.cgm-cart-table thead th {
-    border-bottom: 2px solid #e0e0e0; padding: 10px 8px;
-    text-align: left; color: #333; font-weight: 600; font-size: 13px;
-}
-.cgm-cart-table tbody tr { border-bottom: 1px solid #f0f0f0; }
-.cgm-cart-table tbody td { padding: 12px 8px; vertical-align: middle; }
-.cgm-cart-table .cart-remove {
-    color: #c00; cursor: pointer; font-size: 16px; font-weight: bold;
-    border: none; background: none; padding: 5px;
-}
-.cgm-cart-table .cart-remove:hover { color: #900; }
-.cgm-cart-table .cart-thumb {
-    width: 60px; height: 50px; object-fit: cover; border-radius: 4px;
-}
-.cgm-cart-table .cart-product-name {
-    font-family: CGMBOLD, sans-serif; color: #333; font-size: 13px;
-}
-.cgm-cart-table .cart-qty {
-    width: 50px; text-align: center; padding: 6px; border: 1px solid #ddd;
-    border-radius: 4px; font-size: 14px;
-}
-.cgm-cart-empty {
-    text-align: center; padding: 30px; color: #999; font-size: 15px;
-}
-.cgm-cart-empty a {
-    display: inline-block; margin-top: 12px; padding: 10px 25px;
-    background: #005335; color: #fff; text-decoration: none;
-    border-radius: 4px; font-family: CGMBOLD, sans-serif; font-size: 13px;
-}
-
-/* ── Formulario Salesforce ── */
-.cgm-sf-form {
-    background: #fff; border-radius: 10px; padding: 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    font-family: CGMBOLD, Helvetica, sans-serif;
-}
-.cgm-sf-form .form-section-inline {
-    display: flex; align-items: center; gap: 15px; margin-bottom: 15px;
-}
-.cgm-sf-form .form-section-inline label {
-    color: #000; font-size: 14px;
-}
-.cgm-sf-form .form-section-inline input[type="checkbox"] {
-    width: 18px; height: 18px; accent-color: #C5E86C;
-}
-.cgm-sf-form label {
-    display: block; color: #000; font-size: 13px; margin-bottom: 4px;
-    font-family: CGMBOLD, sans-serif;
-}
-.cgm-sf-form input[type="text"],
-.cgm-sf-form select {
-    padding: 14px; border: none; border-radius: 4px; font-size: 14px;
-    background: #f0f0f0; color: #000; width: 100%; box-sizing: border-box;
-    margin-bottom: 12px;
-}
-.cgm-sf-form .form-columns {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-}
-@media (max-width: 768px) {
-    .cgm-sf-form .form-columns { grid-template-columns: 1fr; }
-}
-.cgm-sf-form .form-terms {
-    margin-top: 15px; font-size: 11px; color: #555;
-}
-.cgm-sf-form .form-terms input[type="checkbox"] {
-    width: 16px; height: 16px; margin-right: 8px; accent-color: #C5E86C;
-    vertical-align: middle;
-}
-.cgm-sf-form .form-terms label {
-    display: flex; align-items: flex-start; gap: 8px; cursor: pointer;
-    font-family: 'Open Sans', sans-serif; font-weight: normal;
-}
-.cgm-sf-form .campo {
-    color: #C5E86C; font-size: 12px; margin-top: 8px;
-}
-.cgm-sf-form .sf-submit-container {
-    display: flex; justify-content: flex-end; margin-top: 20px;
-}
-.cgm-sf-form input[type="submit"] {
-    padding: 14px 30px; background-color: #C5E86C; border: none;
-    border-radius: 4px; color: #005335; font-size: 15px; cursor: pointer;
-    font-family: CGMBOLD, Helvetica, sans-serif; transition: opacity 0.3s;
-    background: linear-gradient(58deg, transparent 4%, #C5E86C 0%, #C5E86C 96%, transparent 10%);
-}
-.cgm-sf-form input[type="submit"]:hover { opacity: 0.85; }
-
-/* ── Modal éxito ── */
-#modal-exito {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); z-index: 99999;
-    justify-content: center; align-items: center; display: none;
-}
-#modal-exito > div {
-    background: #fff; padding: 40px 60px; border-radius: 10px; text-align: center;
-}
-#modal-exito h2 { color: #005335; font-size: 24px; margin-bottom: 10px; }
-#modal-exito p { color: #333; font-size: 16px; }
-
-</style>
-
-<!-- Layout principal: tabla carrito + formulario -->
-<div class="cgm-cart-layout">
-
-    <!-- COLUMNA IZQUIERDA: Tabla del carrito -->
-    <div class="cgm-cart-table-wrap">
-        <table class="cgm-cart-table" id="cgm-cart-table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th></th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody id="cgm-cart-tbody">
-            </tbody>
-        </table>
-        <div class="cgm-cart-empty" id="cgm-cart-empty">
-            <p>Tu carrito está vacío.</p>
-            <a href="/categoria-producto/alquiler/">Ver Equipos</a>
-        </div>
-    </div>
-
-    <!-- COLUMNA DERECHA: Formulario Salesforce -->
-    <div id="cgm-form-container" style="display:none;">
-        <form action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D41000002lCbB"
-              id="consulta-form" method="POST" class="cgm-sf-form">
-            <input name="oid" type="hidden" value="00D41000002lCbB"/>
-            <input name="retURL" type="hidden" value="http://localhost:5000/"/>
-            <input type="hidden" name="debug" value="1"/>
-            <input type="hidden" name="debugEmail" value="owenh.collazos@cgmrental.com"/>
-            <input type="hidden" id="sf-last-name" name="last_name" value="Web Lead"/>
-
-            <div class="form-section-inline">
-                <label>Alquiler:</label>
-                <input id="chk-alquiler" name="00NUU000001AZFF" type="checkbox" value="1"/>
-                <label>Compra:</label>
-                <input id="chk-compra" name="00NUU000001AZK5" type="checkbox" value="1"/>
-            </div>
-
-            <div>
-                <label>Nombres y Apellidos</label>
-                <input id="company" maxlength="40" name="company" placeholder="Nombres y Apellidos*" required type="text"/>
-            </div>
-
-            <div class="form-columns">
-                <div>
-                    <label>Razón Social:</label>
-                    <input maxlength="55" name="00NUU000001uW6H" placeholder="Razón Social" required type="text"/>
-
-                    <label>RUC/DNI:</label>
-                    <input maxlength="11" name="00N4100000TT12H" placeholder="RUC/DNI*" required type="text"/>
-
-                    <label>Email:</label>
-                    <input maxlength="255" name="00NUU000001NBa5" placeholder="Email*" required type="text"/>
-
-                    <label>Celular:</label>
-                    <input maxlength="9" name="00NUU000001NBtR" placeholder="Celular*" required type="text"/>
-                </div>
-                <div>
-                    <label>País:</label>
-                    <select id="sf-pais" name="00NUU000001uSU5" required>
-                        <option value="">--Ninguno--</option>
-                        <option value="Perú">Perú</option>
-                        <option value="Otro">Otro</option>
-                    </select>
-
-                    <label id="lbl-depto">Departamento:</label>
-                    <select id="sf-depto" name="00NUU000001uSST" required>
-                        <option value="">--Ninguno--</option>
-                        <option value="Amazonas">Amazonas</option>
-                        <option value="Áncash">Áncash</option>
-                        <option value="Apurímac">Apurímac</option>
-                        <option value="Arequipa">Arequipa</option>
-                        <option value="Ayacucho">Ayacucho</option>
-                        <option value="Cajamarca">Cajamarca</option>
-                        <option value="Cusco">Cusco</option>
-                        <option value="Huancavelica">Huancavelica</option>
-                        <option value="Huánuco">Huánuco</option>
-                        <option value="Ica">Ica</option>
-                        <option value="Junín">Junín</option>
-                        <option value="La Libertad">La Libertad</option>
-                        <option value="Lambayeque">Lambayeque</option>
-                        <option value="Lima">Lima</option>
-                        <option value="Loreto">Loreto</option>
-                        <option value="Madre de Dios">Madre de Dios</option>
-                        <option value="Moquegua">Moquegua</option>
-                        <option value="Pasco">Pasco</option>
-                        <option value="Piura">Piura</option>
-                        <option value="Puno">Puno</option>
-                        <option value="San Martín">San Martín</option>
-                        <option value="Tacna">Tacna</option>
-                        <option value="Tumbes">Tumbes</option>
-                        <option value="Ucayali">Ucayali</option>
-                    </select>
-
-                    <label id="lbl-otro-pais" style="display:none;">Otro País:</label>
-                    <input id="sf-otro-pais" name="00NUU000001uS97" placeholder="Otro País"
-                           type="text" style="display:none;"/>
-                </div>
-            </div>
-
-            <input id="sf-info-carrito" name="00NUU000001NC4j" type="hidden"/>
-            <input id="sf-equipo" name="00NUU000001HmSf" type="hidden"/>
-
-            <div class="form-terms">
-                <p class="campo">(*) Campos obligatorios</p>
-                <label>
-                    <input name="privacy_policy" required type="checkbox"/>
-                    Acepto las Políticas de Privacidad y Términos y Condiciones de Tele Inmobiliaria.
-                    Autorizo realizar actividades de prospección comercial y marketing
-                    descritas en las Políticas de Privacidad
-                </label>
-            </div>
-
-            <div class="sf-submit-container">
-                <input type="submit" value="SOLICITAR INFORMACIÓN"/>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal de éxito -->
-<div id="modal-exito">
-    <div>
-        <h2>¡Envío exitoso!</h2>
-        <p>Gracias por tu interés. Estamos procesando tu solicitud.</p>
-    </div>
-</div>
-
-<script>
-(function(){
-    var STORAGE_KEY = "cgm_cotizador";
-    var cart = [];
-    try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){}
-
-    var tbody = document.getElementById("cgm-cart-tbody");
-    var emptyMsg = document.getElementById("cgm-cart-empty");
-    var tableEl = document.getElementById("cgm-cart-table");
-    var formContainer = document.getElementById("cgm-form-container");
-    var sfInfoCarrito = document.getElementById("sf-info-carrito");
-    var sfEquipo = document.getElementById("sf-equipo");
-
-    function render(){
-        try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ cart=[]; }
-        if(!tbody) return;
-        tbody.innerHTML = "";
-
-        if(cart.length === 0){
-            emptyMsg.style.display = "block";
-            tableEl.style.display = "none";
-            formContainer.style.display = "none";
-            return;
-        }
-        emptyMsg.style.display = "none";
-        tableEl.style.display = "table";
-        formContainer.style.display = "block";
-
-        var equipoTexto = [];
-        for(var i=0;i<cart.length;i++){
-            var item = cart[i];
-            var tag = item.tags ? " [" + item.tags.charAt(0).toUpperCase() + item.tags.slice(1) + "]" : "";
-            var tr = document.createElement("tr");
-            tr.innerHTML =
-                '<td><button class="cart-remove" data-slug="'+item.slug+'" title="Eliminar">&times;</button></td>' +
-                '<td>' + (item.imagen ? '<img class="cart-thumb" src="'+item.imagen+'" alt=""/>' : '') + '</td>' +
-                '<td class="cart-product-name">' + item.nombre + tag + '</td>' +
-                '<td><input class="cart-qty" type="text" value="1" readonly/></td>';
-            tbody.appendChild(tr);
-            equipoTexto.push("1 x " + item.nombre);
-        }
-
-        // Llenar campos ocultos de Salesforce
-        var texto = equipoTexto.join("\n");
-        if(sfInfoCarrito) sfInfoCarrito.value = texto;
-        if(sfEquipo) sfEquipo.value = texto;
-    }
-
-    // Eliminar items
-    if(tbody) tbody.addEventListener("click", function(e){
-        var btn = e.target.closest(".cart-remove");
-        if(!btn) return;
-        var slug = btn.getAttribute("data-slug");
-        cart = cart.filter(function(item){ return item.slug !== slug; });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-        render();
-        var counter = document.getElementById("woofc-cart-trigger-counter");
-        if(counter) counter.textContent = cart.length;
-    });
-
-    // Sincronizar last_name con el campo company (Nombres y Apellidos)
-    var companyField = document.getElementById("company");
-    var lastNameField = document.getElementById("sf-last-name");
-    if(companyField && lastNameField){
-        companyField.addEventListener("input", function(){
-            lastNameField.value = this.value || "Web Lead";
-        });
-    }
-
-    // Checkboxes mutuamente excluyentes
-    var chkAlq = document.getElementById("chk-alquiler");
-    var chkCom = document.getElementById("chk-compra");
-    if(chkAlq && chkCom){
-        chkAlq.addEventListener("change", function(){ if(this.checked) chkCom.checked=false; });
-        chkCom.addEventListener("change", function(){ if(this.checked) chkAlq.checked=false; });
-    }
-
-    // País → Departamento toggle
-    var pais = document.getElementById("sf-pais");
-    var depto = document.getElementById("sf-depto");
-    var lblDepto = document.getElementById("lbl-depto");
-    var otroPais = document.getElementById("sf-otro-pais");
-    var lblOtro = document.getElementById("lbl-otro-pais");
-    if(pais){
-        pais.addEventListener("change", function(){
-            if(this.value === "Otro"){
-                depto.style.display="none"; lblDepto.style.display="none";
-                depto.required=false; depto.value="";
-                otroPais.style.display="block"; lblOtro.style.display="block";
-                otroPais.required=true;
-            } else if(this.value === "Perú"){
-                depto.style.display="block"; lblDepto.style.display="block";
-                depto.required=true;
-                otroPais.style.display="none"; lblOtro.style.display="none";
-                otroPais.required=false; otroPais.value="Perú";
-            } else {
-                depto.style.display="block"; lblDepto.style.display="block";
-                otroPais.style.display="none"; lblOtro.style.display="none";
-            }
-        });
-    }
-
-    // Submit con modal
-    var form = document.getElementById("consulta-form");
-    var modal = document.getElementById("modal-exito");
-    if(form){
-        form.addEventListener("submit", function(e){
-            e.preventDefault();
-            render();
-            modal.style.display = "flex";
-            var f = this;
-            setTimeout(function(){
-                localStorage.removeItem(STORAGE_KEY);
-                f.submit();
-            }, 2000);
-        });
-    }
-
-    render();
-})();
-</script>'''
-
-
-# ── Páginas estáticas ──
-PAGINAS_ESTATICAS = {
-    "inicio": "inicio.html",
-    "contacto": "contacto.html",
-    "nosotros": "nosotros.html",
-    "novedades": "novedades.html",
-    "leasing-operativo": "leasing_operativo.html",
-    # carrito y carrito-2 se manejan con ruta dedicada
-}
-
-
-# ── Portal de Proveedores ──
-# Se sirve en /proveedores para que Vue Router (base="/") matchee la ruta /proveedores.
-# /portalproveedores/ redirige a /proveedores.
-@app.route("/proveedores", strict_slashes=False)
-def portal_proveedores():
-    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
-
-@app.route("/portalproveedores/")
-@app.route("/portalproveedores/index.html")
-def portal_proveedores_redirect():
-    return redirect("/proveedores", code=301)
-
-# ── Portal de Proveedores – solo formulario (embebido como iframe) ──
-@app.route("/portalproveedores-form/")
-def portal_proveedores_form():
-    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores-form.html")
-
-
-# ── Portal de Proveedores – proxy assets Vue SPA ──
-# Los imports estáticos del módulo Vue resuelven como ./xxx.js → /portalproveedores/xxx.js
-# Los imports dinámicos (Vite mapDeps) resuelven como assets/xxx → /portalproveedores/assets/xxx
-_PP_BASE = "https://portalproveedores.cgmrental.com"
-
-def _pp_patch_js(content_bytes):
-    """Parchea un archivo JS del portal de proveedores:
-    1. __vite__mapDeps: "assets/xxx" → "portalproveedores/assets/xxx"
-       (la función un() de Vite prepend "/" → queda "/portalproveedores/assets/xxx")
-    2. Previene doble mount: .mount("#app") → solo si no hay ya [data-v-app]
-    """
-    text = content_bytes.decode("utf-8", errors="replace")
-    # Parchear array de mapDeps (paths sin slash inicial — Vite agrega "/" solo)
-    text = re.sub(r'"assets/([^"]+)"', r'"portalproveedores/assets/\1"', text)
-    # Prevenir que index-R6e3UxXP.js monte la app por segunda vez
-    text = re.sub(
-        r'(\w+)\.mount\("#app"\)',
-        r'document.querySelector("[data-v-app]")||\1.mount("#app")',
-        text
-    )
-    return text.encode("utf-8")
-
-@app.route("/portalproveedores/assets/<path:filename>")
-def portal_proveedores_assets(filename):
-    """Proxy: /portalproveedores/assets/<file> → producción/assets/<file>"""
+PARTNERS = ["AJANI.svg", "COSAPI.svg", "CUMBRA.svg", "MOTA-ENGIL.svg",
+            "MUR.svg", "SAN-MARTIN.svg", "STRACON.svg"]
+
+# Orden y slugs de unidades para el sidebar de filtros
+UNIDAD_NAV = [
+    ("Construcción",    "construccion"),
+    ("Agrícola",        "agricola"),
+    ("Energía",         "energia"),
+    ("Mediana Minería", "mineria"),
+]
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def get_country(code):
+    return COUNTRIES.get(code, COUNTRIES[DEFAULT_COUNTRY])
+
+
+def send_email(subject, body, to=None):
+    to = to or os.getenv("EMAIL_DESTINO", "inteligenciacomercial@cgmrental.com")
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASS", "")
+    if not smtp_user or not smtp_pass:
+        return False
     try:
-        r = req_lib.get(f"{_PP_BASE}/assets/{filename}", timeout=20)
-        ct = r.headers.get("Content-Type", "application/octet-stream")
-        content = _pp_patch_js(r.content) if filename.endswith(".js") else r.content
-        return Response(content, status=r.status_code,
-                        headers={"Content-Type": ct, "Cache-Control": "no-store"})
-    except Exception:
-        return "", 502
-
-@app.route("/portalproveedores/<path:filename>")
-def portal_proveedores_file(filename):
-    """Proxy: /portalproveedores/<file.js|css> → producción/assets/<file>
-    Cubre los imports estáticos: from './vue-vendor-xxx.js' y './quasar-xxx.js'
-    que el módulo inline resuelve relativo a la URL de la página."""
-    if filename in ("", "index.html"):
-        return send_from_directory(os.path.join(STATIC_DIR, "pages"), "portalproveedores.html")
-    try:
-        r = req_lib.get(f"{_PP_BASE}/assets/{filename}", timeout=20)
-        ct = r.headers.get("Content-Type", "application/octet-stream")
-        content = _pp_patch_js(r.content) if filename.endswith(".js") else r.content
-        return Response(content, status=r.status_code,
-                        headers={"Content-Type": ct, "Cache-Control": "no-store"})
-    except Exception:
-        return "", 502
-
-
-# ── Canal de Denuncias ──
-@app.route("/canal-de-denuncias/")
-@app.route("/canal-de-denuncias/index.html")
-def canal_de_denuncias():
-    return send_from_directory(os.path.join(STATIC_DIR, "pages"), "canal-de-denuncias.html")
-
-
-@app.route("/canal-de-denuncias/submit/", methods=["POST"])
-def canal_de_denuncias_submit():
-    """Procesa el formulario de Canal de Denuncias y envía email vía Outlook."""
-    try:
-        # ── Recoger campos del formulario ──
-        denunciante_nombre = request.form.get("form_fields[field_445d8c0]", "No especificado")
-        denunciante_empresa = request.form.get("form_fields[field_096e4a6]", "No especificado")
-        denunciante_email   = request.form.get("form_fields[field_8f13678]", "No especificado")
-        descripcion         = request.form.get("form_fields[message]", "No especificado")
-        denunciado_nombre   = request.form.get("form_fields[field_c4b8638]", "No especificado")
-        denunciado_empresa  = request.form.get("form_fields[name]", "No especificado")
-        tipo_denuncia       = request.form.get("form_fields[field_16ea685]", "No especificado")
-        fecha_envio         = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        # ── Construir cuerpo del email HTML ──
-        cuerpo_html = f"""
-        <html><body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;">
-          <div style="background:#004d3d;padding:20px;text-align:center;">
-            <h2 style="color:white;margin:0;">Canal de Denuncias CGM RENTAL</h2>
-          </div>
-          <div style="padding:24px;border:1px solid #ddd;">
-            <p style="color:#666;font-size:13px;">Fecha: {fecha_envio}</p>
-
-            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;">DENUNCIANTE</h3>
-            <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="padding:8px;background:#f9f9f9;width:40%;"><b>Nombres y Apellidos</b></td><td style="padding:8px;">{denunciante_nombre}</td></tr>
-              <tr><td style="padding:8px;background:#f9f9f9;"><b>Empresa</b></td><td style="padding:8px;">{denunciante_empresa}</td></tr>
-              <tr><td style="padding:8px;background:#f9f9f9;"><b>Email</b></td><td style="padding:8px;">{denunciante_email}</td></tr>
-              <tr><td style="padding:8px;background:#f9f9f9;"><b>Descripción</b></td><td style="padding:8px;">{descripcion}</td></tr>
-            </table>
-
-            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;margin-top:20px;">DENUNCIADO</h3>
-            <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="padding:8px;background:#f9f9f9;width:40%;"><b>Nombres y Apellidos</b></td><td style="padding:8px;">{denunciado_nombre}</td></tr>
-              <tr><td style="padding:8px;background:#f9f9f9;"><b>Empresa</b></td><td style="padding:8px;">{denunciado_empresa}</td></tr>
-            </table>
-
-            <h3 style="color:#004d3d;border-bottom:2px solid #c5e86c;padding-bottom:6px;margin-top:20px;">TIPO DE DENUNCIA</h3>
-            <p style="padding:8px;background:#f9f9f9;">{tipo_denuncia}</p>
-          </div>
-          <div style="background:#f0f0f0;padding:12px;text-align:center;font-size:11px;color:#999;">
-            CGM RENTAL &mdash; Canal de Denuncias Confidencial
-          </div>
-        </body></html>
-        """
-
-        # ── Configuración SMTP Outlook ──
-        smtp_user     = os.environ.get("SMTP_USER")
-        smtp_password = os.environ.get("SMTP_PASSWORD")
-        smtp_host     = os.environ.get("SMTP_HOST", "smtp.office365.com")
-        smtp_port     = int(os.environ.get("SMTP_PORT", 587))
-        email_destino = os.environ.get("EMAIL_DESTINO")
-        email_from    = os.environ.get("EMAIL_FROM")
-
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = "Nuevo mensaje | Canal de Denuncias CGM RENTAL"
-        msg["From"]    = f"CGM RENTAL <{email_from}>"
-        msg["To"]      = email_destino
-        msg["Reply-To"] = denunciante_email
-        msg.attach(MIMEText(cuerpo_html, "html"))
-
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(email_from, email_destino, msg.as_string())
-
-        return jsonify({"success": True, "message": "Denuncia enviada correctamente."})
-
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error al enviar: {str(e)}"}), 500
+        msg["Subject"] = subject
+        msg["From"] = smtp_user
+        msg["To"] = to
+        msg.attach(MIMEText(body, "html", "utf-8"))
+        with smtplib.SMTP(smtp_host, smtp_port) as s:
+            s.ehlo()
+            s.starttls()
+            s.login(smtp_user, smtp_pass)
+            s.sendmail(smtp_user, [to], msg.as_string())
+        return True
+    except Exception:
+        return False
 
 
-@app.route("/<page>/")
-@app.route("/<page>/index.html")
-def pagina_estatica(page):
-    """Servir páginas estáticas."""
-    if page in PAGINAS_ESTATICAS:
-        return _servir_pagina(PAGINAS_ESTATICAS[page])
-    return abort(404)
+def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None):
+    """Consulta SQLite filtrando por tags, unidad y tipo."""
+    conn = get_conn()
+    clauses = ["activo = 1", "tags LIKE ?"]
+    params = [f"%{tags}%"]
+    if unidad:
+        clauses.append("unidad = ?")
+        params.append(unidad)
+    if tipo:
+        clauses.append("tipo = ?")
+        params.append(tipo)
+    elif extra_tipo:
+        clauses.append("tipo = ?")
+        params.append(extra_tipo)
+    if country == "arg":
+        clauses.append("show_arg = 1")
+    sql = f"SELECT * FROM products WHERE {' AND '.join(clauses)} ORDER BY nombre"
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
-# ── Novedades con paginación ──
-@app.route("/novedades/page/<int:num>/")
-@app.route("/novedades/page/<int:num>/index.html")
-def novedades_paginacion(num):
-    return _servir_pagina(f"novedades_page{num}.html")
+def cart_count():
+    return sum(item["qty"] for item in session.get("cart", {}).values())
 
 
-# ── Blog/artículos por fecha ──
-@app.route("/<int:year>/<int:month>/<int:day>/<slug>/")
-@app.route("/<int:year>/<int:month>/<int:day>/<slug>/index.html")
-def articulo(year, month, day, slug):
-    filename = f"{year}-{month:02d}-{day:02d}-{slug}.html"
-    filepath = os.path.join(STATIC_DIR, "blog", filename)
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return f.read()
-    return abort(404)
+# ── Inicializar BD al arrancar ────────────────────────────────────────────────
+def seed_db():
+    """Seed products and blog posts if tables are empty."""
+    conn = get_conn()
+    # Products
+    if conn.execute("SELECT COUNT(*) FROM products").fetchone()[0] == 0:
+        products_file = os.path.join(os.path.dirname(__file__), "products.json")
+        if os.path.exists(products_file):
+            with open(products_file, encoding="utf-8") as f:
+                products = json.load(f)
+            for p in products:
+                try:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO products (slug,nombre,marca,descripcion,ficha_url,tags,tipo,unidad,imagen,activo) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                        (p["slug"], p["nombre"], p.get("marca",""), p.get("descripcion",""),
+                         p.get("ficha_url",""), p.get("tags",""), p.get("tipo",""),
+                         p.get("unidad",""), p.get("imagen",""), p.get("activo",1))
+                    )
+                except Exception:
+                    pass
+            conn.commit()
+
+    # Blog posts
+    if conn.execute("SELECT COUNT(*) FROM blog_posts").fetchone()[0] == 0:
+        posts = [
+            {
+                "slug": "tka-y-cgm-rental-alianza-gruas-peru",
+                "titulo": "TKA y CGM Rental: La Alianza Estratégica que Revoluciona el Mercado de Grúas en Perú",
+                "categoria": "entrevistas",
+                "fecha": "2024-12-20",
+                "imagen": "blog/tka-elias-pelin-fiorese.png",
+                "extracto": "Entrevista con Elías Pelin Fiorese, Gerente de Exportaciones de TKA. La empresa tiene el 30% del mercado brasileño de grúas y ahora apuesta por Perú de la mano de CGM Rental.",
+                "contenido": """<p>En una entrevista exclusiva, Elías Pelin Fiorese, Gerente de Exportaciones de TKA, reveló los detalles de la alianza estratégica con CGM Rental para ingresar al mercado peruano de grúas.</p>
+<h3>TKA: Líderes en el Mercado Brasileño</h3>
+<p>TKA posee el 30% del mercado brasileño de grúas articuladas, fabricadas bajo los más exigentes estándares europeos EN12999. Sus equipos cuentan con GPS y WiFi para monitoreo remoto en tiempo real, una ventaja competitiva crucial en obras de gran envergadura.</p>
+<h3>La Alianza con CGM Rental</h3>
+<p>La alianza con CGM Rental abre las puertas del mercado peruano para TKA. CGM Rental, con su red de sucursales a nivel nacional y su experiencia en el sector, garantiza la disponibilidad de los equipos y el soporte técnico especializado que los clientes necesitan.</p>
+<h3>Tecnología de Vanguardia</h3>
+<p>Las grúas TKA incorporan sistemas de monitoreo remoto vía GPS y WiFi, permitiendo a los operadores y supervisores controlar el estado de los equipos desde cualquier lugar. Además, cumplen con las normativas europeas más estrictas, garantizando la máxima seguridad en obra.</p>""",
+                "video_url": "https://www.youtube.com/watch?v=5dpT1XJRFrM",
+                "activo": 1
+            },
+            {
+                "slug": "tomas-spana-john-deere-innovacion-peru",
+                "titulo": "Tomás Spana de John Deere: Innovación y Cercanía para el Mercado de Maquinaria Pesada en Perú",
+                "categoria": "entrevistas",
+                "fecha": "2024-12-20",
+                "imagen": "blog/Entrevista-Tomas-Spana.png",
+                "extracto": "Tomás Spana, Director de Marketing de John Deere Latinoamérica, habla sobre las tendencias del mercado minero peruano y la modalidad de alquiler como alternativa flexible.",
+                "contenido": """<p>Tomás Spana, Director de Marketing de John Deere para Latinoamérica, compartió su visión sobre el mercado peruano de maquinaria pesada y la importancia de la modalidad de alquiler.</p>
+<h3>El Mercado Minero Peruano</h3>
+<p>Perú es uno de los principales mercados mineros de Latinoamérica, con proyectos de gran envergadura que demandan equipos de alta productividad y confiabilidad. John Deere ha desarrollado una línea específica para las condiciones extremas de la minería a gran altitud.</p>
+<h3>El Alquiler como Alternativa Estratégica</h3>
+<p>El mercado está evolucionando hacia el alquiler como modalidad preferida por las empresas que buscan flexibilidad operativa y optimización de recursos. CGM Rental, como aliado estratégico de John Deere en Perú, ofrece esta alternativa con el respaldo de la marca más reconocida del sector.</p>
+<h3>Innovación Tecnológica</h3>
+<p>John Deere continúa invirtiendo en tecnología, incorporando conectividad, telemetría avanzada y sistemas de gestión de flotas que permiten maximizar la productividad y minimizar el tiempo de inactividad.</p>""",
+                "video_url": "https://www.youtube.com/watch?v=o3LySEWQtNs",
+                "activo": 1
+            },
+            {
+                "slug": "cgm-rental-cusco-sucursal-sur-peru",
+                "titulo": "CGM Rental Cusco: Conoce Nuestra Sucursal y su Impacto en el Sur del Perú",
+                "categoria": "articulos",
+                "fecha": "2025-03-31",
+                "imagen": "blog/Sucursal_de_cusco.jpg",
+                "extracto": "Recorre nuestra sucursal de Cusco, ubicada en Carretera Cusco-Urcos Km 16.5 Oropesa. Más de 10 años de experiencia atendiendo proyectos en el sur del país.",
+                "contenido": """<p>La sucursal de CGM Rental en Cusco se ha consolidado como el principal proveedor de maquinaria pesada en la macro región sur del Perú, con más de 10 años de experiencia atendiendo los más importantes proyectos de construcción e infraestructura de la región.</p>
+<h3>Ubicación Estratégica</h3>
+<p>Ubicada en la Carretera Cusco-Urcos Km 16.5, Oropesa, la sucursal cuenta con amplio espacio para el almacenamiento y mantenimiento de equipos, garantizando disponibilidad inmediata para los proyectos de la región.</p>
+<h3>Recorrido con Luis Jiménez</h3>
+<p>Luis Jiménez, jefe de la sucursal, nos guió por las instalaciones mostrando el taller de mantenimiento con sus cinco fases: recepción de equipos, evaluación técnica, reparación especializada, control de calidad y despacho. Un proceso riguroso que garantiza la máxima disponibilidad mecánica.</p>
+<h3>Cobertura Regional</h3>
+<p>La sucursal de Cusco atiende proyectos en toda la macro región sur, incluyendo Apurímac, Madre de Dios y Puno, con una flota diversa de excavadoras, cargadores frontales, tractores de orugas y equipos especializados para construcción y minería.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "camiones-daf-ipesa-entrega-cgm-rental",
+                "titulo": "Estrategia y Rendimiento en la Entrega Oficial de Camiones DAF a CGM Rental",
+                "categoria": "articulos",
+                "fecha": "2025-04-09",
+                "imagen": "blog/luis-galvez_entrevista_camiones.jpg",
+                "extracto": "Entrega oficial de 16 camiones DAF a CGM Rental. Luis Enrique Galvez de Ipesa Camiones explica las ventajas de los DAF para operaciones en altitud.",
+                "contenido": """<p>CGM Rental incorporó a su flota 16 nuevas unidades de camiones DAF, en un acto oficial de entrega que contó con la presencia de ejecutivos de Ipesa Camiones y los principales directivos de CGM Rental.</p>
+<h3>Los Camiones DAF en Altura</h3>
+<p>Luis Enrique Galvez, representante de Ipesa Camiones, destacó las ventajas de los camiones DAF para operaciones en la sierra peruana. Con motor de 11 litros y 410 HP, estos camiones mantienen su rendimiento óptimo incluso a más de 4,000 metros de altura sobre el nivel del mar.</p>
+<h3>Ergonomía y Confort</h3>
+<p>Las cabinas ergonómicas de los DAF están diseñadas para garantizar el máximo confort del operador en jornadas largas, con sistemas de climatización avanzados y asientos con suspensión neumática que reducen la fatiga.</p>
+<h3>Liderazgo Global</h3>
+<p>DAF es líder en ventas en Europa y Brasil, con una reconocida trayectoria de confiabilidad y bajo costo de mantenimiento. Esta incorporación fortalece la flota de CGM Rental para atender proyectos que requieren transporte pesado en condiciones extremas.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "cgm-rental-arequipa-sucursal",
+                "titulo": "CGM Rental en Arequipa: Descubre Nuestra Sucursal y su Impacto en el Sur del País",
+                "categoria": "articulos",
+                "fecha": "2025-04-10",
+                "imagen": "blog/Sucursal_de_arequipa.jpg",
+                "extracto": "6 años de operación en Arequipa. Gianfranco Escobar lidera una sucursal que atiende construcción, agricultura y energía en el sur del país.",
+                "contenido": """<p>La sucursal de CGM Rental en Arequipa cumplió 6 años de operaciones consolidándose como referente en alquiler de maquinaria pesada en el sur del Perú.</p>
+<h3>Instalaciones de Primer Nivel</h3>
+<p>Ubicada estratégicamente en la Vía de Evitamiento Km 4.1, Irrigación Zamacola, Cerro Colorado, la sucursal cuenta con un moderno taller de mantenimiento y amplias instalaciones para almacenamiento de equipos.</p>
+<h3>Liderazgo de Gianfranco Escobar</h3>
+<p>Bajo la dirección de Gianfranco Escobar como jefe de sucursal, el equipo ha logrado posicionar a CGM Rental como el proveedor preferido en la región, atendiendo los sectores de construcción, agricultura y energía con soluciones integrales.</p>
+<h3>Impacto Regional</h3>
+<p>La sucursal de Arequipa ha participado en los principales proyectos de infraestructura de la región, contribuyendo al desarrollo de vías, edificaciones y proyectos agrícolas que impulsan la economía del sur del Perú.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "jorge-canedo-paccar-trucks-camiones-daf",
+                "titulo": "Excelencia en el Transporte: Jorge Cañedo de Paccar Trucks Analiza el Rendimiento de Camiones DAF",
+                "categoria": "entrevistas",
+                "fecha": "2025-04-10",
+                "imagen": "blog/Jorge_canedo_entrevista_ventas_paccar.jpg",
+                "extracto": "Jorge Cañedo, Director de Ventas de Paccar Trucks, analiza el impacto de 10 nuevas unidades DAF CF410 6x4 con tanques de agua y grúas articuladas para CGM Rental.",
+                "contenido": """<p>Jorge Cañedo, Director de Ventas para Centroamérica y la Región Andina de Paccar Trucks, compartió su análisis sobre el desempeño de los camiones DAF en las condiciones más exigentes del mercado peruano.</p>
+<h3>Las Nuevas Unidades DAF CF410</h3>
+<p>CGM Rental incorporó 10 nuevas unidades DAF CF410 6×4, equipadas con tanques de agua y grúas articuladas. Estas configuraciones especiales están diseñadas para atender las necesidades específicas de proyectos de construcción que requieren suministro de agua y capacidad de carga simultánea.</p>
+<h3>El Motor MX-11: Potencia y Eficiencia</h3>
+<p>El motor MX-11 de 410 HP y 2,100 Nm de torque garantiza el máximo rendimiento en cualquier condición, desde el nivel del mar hasta las más altas altitudes. Su eficiencia en el consumo de combustible reduce significativamente los costos operativos.</p>
+<h3>Soporte Técnico Integral</h3>
+<p>Paccar Trucks ofrece soporte técnico integral a través de su red de concesionarios, garantizando la máxima disponibilidad de los equipos y minimizando los tiempos de inactividad.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "cgm-rental-innovacion-industria-alquiler",
+                "titulo": "CGM Rental: Innovación y Compromiso que Transforman la Industria del Alquiler de Maquinaria",
+                "categoria": "articulos",
+                "fecha": "2025-05-13",
+                "imagen": "blog/industria_alquiler_de_maquinaria_cgmrental.png",
+                "extracto": "Publicado en la revista Perú Construye. CGM Rental lidera la transformación del sector con estrategias de diversificación, expansión y tecnología.",
+                "contenido": """<p>CGM Rental ha construido un camino sólido en el sector del alquiler de maquinaria pesada, atendiendo los sectores de minería, construcción, agricultura y energía con una propuesta de valor integral que combina flota moderna, soporte técnico especializado y disponibilidad mecánica garantizada.</p>
+<h3>Estrategia de Diversificación</h3>
+<p>La estrategia de diversificación de CGM Rental abarca los cuatro pilares fundamentales de la economía peruana: construcción, minería, agricultura y energía. Esta diversificación permite a la empresa mantenerse robusta ante las fluctuaciones de cada sector.</p>
+<h3>Expansión de Operaciones</h3>
+<p>Con 8 sucursales a nivel nacional, CGM Rental garantiza presencia y soporte técnico en las principales zonas económicas del país. La reciente apertura de la sucursal de Piura consolida la presencia en el norte del Perú.</p>
+<h3>Tecnología y Sostenibilidad</h3>
+<p>La incorporación de tecnología de monitoreo satelital, mantenimiento predictivo y equipos de última generación posiciona a CGM Rental como líder en innovación dentro del sector del alquiler de maquinaria pesada en el Perú.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "cgm-rental-piura-nueva-sucursal",
+                "titulo": "Conoce la Nueva Sucursal de CGM Rental en Piura: Innovación y Servicio en el Norte del Perú",
+                "categoria": "articulos",
+                "fecha": "2025-05-14",
+                "imagen": "blog/nueva_sucursal_piura.png",
+                "extracto": "Nueva sucursal en Zona Industrial J1-J2, Piura. Inaugurada en 2025, atiende los sectores de construcción, agricultura y energía en el norte del país.",
+                "contenido": """<p>CGM Rental inauguró su nueva sucursal en Piura, estratégicamente ubicada en la Zona Industrial J1-J2, Mz B Lt. 13, Distrito Veintiséis de Octubre, fortaleciendo su presencia en el norte del Perú.</p>
+<h3>Infraestructura de Primer Nivel</h3>
+<p>La nueva sucursal cuenta con modernas instalaciones que incluyen oficinas comerciales para atención personalizada, zona logística para recepción y despacho de equipos, y un taller especializado con sistemas de control de calidad que garantizan la máxima disponibilidad mecánica.</p>
+<h3>Sectores Atendidos</h3>
+<p>La sucursal de Piura está diseñada para atender los principales sectores productivos de la región: construcción de infraestructura vial y civil, agricultura de gran escala en los valles piuranos, y proyectos de energía que impulsan el desarrollo regional.</p>
+<h3>Compromiso con el Norte</h3>
+<p>Esta nueva apertura reafirma el compromiso de CGM Rental con el desarrollo del norte del Perú, poniendo a disposición de los empresarios y contratistas de la región la misma calidad de servicio y flota moderna que caracteriza a la empresa a nivel nacional.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "rodillos-compactadores-infraestructura-vial",
+                "titulo": "Rodillos Compactadores: La Clave para una Infraestructura Vial Segura y Duradera",
+                "categoria": "articulos",
+                "fecha": "2025-06-18",
+                "imagen": "blog/Rodillos_compactadores_Hamm.png",
+                "extracto": "Jaime Boza Arlotti, Gerente General de CGM Rental, explica cómo los rodillos HAMM alemanes garantizan la calidad en la compactación vial.",
+                "contenido": """<p>Jaime Boza Arlotti, Gerente General de CGM Rental, comparte su expertise sobre el uso de rodillos compactadores en proyectos de infraestructura vial, destacando las ventajas de la tecnología HAMM alemana.</p>
+<h3>La Importancia de la Compactación</h3>
+<p>La compactación es uno de los procesos más críticos en la construcción de infraestructura vial. Una compactación deficiente puede resultar en asentamientos, deformaciones y deterioro prematuro del pavimento, con graves consecuencias para la seguridad vial y los costos de mantenimiento.</p>
+<h3>Tecnología HAMM: Excelencia Alemana</h3>
+<p>Los rodillos HAMM, fabricados en Alemania, representan lo mejor de la tecnología de compactación. Con equipos que van desde apisonadoras ligeras hasta modelos de 25 toneladas, la flota de CGM Rental puede atender proyectos de cualquier escala.</p>
+<h3>Sistemas Avanzados</h3>
+<p>Los rodillos HAMM incorporan sistemas diésel-hidráulicos de alta eficiencia, monitoreo satelital para seguimiento en tiempo real y la exclusiva tecnología de oscilación que permite la compactación efectiva incluso en áreas sensibles a las vibraciones, como puentes y zonas urbanas.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "javier-ugaz-ipesa-tendencias-john-deere",
+                "titulo": "Innovación en Maquinaria Pesada: Javier Ugaz de Ipesa Analiza el Crecimiento y Tendencias",
+                "categoria": "entrevistas",
+                "fecha": "2025-06-20",
+                "imagen": "blog/entrevista_javier_ugaz.png",
+                "extracto": "Javier Ugaz, Gerente Comercial de Ipesa División Construcción y Minería, analiza el mercado con 33 años de experiencia y el 17% de market share.",
+                "contenido": """<p>Javier Ugaz, Gerente Comercial de la División de Construcción y Minería de Ipesa, compartió su análisis del mercado peruano de maquinaria pesada con más de 33 años de experiencia en el sector.</p>
+<h3>Ipesa: 45 Años de Trayectoria</h3>
+<p>Con 45 años en el mercado peruano e Ipesa mantiene el 17% de market share en equipos de construcción, una posición de liderazgo que refleja la confianza de los clientes en la calidad y el servicio de la empresa.</p>
+<h3>Tendencias del Mercado</h3>
+<p>Si bien el mercado peruano históricamente ha preferido la propiedad sobre el alquiler, la tendencia está cambiando. Las empresas están reconociendo las ventajas del alquiler: sin inversión inicial, mantenimiento incluido, y la flexibilidad para adaptar la flota a cada proyecto.</p>
+<h3>La Alianza con CGM Rental</h3>
+<p>La alianza entre Ipesa y CGM Rental representa una combinación ganadora: la calidad y tecnología de John Deere con la experiencia y red de soporte de CGM Rental. Una propuesta de valor integral que ningún competidor puede igualar en el mercado peruano.</p>""",
+                "video_url": "",
+                "activo": 1
+            },
+            {
+                "slug": "consejos-alquilar-excavadoras-ricardo-olivos",
+                "titulo": "¿Vas a Alquilar una Excavadora? Descubre los Consejos Clave de CGM Rental",
+                "categoria": "entrevistas",
+                "fecha": "2025-10-06",
+                "imagen": "blog/Foto-portada.png",
+                "extracto": "Ricardo Olivos, Gerente Comercial de CGM Rental, guía a los clientes en la selección del tipo, potencia y eficiencia de excavadora ideal para cada proyecto.",
+                "contenido": """<p>Ricardo Olivos, Gerente Comercial de CGM Rental, comparte los consejos clave que todo cliente debe considerar antes de alquilar una excavadora, basados en años de experiencia atendiendo proyectos de todos los tamaños y complejidades.</p>
+<h3>Tipo de Excavadora: Orugas vs. Ruedas</h3>
+<p>La primera decisión es el tipo de desplazamiento. Las excavadoras de orugas son ideales para terrenos irregulares, fangosos o con pendientes, mientras que las de ruedas son perfectas para trabajos en superficies pavimentadas o cuando se requiere movilidad entre puntos distantes.</p>
+<h3>Potencia y Tonelaje</h3>
+<p>CGM Rental cuenta con una flota que va desde los 21 toneladas hasta los 120 toneladas para proyectos de gran minería. Los modelos más solicitados son los de 21 y 36 toneladas, que ofrecen el mejor equilibrio entre potencia y versatilidad para proyectos de construcción.</p>
+<h3>Marcas de Confianza</h3>
+<p>La flota de CGM Rental incluye exclusivamente marcas de primer nivel: John Deere y Hitachi, garantizando la máxima confiabilidad, disponibilidad mecánica y soporte técnico especializado para cada proyecto.</p>
+<h3>Consideraciones de Seguridad</h3>
+<p>La seguridad es prioritaria en toda operación. CGM Rental entrega todos sus equipos con inspección técnica completa, certificaciones vigentes y operadores capacitados disponibles si el cliente lo requiere.</p>""",
+                "video_url": "",
+                "activo": 1
+            }
+        ]
+        for p in posts:
+            try:
+                conn.execute(
+                    "INSERT OR IGNORE INTO blog_posts (slug,titulo,categoria,fecha,imagen,extracto,contenido,video_url,activo) VALUES (?,?,?,?,?,?,?,?,?)",
+                    (p["slug"], p["titulo"], p["categoria"], p["fecha"], p["imagen"],
+                     p["extracto"], p["contenido"], p.get("video_url",""), p["activo"])
+                )
+            except Exception:
+                pass
+        conn.commit()
+    conn.close()
 
 
-# ── Categorías de blog ──
-@app.route("/category/<cat>/")
-@app.route("/category/<cat>/index.html")
-def category_blog(cat):
-    filepath = os.path.join(STATIC_DIR, "blog_categories", f"{cat}.html")
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            return f.read()
-    return abort(404)
+with app.app_context():
+    init_db()
+    seed_db()
+
+# ── Context Processor ──────────────────────────────────────────────────────────
+@app.context_processor
+def inject_globals():
+    return {
+        "cart_count": cart_count(),
+        "COUNTRIES": COUNTRIES,
+        "PARTNERS": PARTNERS,
+    }
+
+# ══════════════════════════════════════════════════════════════════════════════
+# RUTAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/")
+def root():
+    return redirect(f"/{DEFAULT_COUNTRY}/")
 
 
-# ── Utilidad: headers de caché para assets estáticos ──
-_ONE_YEAR = 60 * 60 * 24 * 365  # 1 año en segundos
-_ONE_WEEK = 60 * 60 * 24 * 7
-
-def _cached(response, max_age=_ONE_YEAR):
-    """Agrega Cache-Control a una respuesta de asset estático."""
-    response.cache_control.max_age = max_age
-    response.cache_control.public = True
-    return response
-
-
-# ── Archivos estáticos ──
-@app.route("/wp-content/<path:filepath>")
-def wp_content(filepath):
-    return _cached(make_response(
-        send_from_directory(os.path.join(STATIC_DIR, "wp-content"), filepath)
-    ))
-
-
-@app.route("/imagenes/<path:filepath>")
-@app.route("/images/<path:filepath>")
-def imagenes(filepath):
-    return _cached(make_response(
-        send_from_directory(os.path.join(STATIC_DIR, "images"), filepath)
-    ))
+@app.route("/<country>/")
+def home(country):
+    c = get_country(country)
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/")
+    conn = get_conn()
+    # 6 productos activos de alquiler aleatorios
+    featured = conn.execute(
+        "SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' ORDER BY RANDOM() LIMIT 6"
+    ).fetchall()
+    # Últimas 6 noticias
+    posts = conn.execute(
+        "SELECT * FROM blog_posts WHERE activo=1 ORDER BY fecha DESC LIMIT 6"
+    ).fetchall()
+    conn.close()
+    return render_template("pages/home.html",
+                           country=c, country_code=country,
+                           featured=[dict(r) for r in featured],
+                           posts=[dict(r) for r in posts])
 
 
-@app.route("/static/pages-assets/<path:filepath>")
-def pages_assets(filepath):
-    return _cached(make_response(
-        send_from_directory(os.path.join(STATIC_DIR, "pages-assets"), filepath)
-    ))
+@app.route("/<country>/nosotros/")
+def nosotros(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/nosotros/")
+    c = get_country(country)
+    return render_template("pages/nosotros.html", country=c, country_code=country)
 
 
-@app.route("/cotizador.js")
-def cotizador_js():
-    return _cached(make_response(
-        send_from_directory(os.path.join(STATIC_DIR, "js"), "cotizador.js",
-                            mimetype="application/javascript")
-    ), max_age=_ONE_WEEK)
-
-@app.route("/static/js/<path:filename>")
-def static_js(filename):
-    return _cached(make_response(
-        send_from_directory(os.path.join(STATIC_DIR, "js"), filename,
-                            mimetype="application/javascript")
-    ), max_age=_ONE_WEEK)
+@app.route("/<country>/contacto/")
+def contacto(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/contacto/")
+    c = get_country(country)
+    return render_template("pages/contacto.html", country=c, country_code=country)
 
 
-# ── Leasing operativo ──
-@app.route("/leasing-operativo/")
-@app.route("/leasing-operativo/index.html")
-def leasing_operativo():
-    return _servir_pagina("leasing_operativo.html")
+@app.route("/<country>/gracias/")
+def gracias(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/gracias/")
+    c = get_country(country)
+    return render_template("pages/gracias.html", country=c, country_code=country)
 
 
-# ══════════════════════════════════════════════════════════════════
-# INICIO
-# ══════════════════════════════════════════════════════════════════
+@app.route("/<country>/leasing-operativo/")
+def leasing(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/leasing-operativo/")
+    c = get_country(country)
+    return render_template("pages/leasing.html", country=c, country_code=country)
+
+
+@app.route("/<country>/novedades/")
+@app.route("/<country>/novedades/page/<int:p>/")
+def blog_list(country, p=1):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/novedades/")
+    c = get_country(country)
+    PER_PAGE = 6
+    cat_filter = request.args.get("cat", "")
+    conn = get_conn()
+    if cat_filter:
+        total = conn.execute(
+            "SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?", (cat_filter,)
+        ).fetchone()[0]
+        posts = conn.execute(
+            "SELECT * FROM blog_posts WHERE activo=1 AND categoria=? ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            (cat_filter, PER_PAGE, (p - 1) * PER_PAGE)
+        ).fetchall()
+    else:
+        total = conn.execute("SELECT COUNT(*) FROM blog_posts WHERE activo=1").fetchone()[0]
+        posts = conn.execute(
+            "SELECT * FROM blog_posts WHERE activo=1 ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            (PER_PAGE, (p - 1) * PER_PAGE)
+        ).fetchall()
+    conn.close()
+    pages = (total + PER_PAGE - 1) // PER_PAGE
+    return render_template("pages/blog_list.html",
+                           country=c, country_code=country,
+                           posts=[dict(r) for r in posts],
+                           page=p, pages=pages, cat_filter=cat_filter)
+
+
+@app.route("/<country>/novedades/<slug>/")
+def blog_post(country, slug):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/novedades/{slug}/")
+    c = get_country(country)
+    conn = get_conn()
+    post = conn.execute(
+        "SELECT * FROM blog_posts WHERE slug=? AND activo=1", (slug,)
+    ).fetchone()
+    conn.close()
+    if not post:
+        abort(404)
+    return render_template("pages/blog_post.html",
+                           country=c, country_code=country, post=dict(post))
+
+
+# Categoría con o sin prefijo de país
+@app.route("/categoria-producto/<path:cat_path>/")
+@app.route("/<country>/categoria-producto/<path:cat_path>/")
+def categoria(country=None, cat_path=""):
+    if country is None:
+        country = DEFAULT_COUNTRY
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/categoria-producto/{cat_path}/")
+    c = get_country(country)
+    if cat_path not in CATEGORIAS:
+        abort(404)
+    tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
+    extra_tipo = request.args.get("tipo")
+    products = get_products_for_cat(tags, unidad, tipo, extra_tipo, country=country)
+
+    conn = get_conn()
+    arg_filter = " AND show_arg=1" if country == "arg" else ""
+
+    # ── Conteo por unidad (misma etiqueta) ──
+    unidad_counts = {}
+    for u_name, u_slug in UNIDAD_NAV:
+        path = f"{tags}/{u_slug}"
+        if path in CATEGORIAS:
+            _, u_db, _, _ = CATEGORIAS[path]
+            cnt = conn.execute(
+                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND unidad=?{arg_filter}",
+                (tags, u_db)
+            ).fetchone()[0]
+            unidad_counts[u_name] = {"count": cnt, "path": path}
+
+    # ── Conteo total por etiqueta ──
+    tag_counts = {
+        "alquiler": conn.execute(f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags='alquiler'{arg_filter}").fetchone()[0],
+        "usados":   conn.execute(f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags='usados'{arg_filter}").fetchone()[0],
+    }
+
+    # ── URL de la etiqueta opuesta manteniendo unidad ──
+    other_tag = "usados" if tags == "alquiler" else "alquiler"
+    if unidad and "/" in cat_path:
+        unidad_slug_last = cat_path.split("/")[-1]
+        other_tag_path = f"{other_tag}/{unidad_slug_last}"
+        if other_tag_path not in CATEGORIAS:
+            other_tag_path = other_tag
+    else:
+        other_tag_path = other_tag
+
+    # ── Conteo por tipo (Maquinaria) ──
+    tipo_counts = {}
+    if unidad:
+        all_tipos = conn.execute(
+            f"SELECT DISTINCT tipo FROM products WHERE activo=1 AND unidad=?{arg_filter} ORDER BY tipo",
+            (unidad,)
+        ).fetchall()
+        for row in all_tipos:
+            t = row["tipo"]
+            cnt = conn.execute(
+                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND unidad=? AND tipo=?{arg_filter}",
+                (tags, unidad, t)
+            ).fetchone()[0]
+            tipo_counts[t] = cnt
+
+    conn.close()
+
+    return render_template("pages/categoria.html",
+                           country=c, country_code=country,
+                           cat_path=cat_path, titulo=titulo,
+                           products=products,
+                           tags=tags, unidad=unidad,
+                           tipo_sel=tipo or extra_tipo or "",
+                           unidad_counts=unidad_counts,
+                           tag_counts=tag_counts,
+                           other_tag=other_tag,
+                           other_tag_path=other_tag_path,
+                           tipo_counts=tipo_counts,
+                           UNIDAD_NAV=UNIDAD_NAV)
+
+
+# Producto individual
+@app.route("/producto/<slug>/")
+@app.route("/<country>/producto/<slug>/")
+def producto(slug, country=None):
+    if country is None:
+        country = DEFAULT_COUNTRY
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/")
+    c = get_country(country)
+    conn = get_conn()
+    p = conn.execute("SELECT * FROM products WHERE slug=? AND activo=1", (slug,)).fetchone()
+    if not p:
+        conn.close()
+        abort(404)
+    prod = dict(p)
+    # Parse descripción como lista de features (soporta | y array serializado)
+    desc_raw = prod.get("descripcion", "") or ""
+    features = [f.strip() for f in desc_raw.split("|") if f.strip()]
+    prod["features"] = features
+    # ficha_url puede venir como ficha_tecnica en importaciones antiguas
+    prod["ficha_url"] = prod.get("ficha_url") or prod.get("ficha_tecnica") or ""
+    # Productos relacionados (mismo tipo o mismos tags, excluyendo el actual)
+    relacionados = conn.execute("""
+        SELECT slug, nombre, marca, imagen, descripcion
+        FROM products
+        WHERE activo=1 AND slug != ?
+          AND (tipo = ? OR tags = ?)
+        ORDER BY RANDOM() LIMIT 8
+    """, (slug, prod.get("tipo",""), prod.get("tags",""))).fetchall()
+    relacionados = [dict(r) for r in relacionados]
+    conn.close()
+    return render_template("pages/producto.html",
+                           country=c, country_code=country, product=prod,
+                           relacionados=relacionados)
+
+
+@app.route("/producto/<slug>/ficha/")
+@app.route("/<country>/producto/<slug>/ficha/")
+def ficha_tecnica(slug, country=None):
+    import os as _os
+    if country is None:
+        country = DEFAULT_COUNTRY
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/ficha/")
+    c = get_country(country)
+    conn = get_conn()
+    p = conn.execute("SELECT * FROM products WHERE slug=? AND activo=1", (slug,)).fetchone()
+    conn.close()
+    if not p:
+        abort(404)
+    prod = dict(p)
+    # Verificar si existe la ficha local
+    local_path = _os.path.join(app.static_folder, "docs", "fichas", f"{slug}.pdf")
+    has_local  = _os.path.exists(local_path)
+    return render_template("pages/ficha_tecnica.html",
+                           country=c, country_code=country, product=prod,
+                           has_local=has_local)
+
+
+@app.route("/<country>/carrito/")
+def carrito(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/carrito/")
+    c = get_country(country)
+    cart = session.get("cart", {})
+    return render_template("pages/carrito.html",
+                           country=c, country_code=country, cart=cart)
+
+
+@app.route("/<country>/canal-de-denuncias/")
+def canal_denuncias(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/canal-de-denuncias/")
+    c = get_country(country)
+    return render_template("pages/canal_denuncias.html", country=c, country_code=country)
+
+
+ISO_DATA = {
+    "9001":  {"titulo": "ISO 9001", "subtitulo": "Gestión de Calidad",
+              "descripcion": "La norma ISO 9001 establece los criterios para un sistema de gestión de la calidad. CGM Rental aplica esta norma para garantizar que sus productos y servicios cumplen consistentemente con los requisitos de los clientes.",
+              "badge": "sig/iso-9001.svg", "pdf": "docs/iso-9001.pdf", "color": "#02534c"},
+    "14001": {"titulo": "ISO 14001", "subtitulo": "Gestión Ambiental",
+              "descripcion": "La norma ISO 14001 especifica los requisitos para un sistema de gestión ambiental eficaz. CGM Rental se compromete con la protección del medio ambiente y la reducción del impacto de sus operaciones.",
+              "badge": "sig/iso-14001.svg", "pdf": "docs/iso-14001.pdf", "color": "#02534c"},
+    "45001": {"titulo": "ISO 45001", "subtitulo": "Seguridad y Salud Ocupacional",
+              "descripcion": "La norma ISO 45001 proporciona un marco para mejorar la seguridad de los trabajadores, reducir los riesgos laborales y crear condiciones de trabajo más seguras. CGM Rental prioriza el bienestar de cada colaborador.",
+              "badge": "sig/iso-45001.svg", "pdf": "docs/iso-45001.pdf", "color": "#02534c"},
+    "37001": {"titulo": "ISO 37001", "subtitulo": "Sistema Antisoborno",
+              "descripcion": "La norma ISO 37001 especifica las medidas que una organización puede implementar para prevenir, detectar y abordar el soborno. CGM Rental mantiene los más altos estándares de integridad y ética empresarial.",
+              "badge": "sig/iso-37001.svg", "pdf": "docs/iso-37001.pdf", "color": "#02534c"},
+}
+
+@app.route("/<country>/certificaciones/iso-<codigo>/")
+def certificacion_iso(country, codigo):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/certificaciones/iso-{codigo}/")
+    if codigo not in ISO_DATA:
+        return redirect(f"/{DEFAULT_COUNTRY}/")
+    c = get_country(country)
+    return render_template("pages/certificacion_iso.html",
+                           country=c, country_code=country,
+                           iso=ISO_DATA[codigo], codigo=codigo)
+
+
+@app.route("/<country>/politica-integrada/")
+def politica_integrada(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/politica-integrada/")
+    c = get_country(country)
+    return render_template("pages/politica_integrada.html", country=c, country_code=country)
+
+
+@app.route("/<country>/portalproveedores/")
+def portal_proveedores(country):
+    return redirect("https://portalproveedores.cgmrental.com", code=302)
+
+
+# ── API ────────────────────────────────────────────────────────────────────────
+
+@app.route("/api/contacto", methods=["POST"])
+def api_contacto():
+    data = request.get_json(silent=True) or request.form.to_dict()
+    nombre   = data.get("nombre", "").strip()
+    empresa  = data.get("empresa", "").strip()
+    email    = data.get("email", "").strip()
+    telefono = data.get("telefono", "").strip()
+    tipo     = data.get("tipo", "").strip()
+    mensaje  = data.get("mensaje", "").strip()
+    pais     = data.get("pais", DEFAULT_COUNTRY)
+    productos = data.get("productos", "")
+
+    if not nombre or not email or not mensaje:
+        return jsonify({"ok": False, "error": "Campos requeridos incompletos"}), 400
+
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO cotizaciones (nombre,empresa,email,telefono,tipo,mensaje,pais,productos) VALUES (?,?,?,?,?,?,?,?)",
+        (nombre, empresa, email, telefono, tipo, mensaje, pais, productos)
+    )
+    conn.commit()
+    conn.close()
+
+    # Email
+    body = f"""<h2>Nueva cotización - CGM Rental</h2>
+<p><b>Nombre:</b> {nombre}</p>
+<p><b>Empresa:</b> {empresa}</p>
+<p><b>Email:</b> {email}</p>
+<p><b>Teléfono:</b> {telefono}</p>
+<p><b>Tipo:</b> {tipo}</p>
+<p><b>País:</b> {pais}</p>
+<p><b>Productos:</b> {productos}</p>
+<p><b>Mensaje:</b><br>{mensaje}</p>"""
+    send_email(f"Nueva cotización de {nombre} — CGM Rental", body)
+
+    return jsonify({"ok": True, "message": "Cotización enviada correctamente"})
+
+
+@app.route("/api/cart/add", methods=["POST"])
+def api_cart_add():
+    data = request.get_json(silent=True) or {}
+    slug   = data.get("slug", "").strip()
+    nombre = data.get("nombre", "").strip()
+    imagen = data.get("imagen", "").strip()
+    tipo   = data.get("tipo", "").strip()
+    if not slug:
+        return jsonify({"ok": False}), 400
+    cart = session.get("cart", {})
+    if slug in cart:
+        cart[slug]["qty"] += 1
+    else:
+        cart[slug] = {"slug": slug, "nombre": nombre, "imagen": imagen, "tipo": tipo, "qty": 1}
+    session["cart"] = cart
+    session.modified = True
+    return jsonify({"ok": True, "count": cart_count()})
+
+
+@app.route("/api/cart/qty", methods=["POST"])
+def api_cart_qty():
+    data = request.get_json(silent=True) or {}
+    slug = data.get("slug", "").strip()
+    qty  = int(data.get("qty", 1))
+    cart = session.get("cart", {})
+    if slug in cart:
+        if qty < 1:
+            del cart[slug]
+        else:
+            cart[slug]["qty"] = qty
+    session["cart"] = cart
+    session.modified = True
+    return jsonify({"ok": True, "count": cart_count()})
+
+
+@app.route("/api/cart", methods=["GET", "DELETE"])
+def api_cart():
+    if request.method == "DELETE":
+        slug = request.args.get("slug")
+        cart = session.get("cart", {})
+        if slug and slug in cart:
+            del cart[slug]
+        elif not slug:
+            cart = {}
+        session["cart"] = cart
+        session.modified = True
+        return jsonify({"ok": True, "count": cart_count()})
+    return jsonify({"cart": session.get("cart", {}), "count": cart_count()})
+
+
+@app.route("/api/denuncia", methods=["POST"])
+def api_denuncia():
+    data = request.get_json(silent=True) or request.form.to_dict()
+
+    nombre_den  = data.get("nombre_denunciante", "Anónimo").strip()
+    empresa_den = data.get("empresa_denunciante", "—").strip()
+    email_den   = data.get("email_denunciante", "—").strip()
+    descripcion = data.get("descripcion", "").strip()
+    nombre_ddo  = data.get("nombre_denunciado", "—").strip()
+    empresa_ddo = data.get("empresa_denunciado", "—").strip()
+    tipo        = data.get("tipo", "—").strip()
+
+    if not descripcion or not tipo:
+        return jsonify({"ok": False, "error": "Campos requeridos"}), 400
+
+    # Guardar en BD
+    try:
+        conn = get_conn()
+        conn.execute(
+            "INSERT INTO denuncias (tipo, descripcion) VALUES (?,?)",
+            (tipo, descripcion)
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    # Email HTML corporativo
+    body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+      <div style="background:#004d3d;padding:28px 32px;">
+        <h1 style="color:#fff;margin:0;font-size:22px;letter-spacing:1px;">CGM RENTAL</h1>
+        <p style="color:#a8d5a2;margin:6px 0 0;font-size:13px;">Canal de Denuncias — Reporte confidencial</p>
+      </div>
+
+      <div style="padding:28px 32px;background:#fff;">
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin-bottom:16px;">Datos del Denunciante</h2>
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#666;width:160px;">Nombre:</td>
+              <td style="padding:6px 0;color:#222;font-weight:600;">{nombre_den}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Empresa:</td>
+              <td style="padding:6px 0;color:#222;">{empresa_den}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Email:</td>
+              <td style="padding:6px 0;color:#222;">{email_den}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;vertical-align:top;">Descripción:</td>
+              <td style="padding:6px 0;color:#222;">{descripcion}</td></tr>
+        </table>
+
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin:24px 0 16px;">Datos del Denunciado</h2>
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#666;width:160px;">Nombre:</td>
+              <td style="padding:6px 0;color:#222;font-weight:600;">{nombre_ddo}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Empresa:</td>
+              <td style="padding:6px 0;color:#222;">{empresa_ddo}</td></tr>
+        </table>
+
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin:24px 0 16px;">Tipo de Denuncia</h2>
+        <p style="background:#f5f5f5;padding:12px 16px;border-radius:6px;
+                  font-size:14px;color:#222;margin:0;">{tipo}</p>
+      </div>
+
+      <div style="background:#f0f0f0;padding:16px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#888;">
+          CGM RENTAL — Reporte generado automáticamente desde el Canal de Denuncias
+        </p>
+      </div>
+    </div>
+    """
+
+    send_email("Nueva denuncia recibida — Canal CGM Rental", body)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/proveedor", methods=["POST"])
+def api_proveedor():
+    data        = request.get_json(silent=True) or request.form.to_dict()
+    ruc         = data.get("ruc", "").strip()
+    razon_social= data.get("razon_social", "").strip()
+    departamento= data.get("departamento", "").strip()
+    direccion   = data.get("direccion", "").strip()
+    contacto    = data.get("contacto", "").strip()
+    email       = data.get("email", "").strip()
+    celular     = data.get("celular", "").strip()
+    categorias  = data.get("categorias", [])
+    descripcion = data.get("descripcion", "").strip()
+    if isinstance(categorias, str):
+        categorias = [categorias]
+    categorias_str = ", ".join(categorias)
+
+    if not razon_social or not email:
+        return jsonify({"ok": False, "error": "Campos requeridos"}), 400
+
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO proveedores (empresa,ruc,contacto,email,telefono,rubro,descripcion) VALUES (?,?,?,?,?,?,?)",
+        (razon_social, ruc, contacto, email, celular, categorias_str, descripcion)
+    )
+    conn.commit()
+    conn.close()
+
+    body = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+      <div style="background:#004d3d;padding:24px 32px;">
+        <h1 style="color:#C5E86C;font-size:20px;margin:0;">Nuevo Proveedor Registrado</h1>
+        <p style="color:#fff;font-size:13px;margin:6px 0 0;">Portal de Proveedores — CGM Rental</p>
+      </div>
+      <div style="padding:24px 32px;background:#fff;">
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;padding-bottom:8px;margin:0 0 16px;">
+          Datos del Proveedor
+        </h2>
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#666;width:160px;">RUC:</td>
+              <td style="padding:6px 0;color:#222;font-weight:600;">{ruc}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Razón Social:</td>
+              <td style="padding:6px 0;color:#222;font-weight:600;">{razon_social}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Departamento:</td>
+              <td style="padding:6px 0;color:#222;">{departamento}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Dirección:</td>
+              <td style="padding:6px 0;color:#222;">{direccion}</td></tr>
+        </table>
+
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin:24px 0 16px;">Información de Contacto</h2>
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#666;width:160px;">Nombre:</td>
+              <td style="padding:6px 0;color:#222;">{contacto}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Email:</td>
+              <td style="padding:6px 0;color:#222;">{email}</td></tr>
+          <tr><td style="padding:6px 0;color:#666;">Celular:</td>
+              <td style="padding:6px 0;color:#222;">{celular}</td></tr>
+        </table>
+
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin:24px 0 16px;">Categorías</h2>
+        <p style="background:#f5f5f5;padding:12px 16px;border-radius:6px;
+                  font-size:14px;color:#222;margin:0 0 16px;">{categorias_str}</p>
+
+        <h2 style="color:#004d3d;font-size:16px;border-bottom:2px solid #C5E86C;
+                   padding-bottom:8px;margin:24px 0 16px;">Descripción</h2>
+        <p style="font-size:14px;color:#222;margin:0;">{descripcion}</p>
+      </div>
+      <div style="background:#f0f0f0;padding:16px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#888;">
+          CGM RENTAL — Registro generado automáticamente desde el Portal de Proveedores
+        </p>
+      </div>
+    </div>
+    """
+    send_email(f"Nuevo proveedor registrado: {razon_social} — CGM Rental", body)
+    return jsonify({"ok": True})
+
+
 if __name__ == "__main__":
-    print(f"CGM Rental - Servidor Flask")
-    print(f"Productos cargados: {len(PRODUCTOS)}")
-    print(f"Rutas de categoria: {len(RUTAS)}")
-    print(f"Base dir: {BASE_DIR}")
-    _precalentar_categorias()
-    debug_mode = os.environ.get("FLASK_DEBUG", "0") == "1"
-    app.run(host="0.0.0.0", port=5000, debug=debug_mode, threaded=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "True") == "True", port=5000)
