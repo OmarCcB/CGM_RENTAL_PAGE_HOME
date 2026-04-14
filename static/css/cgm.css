@@ -344,8 +344,9 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
    ══════════════════════════════════════════════════════════════ */
 .cgm-hero {
   width: 100%;
-  height: 80vh;
-  min-height: 420px;
+  height: 0;
+  padding-bottom: 38%;
+  min-height: unset;
   max-height: 780px;
   position: relative;
   overflow: hidden;
@@ -355,8 +356,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 .cgm-hero-bg {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
+  background-size: 105%;
+  background-position: center center;
   background-repeat: no-repeat;
   transition: transform 6s ease;
 }
@@ -414,8 +415,13 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 /* ══════════════════════════════════════════════════════════════
    SECCIÓN GENÉRICA
    ══════════════════════════════════════════════════════════════ */
-.cgm-section { padding: 80px 0; }
-.cgm-section-sm { padding: 48px 0; }
+.cgm-section { padding: 55px 0; }
+.cgm-section-sm { padding: 32px 0; }
+/* Evita doble espacio entre secciones del mismo color */
+.cgm-section.bg-white + .cgm-section.bg-white,
+.cgm-section.bg-white + .cgm-section-sm.bg-white,
+.cgm-section-sm.bg-white + .cgm-section.bg-white { padding-top: 0; }
+.cgm-section.bg-cgm-gris + .cgm-section.bg-cgm-gris { padding-top: 0; }
 
 .cgm-section-title {
   font-family: 'Estricta', sans-serif;
@@ -2094,14 +2100,25 @@ select.cgm-contacto-input { cursor: pointer; }
    ══════════════════════════════════════════════════════════════ */
 .cgm-search-bar {
   background: var(--cgm-verde);
-  padding: 28px 0;
+  padding: clamp(6px, 1.2vw, 10px) 0;
+  position: relative;
+}
+.cgm-search-bar::after {
+  content: '';
+  position: absolute;
+  bottom: -18px;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  background: linear-gradient(to bottom, rgba(197,232,108,0.85) 0%, rgba(197,232,108,0) 100%);
+  pointer-events: none;
 }
 .cgm-search-title {
   font-family: 'Estricta', sans-serif;
-  font-size: 50px;
-  color: rgba(255,255,255,.85);
+  font-size: clamp(18px, 2.8vw, 38px);
+  color: #fff;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: clamp(6px, 0.8vw, 12px);
   font-weight: 400;
 }
 .cgm-search-title span {
@@ -2111,35 +2128,36 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-search-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: clamp(6px, 1vw, 12px);
   align-items: flex-end;
   justify-content: center;
 }
 .cgm-search-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .cgm-search-label {
-  font-size: 11px;
+  font-size: clamp(9px, 0.9vw, 11px);
   font-weight: 700;
   letter-spacing: .8px;
   color: rgba(255,255,255,.6);
   text-transform: uppercase;
 }
 .cgm-search-select {
-  height: 40px;
-  min-width: 220px;
+  height: clamp(32px, 3vw, 40px);
+  min-width: clamp(140px, 18vw, 220px);
   padding: 0 14px;
   border: 1px solid rgba(255,255,255,.3);
   border-radius: 4px;
-  background: rgba(255,255,255,.1);
-  color: #fff;
+  background: #fff;
+  color: var(--cgm-verde);
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23004d3d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
@@ -2147,16 +2165,16 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-search-select:focus {
   outline: none;
   border-color: var(--cgm-lima);
-  background-color: rgba(255,255,255,.18);
+  background-color: #fff;
 }
-.cgm-search-select option { background: var(--cgm-verde); color: #fff; }
+.cgm-search-select option { background: #fff; color: var(--cgm-verde); }
 .cgm-search-btns {
   display: flex;
   gap: 10px;
   align-items: flex-end;
   padding-bottom: 0;
 }
-.cgm-search-btns .cgm-btn { height: 44px; padding: 0 28px; }
+.cgm-search-btns .cgm-btn { height: clamp(32px, 3vw, 44px); padding: 0 clamp(14px, 2vw, 28px); font-size: clamp(12px, 1.2vw, 14px); }
 
 /* ══════════════════════════════════════════════════════════════
    UNIDADES DE NEGOCIO — MOSAICO (Home)
@@ -2251,9 +2269,12 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-nosotros-wrap { position: relative; }
 .cgm-nosotros-slide {
   position: relative;
-  height: 480px;
+  height: 0;
+  padding-bottom: 45%;
+  min-height: 260px;
+  max-height: 480px;
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -2313,8 +2334,8 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-sig-badge:hover { transform: scale(1.08); }
 /* Visor PDF limpio (PDF.js canvas) */
 .cgm-iso-pdf-wrap {
-  width: 100%;
-  max-width: 900px;
+  width: fit-content;
+  max-width: 100%;
   margin: 0 auto 48px;
   border-radius: 10px;
   overflow: hidden;
@@ -2354,7 +2375,7 @@ select.cgm-contacto-input { cursor: pointer; }
   max-height: 1150px;
   display: flex;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: #525659;
 }
 #cgmPdfCanvas {
@@ -2369,6 +2390,58 @@ select.cgm-contacto-input { cursor: pointer; }
   transition: transform .25s, box-shadow .25s;
 }
 .cgm-sig-link:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(2,83,76,.2); }
+
+/* ── Modal ISO PDF ── */
+.cgm-iso-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.cgm-iso-modal.active { display: flex; }
+.cgm-iso-modal-box {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 600px;
+  height: calc(100vh - 75px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.cgm-iso-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--cgm-verde);
+  color: #fff;
+  font-family: 'Estricta', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+.cgm-iso-modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.cgm-iso-modal-close:hover { color: var(--cgm-lima); }
+.cgm-iso-modal-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
 
 /* ISO card en página certificación */
 .cgm-iso-card-link {
@@ -2497,7 +2570,7 @@ select.cgm-contacto-input { cursor: pointer; }
   .cgm-unidad-card { height: 200px; }
   .cgm-unidad-card.cgm-unidad-full { grid-column: span 1; height: 200px; }
 
-  .cgm-nosotros-slide { height: 320px; }
+  .cgm-nosotros-slide { padding-bottom: 55%; min-height: 200px; }
   .cgm-nosotros-card { left: 16px; bottom: 16px; max-width: calc(100% - 32px); font-size: 13px; }
 }
 
@@ -2537,6 +2610,8 @@ select.cgm-contacto-input { cursor: pointer; }
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,.08);
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .cgm-historia-card-header {
   background: var(--cgm-verde);
@@ -2545,6 +2620,7 @@ select.cgm-contacto-input { cursor: pointer; }
   font-size: 20px;
   letter-spacing: .06em;
   padding: 18px 28px;
+  flex-shrink: 0;
 }
 .cgm-historia-card-body {
   padding: 28px;
@@ -2552,6 +2628,7 @@ select.cgm-contacto-input { cursor: pointer; }
   font-size: 15px;
   color: #444;
   line-height: 1.7;
+  flex: 1;
 }
 
 /* ══════════════════════════════════════════════════════════════

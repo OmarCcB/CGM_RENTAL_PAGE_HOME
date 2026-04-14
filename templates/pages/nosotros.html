@@ -30,7 +30,7 @@
       <h2 class="cgm-section-title fade-up">Nuestra historia</h2>
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
-    <div class="row g-4 align-items-start">
+    <div class="row g-4 align-items-stretch">
       <div class="col-12 col-lg-6 fade-up">
         <div class="cgm-video-wrap">
           <iframe src="https://www.youtube.com/embed/Dz-E6I-nd48"
@@ -49,10 +49,18 @@
             <p>CGM Rental, empresa contratista, cuenta con las certificaciones de calidad ISO 9001,
                de gestión ambiental ISO 14001, de salud ocupacional ISO 45001 y antisoborno ISO 37001.</p>
             <div class="d-flex flex-wrap gap-3 mt-4">
-              {% for badge in ['sig/iso-9001.svg','sig/iso-14001.svg','sig/iso-45001.svg','sig/iso-37001.svg'] %}
-              <img src="{{ url_for('static', filename='images/' + badge) }}"
-                   alt="ISO badge" style="height:58px;width:auto;"
-                   onerror="this.parentElement.classList.add('d-none')">
+              {% for badge in [
+                ('sig/iso-9001.svg',  'ISO 9001 — Calidad',     'docs/iso-9001.pdf'),
+                ('sig/iso-14001.svg', 'ISO 14001 — Ambiental',  'docs/iso-14001.pdf'),
+                ('sig/iso-45001.svg', 'ISO 45001 — Seguridad',  'docs/iso-45001.pdf'),
+                ('sig/iso-37001.svg', 'ISO 37001 — Antisoborno','docs/iso-37001.pdf')
+              ] %}
+              <a href="#" onclick="abrirIsoPdf('{{ url_for('static', filename=badge[2]) }}', '{{ badge[1] }}'); return false;"
+                 style="display:inline-block;transition:transform .2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+                <img src="{{ url_for('static', filename='images/' + badge[0]) }}"
+                     alt="{{ badge[1] }}" style="height:58px;width:auto;"
+                     onerror="this.parentElement.classList.add('d-none')">
+              </a>
               {% endfor %}
             </div>
           </div>
@@ -101,8 +109,9 @@
           <div class="cgm-politica-card-icon"><i class="bi bi-stars"></i></div>
           <div class="cgm-politica-card-name">VALORES</div>
         </div>
-        <a href="/{{ country_code }}/politica-integrada/"
-           class="cgm-politica-card cgm-politica-card-cta" data-politica-idx="3">
+        <a href="#"
+           class="cgm-politica-card cgm-politica-card-cta" data-politica-idx="3"
+           onclick="abrirPoliticaPdf(); return false;">
           <div class="cgm-politica-card-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
           <div class="cgm-politica-card-name">POLÍTICA INTEGRADA</div>
           <div class="cgm-politica-card-arrow">→</div>
@@ -250,6 +259,28 @@
   </div>
 </section>
 
+<!-- Modal PDF ISO -->
+<div id="isoModalNosotros" class="cgm-iso-modal" onclick="cerrarIsoPdf(event)">
+  <div class="cgm-iso-modal-box">
+    <div class="cgm-iso-modal-header">
+      <span id="isoModalNosotrosTitle"></span>
+      <button class="cgm-iso-modal-close" onclick="cerrarIsoPdf(null)">&times;</button>
+    </div>
+    <iframe id="isoModalNosotrosFrame" class="cgm-iso-modal-frame" src="" allowfullscreen></iframe>
+  </div>
+</div>
+
+<!-- Modal PDF Política Integrada -->
+<div id="politicaModal" class="cgm-iso-modal" onclick="cerrarPoliticaPdf(event)">
+  <div class="cgm-iso-modal-box">
+    <div class="cgm-iso-modal-header">
+      <span>Política Integrada de Gestión</span>
+      <button class="cgm-iso-modal-close" onclick="cerrarPoliticaPdf(null)">&times;</button>
+    </div>
+    <iframe id="politicaModalFrame" class="cgm-iso-modal-frame" src="" allowfullscreen></iframe>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -292,6 +323,37 @@ new Swiper('.cgm-socios-swiper', {
     768: { slidesPerView: 4, spaceBetween: 40 },
     992: { slidesPerView: 5, spaceBetween: 48 }
   }
+});
+
+// ── Modal ISO PDF ──
+function abrirIsoPdf(url, titulo) {
+  document.getElementById('isoModalNosotrosTitle').textContent = titulo;
+  document.getElementById('isoModalNosotrosFrame').src = url + '#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width';
+  document.getElementById('isoModalNosotros').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarIsoPdf(e) {
+  if (e && e.target !== document.getElementById('isoModalNosotros')) return;
+  document.getElementById('isoModalNosotros').classList.remove('active');
+  document.getElementById('isoModalNosotrosFrame').src = '';
+  document.body.style.overflow = '';
+}
+
+// ── Modal Política Integrada PDF ──
+const _politicaPdfUrl = "{{ url_for('static', filename='images/docs/política-integrada.pdf') }}#toolbar=0&navpanes=0&scrollbar=0";
+function abrirPoliticaPdf() {
+  document.getElementById('politicaModalFrame').src = _politicaPdfUrl;
+  document.getElementById('politicaModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarPoliticaPdf(e) {
+  if (e && e.target !== document.getElementById('politicaModal')) return;
+  document.getElementById('politicaModal').classList.remove('active');
+  document.getElementById('politicaModalFrame').src = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { cerrarIsoPdf(null); cerrarPoliticaPdf(null); }
 });
 
 // ── Testimonios ──

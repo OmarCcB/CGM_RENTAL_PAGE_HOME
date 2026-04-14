@@ -169,7 +169,7 @@
 
 {% if country.show_portal_proveedores %}
 <!-- ══════════ 5. SISTEMA INTEGRADO DE GESTIÓN – SIG ══════════ -->
-<section class="cgm-section bg-cgm-gris">
+<section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="cgm-section-title fade-up">Sistema Integrado de Gestión – SIG</h2>
@@ -177,23 +177,35 @@
     </div>
     <div class="cgm-sig-grid fade-up">
       {% for badge in [
-        ('sig/iso-9001.svg',  'ISO 9001 — Calidad',    '9001'),
-        ('sig/iso-14001.svg', 'ISO 14001 — Ambiental', '14001'),
-        ('sig/iso-45001.svg', 'ISO 45001 — Seguridad', '45001'),
-        ('sig/iso-37001.svg', 'ISO 37001 — Antisoborno','37001')
+        ('sig/iso-9001.svg',  'ISO 9001 — Calidad',     'docs/iso-9001.pdf'),
+        ('sig/iso-14001.svg', 'ISO 14001 — Ambiental',  'docs/iso-14001.pdf'),
+        ('sig/iso-45001.svg', 'ISO 45001 — Seguridad',  'docs/iso-45001.pdf'),
+        ('sig/iso-37001.svg', 'ISO 37001 — Antisoborno','docs/iso-37001.pdf')
       ] %}
-      <a href="/{{ country_code }}/certificaciones/iso-{{ badge[2] }}/" class="cgm-sig-link">
+      <a href="#" class="cgm-sig-link"
+         onclick="abrirIsoPdf('{{ url_for('static', filename=badge[2]) }}', '{{ badge[1] }}'); return false;">
         <img src="{{ url_for('static', filename='images/' + badge[0]) }}"
              alt="{{ badge[1] }}" class="cgm-sig-badge">
       </a>
       {% endfor %}
+    </div>
+
+    <!-- Modal PDF ISO -->
+    <div id="isoModal" class="cgm-iso-modal" onclick="cerrarIsoPdf(event)">
+      <div class="cgm-iso-modal-box">
+        <div class="cgm-iso-modal-header">
+          <span id="isoModalTitle"></span>
+          <button class="cgm-iso-modal-close" onclick="cerrarIsoPdf(null)">&times;</button>
+        </div>
+        <iframe id="isoModalFrame" class="cgm-iso-modal-frame" src="" allowfullscreen></iframe>
+      </div>
     </div>
   </div>
 </section>
 {% endif %}
 
 <!-- ══════════ 6. GRUPO IPESA ══════════ -->
-<section class="cgm-section-sm bg-white">
+<section class="cgm-section-sm bg-cgm-gris">
   <div class="container">
     <div class="text-center mb-4">
       <h2 class="cgm-ipesa-title fade-up">GRUPO IPESA</h2>
@@ -220,7 +232,7 @@
 </section>
 
 <!-- ══════════ 7. BLOG Y MÁS ══════════ -->
-<section class="cgm-section bg-cgm-gris">
+<section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-2">
       <h2 class="cgm-section-title fade-up">
@@ -354,5 +366,22 @@ function limpiarBusqueda() {
   document.getElementById('searchUnidad').value = '';
   document.getElementById('searchCategoria').innerHTML = '<option value="">Seleccione</option>';
 }
+
+// ── Modal ISO PDF ──
+function abrirIsoPdf(url, titulo) {
+  document.getElementById('isoModalTitle').textContent = titulo;
+  document.getElementById('isoModalFrame').src = url + '#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width';
+  document.getElementById('isoModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarIsoPdf(e) {
+  if (e && e.target !== document.getElementById('isoModal')) return;
+  document.getElementById('isoModal').classList.remove('active');
+  document.getElementById('isoModalFrame').src = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cerrarIsoPdf(null);
+});
 </script>
 {% endblock %}

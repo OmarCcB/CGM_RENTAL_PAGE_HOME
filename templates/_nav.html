@@ -6,7 +6,7 @@
         <!-- Izquierda: teléfono + email -->
         <div class="d-flex align-items-center gap-3">
           <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-topbar-link">
-            <i class="bi bi-telephone-fill me-1"></i>{{ country.telefono }}
+            <i class="fa-brands fa-whatsapp me-1"></i>{{ country.telefono }}
           </a>
           <span class="cgm-topbar-sep d-none d-md-inline">|</span>
           <a href="mailto:{{ country.email }}" class="cgm-topbar-link d-none d-md-inline-flex">
@@ -45,7 +45,7 @@
 
   <!-- Barra principal -->
   <nav class="cgm-main-nav navbar navbar-expand-md">
-    <div class="container-fluid px-4">
+    <div class="container-fluid px-5" style="max-width:1400px;margin:0 auto;width:100%;">
       <!-- Logo -->
       <a class="navbar-brand cgm-logo" href="/{{ country_code }}/">
         <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"

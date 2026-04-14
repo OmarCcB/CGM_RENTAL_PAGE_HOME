@@ -631,24 +631,28 @@ ISO_DATA = {
               "badge": "sig/iso-37001.svg", "pdf": "docs/iso-37001.pdf", "color": "#02534c"},
 }
 
-@app.route("/<country>/certificaciones/iso-<codigo>/")
-def certificacion_iso(country, codigo):
-    if country not in COUNTRIES:
-        return redirect(f"/{DEFAULT_COUNTRY}/certificaciones/iso-{codigo}/")
-    if codigo not in ISO_DATA:
-        return redirect(f"/{DEFAULT_COUNTRY}/")
-    c = get_country(country)
-    return render_template("pages/certificacion_iso.html",
-                           country=c, country_code=country,
-                           iso=ISO_DATA[codigo], codigo=codigo)
+# OCULTO TEMPORALMENTE — ruta individual de certificaciones ISO
+# Se mantiene para uso futuro. Los badges ahora abren modal con PDF directo.
+# @app.route("/<country>/certificaciones/iso-<codigo>/")
+# def certificacion_iso(country, codigo):
+#     if country not in COUNTRIES:
+#         return redirect(f"/{DEFAULT_COUNTRY}/certificaciones/iso-{codigo}/")
+#     if codigo not in ISO_DATA:
+#         return redirect(f"/{DEFAULT_COUNTRY}/")
+#     c = get_country(country)
+#     return render_template("pages/certificacion_iso.html",
+#                            country=c, country_code=country,
+#                            iso=ISO_DATA[codigo], codigo=codigo)
 
 
-@app.route("/<country>/politica-integrada/")
-def politica_integrada(country):
-    if country not in COUNTRIES:
-        return redirect(f"/{DEFAULT_COUNTRY}/politica-integrada/")
-    c = get_country(country)
-    return render_template("pages/politica_integrada.html", country=c, country_code=country)
+# OCULTO TEMPORALMENTE — página política integrada
+# Se mantiene para uso futuro. El PDF ahora se abre en modal directo.
+# @app.route("/<country>/politica-integrada/")
+# def politica_integrada(country):
+#     if country not in COUNTRIES:
+#         return redirect(f"/{DEFAULT_COUNTRY}/politica-integrada/")
+#     c = get_country(country)
+#     return render_template("pages/politica_integrada.html", country=c, country_code=country)
 
 
 @app.route("/<country>/portalproveedores/")
