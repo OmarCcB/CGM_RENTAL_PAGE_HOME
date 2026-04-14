@@ -6,9 +6,16 @@
 {% block content %}
 
 <!-- ══════════ BANNER ══════════ -->
-<section class="cgm-page-hero">
+<section class="cgm-page-hero" style="height:600px;">
   <div class="cgm-page-hero-bg"
        style="background-image:url('{{ url_for('static', filename='images/banners/cat-contacto.png') }}')"></div>
+  <div class="cgm-page-hero-overlay" style="background:rgba(0,0,0,.40);"></div>
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt=""
+       style="position:absolute; left:15%; top:55%; transform:translateY(-50%); height:15%; width:auto; pointer-events:none;">
+  <div class="cgm-page-hero-content">
+    <h1>Contáctanos</h1>
+  </div>
 </section>
 
 <!-- ══════════ TÍTULO ══════════ -->
