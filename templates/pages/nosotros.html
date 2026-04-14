@@ -46,6 +46,9 @@
           <div class="cgm-historia-card-body">
             <p>Somos una empresa especializada en alquiler de maquinaria y venta de equipos usados.
                Poseemos una flota amplia con marcas reconocidas en el mercado.</p>
+            {% if country_code == 'arg' %}
+            <p>Brindamos soluciones integrales de equipamiento para proyectos de construcción, respaldados por un equipo técnico especializado.</p>
+            {% else %}
             <p>CGM Rental, empresa contratista, cuenta con las certificaciones de calidad ISO 9001,
                de gestión ambiental ISO 14001, de salud ocupacional ISO 45001 y antisoborno ISO 37001.</p>
             <div class="d-flex flex-wrap gap-3 mt-4">
@@ -63,6 +66,7 @@
               </a>
               {% endfor %}
             </div>
+            {% endif %}
           </div>
         </div>
       </div>

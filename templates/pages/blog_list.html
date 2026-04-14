@@ -8,7 +8,12 @@
 <!-- ══════════ HERO ══════════ -->
 <section class="cgm-page-hero">
   <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/blog/cap-blog.jpg') }}')"></div>
+       style="background-image:url('{{ url_for('static', filename='images/blog/cap-blog.svg') }}');
+              background-size: 100%;
+              background-position: center 20%;"></div>
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt=""
+       style="position:absolute; left:20%; top:50%; transform:translateY(-50%); height:30%; width:auto; pointer-events:none;">
   <div class="cgm-page-hero-content">
     <h1>Blog & Novedades</h1>
   </div>

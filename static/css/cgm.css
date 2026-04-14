@@ -86,7 +86,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 }
 
 .cgm-topbar-link {
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 16px;
   font-family: 'Estricta', sans-serif;
   display: inline-flex;
@@ -94,7 +94,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   opacity: .9;
   transition: opacity var(--transition);
 }
-.cgm-topbar-link:hover { opacity: 1; color: #fff; }
+.cgm-topbar-link:hover { opacity: 1; color: #fff !important; }
 .cgm-topbar-sep { color: rgba(255,255,255,.4); }
 
 .cgm-topbar-btn {
@@ -237,10 +237,10 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   opacity: 0;
 }
 .cgm-header.scrolled .cgm-main-nav {
-  height: 52px;
+  height: 65px;
   box-shadow: 0 2px 16px rgba(0,0,0,.16);
 }
-.cgm-header.scrolled { --cgm-header-h: 52px; }
+.cgm-header.scrolled { --cgm-header-h: 60px; }
 
 /* Hamburguesa */
 .cgm-toggler {
@@ -359,9 +359,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   background-size: 105%;
   background-position: center center;
   background-repeat: no-repeat;
-  transition: transform 6s ease;
 }
-.swiper-slide-active .cgm-hero-bg { transform: scale(1.05); }
+.swiper-slide-active .cgm-hero-bg { transform: scale(1); }
 .cgm-hero-overlay {
   position: absolute;
   inset: 0;
@@ -668,7 +667,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
    ══════════════════════════════════════════════════════════════ */
 .cgm-page-hero {
   position: relative;
-  height: 450px;
+  height: 650px;
   display: flex;
   align-items: center;
   justify-content: center;
