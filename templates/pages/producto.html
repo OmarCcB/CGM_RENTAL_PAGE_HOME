@@ -63,6 +63,14 @@
         {% endif %}
 
         <!-- Botones acción -->
+        {% if proximamente %}
+        <div class="mt-4" style="background:#f8f8f8;border:2px dashed #ccc;border-radius:10px;
+                                  padding:18px 20px;text-align:center;">
+          <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:var(--cgm-verde);
+                    font-family:'Estricta',sans-serif;letter-spacing:.5px;">PRÓXIMAMENTE EN ARGENTINA</p>
+          <p style="margin:0;font-size:12px;color:#888;">Este equipo aún no está disponible para cotizar en Argentina.</p>
+        </div>
+        {% else %}
         <div class="d-flex gap-3 mt-4">
           <button class="cgm-btn cgm-btn-lima flex-fill justify-content-center cgm-btn-clip"
                   style="font-size:13px;padding:13px 8px;"
@@ -75,6 +83,7 @@
             <i class="bi bi-envelope-fill me-2"></i>COTIZAR
           </a>
         </div>
+        {% endif %}
       </div>
 
       <!-- ── Col Der: Info ── -->

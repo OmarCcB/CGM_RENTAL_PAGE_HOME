@@ -48,7 +48,7 @@
               <div class="cgm-filter-header">Unidades</div>
               {% for u_name, u_slug in UNIDAD_NAV %}
                 {% if u_name in unidad_counts %}
-                <a href="/categoria-producto/{{ unidad_counts[u_name]['path'] }}/"
+                <a href="/{{ country_code }}/categoria-producto/{{ unidad_counts[u_name]['path'] }}/"
                    class="cgm-filter-item {% if unidad == u_name %}active{% endif %} {% if unidad_counts[u_name]['count'] == 0 %}cgm-filter-empty{% endif %}">
                   <span>{{ u_name }}</span>
                   <span class="cgm-filter-count">{{ unidad_counts[u_name]['count'] }}</span>
@@ -61,27 +61,31 @@
             <div class="cgm-filter-section">
               <div class="cgm-filter-header">Etiquetas</div>
               {% if tags == 'alquiler' %}
-                <a href="/categoria-producto/{{ cat_path }}/"
+                <a href="/{{ country_code }}/categoria-producto/{{ cat_path }}/"
                    class="cgm-filter-item active">
                   <span>Alquiler</span>
                   <span class="cgm-filter-count">{{ tag_counts['alquiler'] }}</span>
                 </a>
-                <a href="/categoria-producto/{{ other_tag_path }}/"
+                {% if country.show_usados %}
+                <a href="/{{ country_code }}/categoria-producto/{{ other_tag_path }}/"
                    class="cgm-filter-item">
                   <span>Usados</span>
                   <span class="cgm-filter-count">{{ tag_counts['usados'] }}</span>
                 </a>
+                {% endif %}
               {% else %}
-                <a href="/categoria-producto/{{ other_tag_path }}/"
+                <a href="/{{ country_code }}/categoria-producto/{{ other_tag_path }}/"
                    class="cgm-filter-item">
                   <span>Alquiler</span>
                   <span class="cgm-filter-count">{{ tag_counts['alquiler'] }}</span>
                 </a>
-                <a href="/categoria-producto/{{ cat_path }}/"
+                {% if country.show_usados %}
+                <a href="/{{ country_code }}/categoria-producto/{{ cat_path }}/"
                    class="cgm-filter-item active">
                   <span>Usados</span>
                   <span class="cgm-filter-count">{{ tag_counts['usados'] }}</span>
                 </a>
+                {% endif %}
               {% endif %}
             </div>
 
@@ -120,8 +124,9 @@
         {% if products %}
         <div class="d-flex justify-content-between align-items-center mb-3">
           <span style="font-size:13px;color:var(--cgm-gris-txt);">
-            <strong style="color:var(--cgm-negro);">{{ products|length }}</strong> equipos encontrados
+            <strong style="color:var(--cgm-negro);">{{ total }}</strong> equipos encontrados
             {% if tipo_sel %}— <strong>{{ tipo_sel }}</strong>{% endif %}
+            &nbsp;·&nbsp; Página <strong>{{ page }}</strong> de <strong>{{ total_pages }}</strong>
           </span>
         </div>
 
@@ -129,13 +134,23 @@
           {% for p in products %}
           <div class="col-12 col-sm-6 col-xl-4 fade-up fade-up-delay-{{ (loop.index0 % 3) + 1 }}">
             <div class="cgm-prod-card">
-              {% if p.imagen %}
-              <img src="{{ url_for('static', filename='products/' + p.slug + '/1.webp') }}"
-                   alt="{{ p.nombre }}" class="cgm-prod-img" loading="lazy"
-                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-              {% endif %}
-              <div class="cgm-prod-img-placeholder" {% if p.imagen %}style="display:none"{% endif %}>
-                <i class="bi bi-truck"></i>
+              <div style="position:relative;">
+                {% if p.imagen %}
+                <img src="{{ url_for('static', filename='products/' + p.slug + '/1.webp') }}"
+                     alt="{{ p.nombre }}" class="cgm-prod-img" loading="lazy"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                {% endif %}
+                <div class="cgm-prod-img-placeholder" {% if p.imagen %}style="display:none"{% endif %}>
+                  <i class="bi bi-truck"></i>
+                </div>
+                {% if proximamente %}
+                <div style="position:absolute;top:10px;left:10px;
+                            background:var(--cgm-verde);color:#fff;
+                            font-size:11px;font-weight:700;font-family:'Estricta',sans-serif;
+                            padding:4px 12px;border-radius:20px;letter-spacing:.5px;">
+                  PRÓXIMAMENTE
+                </div>
+                {% endif %}
               </div>
               <div class="cgm-prod-body">
                 <div class="cgm-prod-marca">{{ p.marca }}</div>
@@ -148,15 +163,63 @@
                 </ul>
                 {% endif %}
                 <a href="/{{ country_code }}/producto/{{ p.slug }}/"
-                   class="cgm-btn cgm-btn-verde mt-auto"
-                   style="font-size:12px;padding:8px 18px;justify-content:center;">
-                  COTIZAR
+                   class="cgm-btn {% if proximamente %}{% else %}cgm-btn-verde{% endif %} mt-auto"
+                   style="font-size:12px;padding:8px 18px;justify-content:center;
+                          {% if proximamente %}background:#e0e0e0;color:#888;cursor:default;{% endif %}">
+                  {% if proximamente %}VER ESPECIFICACIONES{% else %}COTIZAR{% endif %}
                 </a>
               </div>
             </div>
           </div>
           {% endfor %}
         </div>
+
+        <!-- ══ PAGINACIÓN ══ -->
+        {% if total_pages > 1 %}
+        {% set q_tipo = request.args.get('tipo', '') %}
+        {% set q_extra = ('&tipo=' + q_tipo) if q_tipo else '' %}
+        <div class="d-flex justify-content-between align-items-center mt-5 flex-wrap gap-3">
+          <!-- Números + Siguiente -->
+          <div class="d-flex align-items-center gap-1">
+            {% if page > 1 %}
+            <a href="?page={{ page - 1 }}{{ q_extra }}"
+               style="display:inline-flex;align-items:center;padding:6px 12px;border:1px solid #ddd;
+                      border-radius:4px;font-size:13px;color:var(--cgm-negro);text-decoration:none;
+                      background:#fff;transition:all .2s;">
+              «
+            </a>
+            {% endif %}
+
+            {% for p_num in range(1, total_pages + 1) %}
+            <a href="?page={{ p_num }}{{ q_extra }}"
+               style="display:inline-flex;align-items:center;justify-content:center;
+                      width:34px;height:34px;border-radius:4px;font-size:13px;text-decoration:none;
+                      border:1px solid {% if p_num == page %}var(--cgm-verde){% else %}#ddd{% endif %};
+                      background:{% if p_num == page %}var(--cgm-verde){% else %}#fff{% endif %};
+                      color:{% if p_num == page %}#fff{% else %}var(--cgm-negro){% endif %};
+                      transition:all .2s;">
+              {{ p_num }}
+            </a>
+            {% endfor %}
+
+            {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}{{ q_extra }}"
+               style="display:inline-flex;align-items:center;padding:6px 14px;border:1px solid #ddd;
+                      border-radius:4px;font-size:13px;color:var(--cgm-negro);text-decoration:none;
+                      background:#fff;transition:all .2s;">
+              Siguiente »
+            </a>
+            {% endif %}
+          </div>
+
+          <!-- Showing X-Y of Z results -->
+          <span style="font-size:13px;color:#999;">
+            {% set desde = (page - 1) * 12 + 1 %}
+            {% set hasta = page * 12 if page * 12 < total else total %}
+            Showing {{ desde }}–{{ hasta }} of {{ total }} results
+          </span>
+        </div>
+        {% endif %}
 
         {% else %}
         <div class="text-center py-5">

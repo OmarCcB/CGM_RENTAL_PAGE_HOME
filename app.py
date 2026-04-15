@@ -86,8 +86,13 @@ def send_email(subject, body, to=None):
         return False
 
 
-def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None):
-    """Consulta SQLite filtrando por tags, unidad y tipo."""
+# Unidades no habilitadas para Argentina (se muestran como "Próximamente")
+UNIDADES_PROXIMAMENTE_ARG = {"Mediana Minería", "Agrícola", "Energía"}
+
+PER_PAGE = 12
+
+def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, proximamente=False, page=1):
+    """Consulta SQLite filtrando por tags, unidad y tipo. Retorna (productos, total)."""
     conn = get_conn()
     clauses = ["activo = 1", "tags LIKE ?"]
     params = [f"%{tags}%"]
@@ -100,12 +105,17 @@ def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None):
     elif extra_tipo:
         clauses.append("tipo = ?")
         params.append(extra_tipo)
-    if country == "arg":
+    if country == "arg" and not proximamente:
         clauses.append("show_arg = 1")
-    sql = f"SELECT * FROM products WHERE {' AND '.join(clauses)} ORDER BY nombre"
-    rows = conn.execute(sql, params).fetchall()
+    where = f"WHERE {' AND '.join(clauses)}"
+    total = conn.execute(f"SELECT COUNT(*) FROM products {where}", params).fetchone()[0]
+    offset = (page - 1) * PER_PAGE
+    rows = conn.execute(
+        f"SELECT * FROM products {where} ORDER BY nombre LIMIT {PER_PAGE} OFFSET {offset}",
+        params
+    ).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    return [dict(r) for r in rows], total
 
 
 def cart_count():
@@ -475,7 +485,10 @@ def categoria(country=None, cat_path=""):
         abort(404)
     tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
     extra_tipo = request.args.get("tipo")
-    products = get_products_for_cat(tags, unidad, tipo, extra_tipo, country=country)
+    page = max(1, request.args.get("page", 1, type=int))
+    proximamente = country == "arg" and unidad in UNIDADES_PROXIMAMENTE_ARG
+    products, total = get_products_for_cat(tags, unidad, tipo, extra_tipo, country=country, proximamente=proximamente, page=page)
+    total_pages = (total + PER_PAGE - 1) // PER_PAGE
 
     conn = get_conn()
     arg_filter = " AND show_arg=1" if country == "arg" else ""
@@ -536,7 +549,11 @@ def categoria(country=None, cat_path=""):
                            other_tag=other_tag,
                            other_tag_path=other_tag_path,
                            tipo_counts=tipo_counts,
-                           UNIDAD_NAV=UNIDAD_NAV)
+                           UNIDAD_NAV=UNIDAD_NAV,
+                           proximamente=proximamente,
+                           page=page,
+                           total_pages=total_pages,
+                           total=total)
 
 
 # Producto individual
@@ -560,19 +577,41 @@ def producto(slug, country=None):
     prod["features"] = features
     # ficha_url puede venir como ficha_tecnica en importaciones antiguas
     prod["ficha_url"] = prod.get("ficha_url") or prod.get("ficha_tecnica") or ""
-    # Productos relacionados (mismo tipo o mismos tags, excluyendo el actual)
-    relacionados = conn.execute("""
-        SELECT slug, nombre, marca, imagen, descripcion
+    # ── Productos relacionados con sistema de prioridades ──────────────────
+    arg_filter = "AND show_arg = 1" if country == "arg" else ""
+    p_tipo   = prod.get("tipo", "")
+    p_unidad = prod.get("unidad", "")
+    p_tags   = prod.get("tags", "")
+
+    # Prioridad 1: mismo tipo + misma unidad + mismo tag
+    nivel1 = conn.execute(f"""
+        SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
         FROM products
         WHERE activo=1 AND slug != ?
-          AND (tipo = ? OR tags = ?)
-        ORDER BY RANDOM() LIMIT 8
-    """, (slug, prod.get("tipo",""), prod.get("tags",""))).fetchall()
-    relacionados = [dict(r) for r in relacionados]
+          AND tipo = ? AND unidad = ? AND tags LIKE ? {arg_filter}
+        ORDER BY RANDOM() LIMIT 3
+    """, (slug, p_tipo, p_unidad, f"%{p_tags}%")).fetchall()
+
+    slugs_vistos = {slug} | {r["slug"] for r in nivel1}
+
+    # Prioridad 2: mismo tag + misma unidad, distinto tipo
+    limite_n2 = 6 - len(nivel1)
+    nivel2 = conn.execute(f"""
+        SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
+        FROM products
+        WHERE activo=1 AND slug NOT IN ({','.join('?'*len(slugs_vistos))})
+          AND tags LIKE ? AND unidad = ? AND tipo != ? {arg_filter}
+        ORDER BY RANDOM() LIMIT {limite_n2}
+    """, (*slugs_vistos, f"%{p_tags}%", p_unidad, p_tipo)).fetchall()
+
+    slugs_vistos |= {r["slug"] for r in nivel2}
+
+    relacionados = [dict(r) for r in list(nivel1) + list(nivel2)]
     conn.close()
+    proximamente = country == "arg" and prod.get("unidad") in UNIDADES_PROXIMAMENTE_ARG
     return render_template("pages/producto.html",
                            country=c, country_code=country, product=prod,
-                           relacionados=relacionados)
+                           relacionados=relacionados, proximamente=proximamente)
 
 
 @app.route("/producto/<slug>/ficha/")
