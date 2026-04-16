@@ -48,9 +48,9 @@ COUNTRIES = {
         "linkedin": "https://www.linkedin.com/company/cgm-rental/",
         "youtube": "https://www.youtube.com/@cgmrental",
         "ciudad_principal": "San Juan",
-        "direccion": "San Juan, Argentina",
+        "direccion": "Avenida Libertador 521 - 4to piso, San Juan",
         "sucursales": [
-            {"nombre": "San Juan", "direccion": "San Juan, Argentina", "telefono": ""}
+            {"nombre": "San Juan", "direccion": "Avenida Libertador 521 - 4to piso, San Juan", "telefono": ""}
         ],
         # Links del pie de página
         "bolsa_trabajo_url":      "https://www.linkedin.com/company/cgm-rental/jobs/",

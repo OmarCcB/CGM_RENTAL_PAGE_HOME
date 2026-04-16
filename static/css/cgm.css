@@ -162,26 +162,42 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 /* Nav links */
 .cgm-nav-link {
   font-family: 'Estricta', sans-serif !important;
-  font-size: 13px !important;
+  font-size: 15px !important;
   font-weight: 900 !important;
   color: var(--cgm-verde) !important;
   letter-spacing: .4px;
   padding: 8px 10px !important;
   position: relative;
-  transition: color var(--transition);
+  transition: color var(--transition), transform .2s ease, font-size .2s ease;
+  display: inline-block;
+  text-decoration: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.cgm-nav-link:hover,
+.cgm-nav-link:focus,
+.cgm-nav-link:active,
+.cgm-nav-link.active {
+  text-decoration: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 .cgm-nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 4px; left: 10px; right: 10px;
-  height: 2px;
-  background: var(--cgm-lima);
-  transform: scaleX(0);
-  transition: transform var(--transition);
+  display: none !important;
 }
-.cgm-nav-link:hover::after,
-.cgm-nav-link.active::after { transform: scaleX(1); }
-.cgm-nav-link:hover { color: var(--cgm-lima) !important; }
+.cgm-nav-link:hover {
+  color: var(--cgm-verde) !important;
+  transform: scale(1.18);
+}
+/* Mantiene el link grande mientras el dropdown está abierto */
+.cgm-dropdown:hover > .cgm-nav-link {
+  color: var(--cgm-verde) !important;
+  transform: scale(1.18);
+}
 
 .cgm-disabled {
   font-family: 'Estricta', sans-serif;
@@ -200,8 +216,13 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   box-shadow: 0 8px 24px rgba(0,0,0,.12);
   border-radius: 0 0 6px 6px;
   padding: 8px 0;
-  min-width: 220px;
+  min-width: 240px;
   display: none !important;
+  overflow: hidden;
+}
+/* Solo los dropdowns del nav principal permiten desborde */
+.navbar-nav .cgm-drop {
+  overflow: visible;
 }
 .cgm-dropdown:hover > .cgm-drop,
 .cgm-dropdown.show > .cgm-drop,
@@ -210,49 +231,117 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 }
 .cgm-drop-item {
   font-family: 'Estricta', sans-serif;
-  font-size: 13px;
-  color: var(--cgm-negro) !important;
+  font-size: 15px;
+  color: var(--cgm-verde) !important;
   padding: 10px 18px;
   text-transform: uppercase;
   letter-spacing: .4px;
-  transition: background var(--transition), color var(--transition);
+  display: block;
+  text-decoration: none !important;
+  transition: background var(--transition), color var(--transition), transform .15s ease, letter-spacing .15s ease;
+}
+.cgm-drop-item,
+.cgm-drop-item:hover,
+.cgm-drop-item:focus,
+.cgm-drop-item:active {
+  text-decoration: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.cgm-drop-item {
+  position: relative;
 }
 .cgm-drop-item:hover,
 .cgm-drop-item.active {
-  background: var(--cgm-gris);
+  background: #b5d95e !important;
   color: var(--cgm-verde) !important;
+  font-weight: 900;
+  width: calc(100% + 40px);
+  margin-left: -20px;
+  padding-left: 38px;
+  padding-right: 38px;
+  transform: scaleY(1.08);
+  transform-origin: center center;
+  letter-spacing: .8px;
+}
+/* Selector de país: sin efecto de escala ni desborde */
+.cgm-country-sel .cgm-drop-item:hover,
+.cgm-country-sel .cgm-drop-item.active {
+  transform: none;
+  width: 100%;
+  margin-left: 0;
+  padding-left: 18px;
+  padding-right: 18px;
+  letter-spacing: .4px;
 }
 
 /* Submenús */
 .dropdown-submenu { position: relative; }
 .cgm-sub-drop {
-  top: 0;
-  left: 100%;
-  margin-top: -8px;
+  top: -18px;
+  left: calc(100% + 6px);
+  margin-top: 0;
   min-width: 240px;
+  padding-top: 14px;
+  box-shadow: -4px 4px 20px rgba(0,0,0,.15) !important;
+  overflow: hidden;
 }
 .dropdown-submenu:hover > .cgm-sub-drop {
   display: block !important;
 }
 
-/* Item padre queda verde lima mientras su submenú está abierto */
+/* Padre activo con submenú abierto = verde claro, mantiene tamaño */
 .dropdown-submenu:hover > .cgm-drop-item.has-submenu,
 .dropdown-submenu.show > .cgm-drop-item.has-submenu {
   background: var(--cgm-lima) !important;
   color: var(--cgm-verde) !important;
-  font-weight: 700;
+  font-weight: 900;
+  width: calc(100% + 26px);
+  margin-left: -20px;
+  padding-left: 38px;
+  padding-right: 24px;
+  transform: scale(1.08);
+  transform-origin: left center;
+  letter-spacing: .8px;
+  position: relative;
+  z-index: 1;
+}
+/* Mouse DIRECTAMENTE sobre el padre = verde oscuro, mismo tamaño */
+.dropdown-submenu > .cgm-drop-item.has-submenu:hover {
+  background: #b5d95e !important;
+}
+/* Puente invisible sobre el gap para que el hover no se corte al pasar al submenú */
+.dropdown-submenu:hover > .cgm-drop-item.has-submenu::after,
+.dropdown-submenu.show > .cgm-drop-item.has-submenu::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  background: transparent;
+  z-index: 2;
 }
 
-/* Items del sub-drop en mayúsculas con color verde al hover */
+/* Items del sub-drop — mismo tamaño que el dropdown principal */
 .cgm-sub-drop .cgm-drop-item {
-  font-size: 12px;
-  padding: 9px 18px;
+  font-size: 15px;
+  padding: 10px 18px;
   color: var(--cgm-verde) !important;
   font-weight: 600;
 }
 .cgm-sub-drop .cgm-drop-item:hover {
-  background: var(--cgm-lima) !important;
+  background: #b5d95e !important;
   color: var(--cgm-verde) !important;
+  font-weight: 900;
+  width: calc(100% + 40px);
+  margin-left: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  transform: scaleY(1.2);
+  transform-origin: center center;
+  letter-spacing: .8px;
 }
 
 /* Scroll compacto */
