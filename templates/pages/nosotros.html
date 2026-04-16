@@ -198,15 +198,27 @@
     </div>
     <div class="swiper cgm-socios-swiper fade-up">
       <div class="swiper-wrapper align-items-center">
-        {% for p in ['stracon.svg','ajani.svg','cosapi.svg','cumbre.svg','montaengil.svg','mur.svg','san-martin.svg'] %}
-        <div class="swiper-slide">
-          <div class="cgm-partner-logo">
-            <img src="{{ url_for('static', filename='images/nosotros/' + p) }}"
-                 alt="{{ p.replace('.svg','') }}" loading="lazy"
-                 onerror="this.parentElement.style.display='none'">
+        {% if country_code == 'arg' %}
+          {% for p in ['stracon.svg','MILICIC.webp','ROGGIO.webp','rovella.webp','cosapi.svg','JJC.webp'] %}
+          <div class="swiper-slide">
+            <div class="cgm-partner-logo">
+              <img src="{{ url_for('static', filename='images/nosotros/' + p) }}"
+                   alt="{{ p.split('.')[0] }}" loading="lazy"
+                   onerror="this.parentElement.style.display='none'">
+            </div>
           </div>
-        </div>
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+          {% for p in ['stracon.svg','ajani.svg','cosapi.svg','cumbre.svg','montaengil.svg','mur.svg','san-martin.svg'] %}
+          <div class="swiper-slide">
+            <div class="cgm-partner-logo">
+              <img src="{{ url_for('static', filename='images/nosotros/' + p) }}"
+                   alt="{{ p.replace('.svg','') }}" loading="lazy"
+                   onerror="this.parentElement.style.display='none'">
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
   </div>
