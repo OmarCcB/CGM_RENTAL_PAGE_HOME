@@ -785,7 +785,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
    ══════════════════════════════════════════════════════════════ */
 .cgm-page-hero {
   position: relative;
-  height: 650px;
+  height: clamp(300px, 50vw, 650px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1514,7 +1514,7 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-footer-btn-img:hover { opacity: .85; transform: scale(1.02); }
 
 /* ── Contacto bloques ───────────────────────────────────────── */
-.cgm-footer-contact-block { margin-bottom: 14px; }
+.cgm-footer-contact-block { margin-bottom: 10px; }
 .cgm-footer-contact-label {
   font-size: 12px;
   font-weight: 700;
@@ -1553,6 +1553,302 @@ select.cgm-contacto-input { cursor: pointer; }
   .cgm-footer-suc-grid { grid-template-columns: 1fr; }
 }
 
+/* ══════════════════════════════════════════════════════════
+   FOOTER LAYOUTS (arquitectura responsive con CSS Grid)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Pin card base (compartido) ───────────────────────────── */
+.cgm-footer-pin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* ── Grid de pines responsive ─────────────────────────────
+   Comportamiento por defecto (Perú con 8 tarjetas):
+   - <480px:   1 col
+   - 480-767:  2 cols
+   - 768+:     4 cols
+   Argentina (solo 2 sedes) sobreescribe con auto-fit.
+*/
+.cgm-footer-pins {
+  display: grid;
+  gap: 14px 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 480px) {
+  .cgm-footer-pins {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 768px) {
+  .cgm-footer-pins {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Argentina: solo 2 sedes → auto-fit para no dejar columnas vacías */
+.cgm-footer-arg__sedes .cgm-footer-pins {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* ══════════════════════════════════════════════════════════
+   PERÚ LAYOUT
+   Desktop (≥992px): aside izq + (contact | sucursales)
+   Tablet  (768-991): aside izq + stack (contact + sucursales)
+   Mobile  (<768):   todo apilado en 1 columna
+   ══════════════════════════════════════════════════════════ */
+
+.cgm-footer-pe {
+  display: flex;
+  gap: 1.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.cgm-footer-pe__aside {
+  flex: 0 0 auto;
+  width: 170px;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  align-items: flex-start;
+}
+
+.cgm-footer-pe__logo {
+  display: block;
+  margin-bottom: .5rem;
+}
+.cgm-footer-pe__logo img {
+  width: 100%;
+  max-width: 170px;  /* logo más grande que los botones */
+  height: auto;
+  display: block;
+}
+
+.cgm-footer-pe__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  align-items: flex-start;
+}
+.cgm-footer-pe__buttons .cgm-footer-btn-img {
+  width: 100%;
+  max-width: 130px;  /* botones más pequeños */
+}
+
+.cgm-footer-pe__main {
+  flex: 1 1 380px;
+  min-width: 0;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+/* Desktop amplio: contact + sucursales lado a lado */
+@media (min-width: 992px) {
+  .cgm-footer-pe__main {
+    grid-template-columns: minmax(240px, 1fr) minmax(0, 2.3fr);
+  }
+}
+@media (min-width: 1400px) {
+  .cgm-footer-pe__main {
+    grid-template-columns: minmax(260px, 1fr) minmax(0, 3fr);
+  }
+}
+
+/* Móvil: aside centrado arriba */
+@media (max-width: 575.98px) {
+  .cgm-footer-pe {
+    gap: 2rem;
+  }
+  .cgm-footer-pe__aside {
+    width: 100%;
+    align-items: center;
+  }
+  .cgm-footer-pe__buttons {
+    align-items: center;
+    max-width: 220px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   ARGENTINA LAYOUT
+   Desktop (≥1200px): logo | contact | sedes | buttons
+   Tablet  (576-1199): logo+buttons izq | contact | sedes — 3 columnas
+   Mobile  (<576):    todo apilado
+   ══════════════════════════════════════════════════════════ */
+
+.cgm-footer-arg {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.cgm-footer-arg__logo img {
+  width: 100%;
+  max-width: 170px;   /* logo más grande que los botones */
+  height: auto;
+  display: block;
+}
+.cgm-footer-arg__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  align-items: flex-start;
+}
+.cgm-footer-arg__buttons .cgm-footer-btn-img {
+  width: 100%;
+  max-width: 130px;   /* botones más pequeños */
+}
+
+/* Tablet (576-1199): logo+botones apilados izq | contacto | sedes — 3 cols */
+@media (min-width: 576px) and (max-width: 1199.98px) {
+  .cgm-footer-arg {
+    grid-template-columns: auto minmax(160px, 1fr) minmax(160px, 1.5fr);
+    grid-template-areas:
+      "logo    contact sedes"
+      "buttons contact sedes";
+    column-gap: 1.5rem;
+    row-gap: .4rem;
+  }
+  .cgm-footer-arg__logo    { grid-area: logo; width: 150px; }
+  .cgm-footer-arg__contact { grid-area: contact; align-self: start; }
+  .cgm-footer-arg__sedes   { grid-area: sedes; align-self: start; }
+  .cgm-footer-arg__buttons {
+    grid-area: buttons;
+    width: 150px;
+    align-self: start;
+  }
+}
+
+/* Desktop (≥1200): todo en una fila */
+@media (min-width: 1200px) {
+  .cgm-footer-arg {
+    grid-template-columns: auto minmax(220px, 1fr) minmax(0, 2fr) auto;
+    grid-template-areas: "logo contact sedes buttons";
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .cgm-footer-arg__logo    { grid-area: logo; width: 170px; }
+  .cgm-footer-arg__contact { grid-area: contact; }
+  .cgm-footer-arg__sedes   { grid-area: sedes; }
+  .cgm-footer-arg__buttons { grid-area: buttons; width: 140px; }
+}
+.cgm-footer-pin-drop {
+  font-size: 22px;
+  color: var(--cgm-lima);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.cgm-footer-pin-title {
+  font-family: 'Estricta', sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  color: #fff;
+  line-height: 1.1;
+}
+.cgm-footer-pin-title span {
+  color: var(--cgm-lima);
+}
+.cgm-footer-pin-country {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+.cgm-footer-pin-addr {
+  font-size: 11px;
+  color: rgba(255,255,255,.75);
+  line-height: 1.4;
+  margin-top: 4px;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* ── Estadísticas en círculo (Argentina Nosotros) ───────────── */
+.cgm-stats-section { background: #f7f7f7; }
+.cgm-stats-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.cgm-stats-heading-bar {
+  width: 4px;
+  align-self: stretch;
+  background: var(--cgm-verde);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.cgm-stats-heading-top {
+  font-family: 'Estricta', sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  color: #333;
+  display: block;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+.cgm-stats-heading-sub {
+  display: block;
+  font-family: 'Estricta', sans-serif;
+  font-size: 22px;
+  font-style: normal;
+  color: var(--cgm-verde);
+  font-weight: 900;
+  line-height: 1.2;
+}
+.cgm-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px 32px;
+}
+.cgm-stat-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: 3px solid var(--cgm-verde);
+  padding: 16px;
+  text-align: center;
+  transition: transform .25s, border-color .25s;
+}
+.cgm-stat-circle:hover {
+  transform: scale(1.06);
+  border-color: var(--cgm-lima);
+}
+.cgm-stat-number {
+  font-family: 'Estricta', sans-serif;
+  font-size: 26px;
+  font-style: normal;
+  font-weight: 900;
+  color: var(--cgm-verde);
+  line-height: 1;
+}
+.cgm-stat-label {
+  font-size: 11px;
+  color: #555;
+  margin-top: 6px;
+  line-height: 1.3;
+  text-align: center;
+}
+@media (max-width: 576px) {
+  .cgm-stat-circle { width: 120px; height: 120px; }
+  .cgm-stat-number { font-size: 20px; }
+}
+
 /* ── Swiper relacionados ─────────────────────────────────────── */
 .cgm-relacionados-swiper { padding-bottom: 16px !important; }
 .cgm-relacionados-swiper .swiper-button-prev,
@@ -1569,14 +1865,21 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-relacionados-swiper .swiper-button-next::after { font-size: 12px; font-weight: 700; }
 
 .cgm-footer { background: #4a4a4a; } /* ← plomo: más claro=#666, más oscuro=#333 */
+
+/* Reducir padding del contenedor del footer (override Bootstrap py-5) */
+.cgm-footer > .container-fluid {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
 .cgm-footer-title {
   font-family: 'Estricta', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-style: normal;
   letter-spacing: .5px;
   color: var(--cgm-blanco);
-  margin-bottom: 16px;
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgba(255,255,255,.1);
 }
 .cgm-footer-subtitle {
@@ -2722,10 +3025,36 @@ select.cgm-contacto-input { cursor: pointer; }
   width: 100%; height: 100%;
   border: 0;
 }
-.cgm-historia-card {
-  border-radius: 8px;
+/* ── Historia: contenedor unido video + texto ───────────────── */
+.cgm-historia-united {
+  display: flex;
+  align-items: stretch;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  box-shadow: 0 6px 28px rgba(0,0,0,.10);
+}
+.cgm-historia-video-side {
+  flex: 0 0 50%;
+  max-width: 50%;
+  position: relative;
+}
+.cgm-historia-video-side .cgm-video-wrap {
+  border-radius: 0;
+  height: 100%;
+  min-height: 320px;
+}
+.cgm-historia-video-side .cgm-video-wrap iframe {
+  border-radius: 0;
+}
+.cgm-historia-text-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.cgm-historia-card {
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -2741,11 +3070,27 @@ select.cgm-contacto-input { cursor: pointer; }
 }
 .cgm-historia-card-body {
   padding: 28px;
-  background: #fff;
+  background: #e8e8e8;
   font-size: 15px;
   color: #444;
   line-height: 1.7;
   flex: 1;
+}
+.cgm-historia-inner-title {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 20px;
+  letter-spacing: .06em;
+  color: var(--cgm-verde);
+  margin-bottom: 8px;
+}
+.cgm-historia-card-body .cgm-title-line {
+  width: 80px;
+}
+@media (max-width: 991px) {
+  .cgm-historia-united { flex-direction: column; }
+  .cgm-historia-video-side,
+  .cgm-historia-text-side { flex: unset; max-width: 100%; width: 100%; }
+  .cgm-historia-video-side .cgm-video-wrap { min-height: 220px; }
 }
 
 /* ══════════════════════════════════════════════════════════════

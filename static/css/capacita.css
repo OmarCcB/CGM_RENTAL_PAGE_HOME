@@ -1,0 +1,407 @@
+
+/* ══════════════════════════════════════════════════════════════
+   CAPACITA — Centro de Entrenamiento
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Hero */
+.cgm-cap-hero {
+  position: relative;
+  min-height: 420px;
+  background: var(--cgm-verde);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.cgm-cap-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2,60,54,.95) 0%, rgba(2,83,76,.75) 100%);
+}
+.cgm-cap-hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 20px;
+}
+.cgm-cap-hero-badge {
+  display: inline-block;
+  background: var(--cgm-lima);
+  color: var(--cgm-verde);
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+.cgm-cap-hero-title {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+.cgm-cap-hero-title span { color: var(--cgm-lima); }
+.cgm-cap-hero-sub {
+  font-size: clamp(.95rem, 2vw, 1.2rem);
+  color: rgba(255,255,255,.75);
+  letter-spacing: 2px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Equipos grid */
+.cgm-cap-equipos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+}
+.cgm-cap-equipo-card {
+  background: #f5f5f5;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 22px 12px;
+  text-align: center;
+  transition: border-color .2s, transform .2s, background .2s;
+  cursor: default;
+}
+.cgm-cap-equipo-card:hover {
+  border-color: var(--cgm-lima);
+  background: #fff;
+  transform: translateY(-4px);
+}
+.cgm-cap-equipo-img-wrap {
+  width: 100%;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.cgm-cap-equipo-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s;
+}
+.cgm-cap-equipo-card:hover .cgm-cap-equipo-img-wrap img {
+  transform: scale(1.08);
+}
+.cgm-cap-equipo-name { font-size: 13px; font-weight: 600; color: #333; line-height: 1.3; }
+
+/* ── Tabs */
+.cgm-cap-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+}
+.cgm-cap-tab {
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-family: 'Estricta', sans-serif;
+  font-size: 13px;
+  letter-spacing: .4px;
+  cursor: pointer;
+  background: #fff;
+  color: #555;
+  border: 2px solid #ddd;
+  transition: all .2s;
+}
+.cgm-cap-tab:hover { border-color: var(--cgm-verde); color: var(--cgm-verde); }
+.cgm-cap-tab.active { background: var(--cgm-verde); color: #fff; border-color: var(--cgm-verde); }
+.cgm-cap-panel { display: none; }
+.cgm-cap-panel.active { display: block; }
+
+/* ── Programa info card */
+.cgm-cap-prog-info {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  height: 100%;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.cgm-cap-prog-header { margin-bottom: 16px; }
+.cgm-cap-prog-header h3 { font-family: 'CGM BOLD', sans-serif; font-size: 18px; color: var(--cgm-verde); margin: 0 0 4px; }
+.cgm-cap-prog-nivel {
+  display: inline-block;
+  background: var(--cgm-lima);
+  color: var(--cgm-verde);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+.cgm-cap-prog-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.cgm-cap-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+.cgm-cap-stat i { font-size: 1.1rem; color: var(--cgm-verde); margin-bottom: 4px; }
+.cgm-cap-stat span { font-family: 'Estricta', sans-serif; font-size: 12px; color: #333; line-height: 1.2; }
+.cgm-cap-stat small { font-size: 10px; color: #888; margin-top: 2px; }
+.cgm-cap-prog-desc { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 16px; }
+.cgm-cap-req-title {
+  font-family: 'Estricta', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--cgm-verde);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.cgm-cap-prog-req ul, .cgm-cap-prog-contenido ul { padding-left: 18px; margin: 0; }
+.cgm-cap-prog-req li, .cgm-cap-prog-contenido li { font-size: 13px; color: #555; margin-bottom: 4px; }
+.cgm-cap-prog-contenido { margin-top: 14px; }
+
+/* ── Aprendizaje */
+.cgm-cap-aprende {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  height: 100%;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.cgm-cap-aprende h4 { font-family: 'CGM BOLD', sans-serif; font-size: 16px; color: var(--cgm-verde); margin-bottom: 18px; }
+.cgm-cap-aprendizaje-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+.cgm-cap-ai-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  background: var(--cgm-lima);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--cgm-verde);
+  margin-top: 2px;
+}
+
+/* ── Beneficios */
+.cgm-cap-beneficios {
+  background: var(--cgm-verde);
+  border-radius: 10px;
+  padding: 24px;
+  height: 100%;
+  box-shadow: 0 2px 12px rgba(0,0,0,.1);
+}
+.cgm-cap-beneficios h4 { font-family: 'CGM BOLD', sans-serif; font-size: 16px; color: var(--cgm-lima); margin-bottom: 18px; }
+.cgm-cap-beneficio {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: rgba(255,255,255,.9);
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.cgm-cap-beneficio i { color: var(--cgm-lima); font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+/* ── Tabla comparativa */
+.cgm-cap-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,.07);
+}
+.cgm-cap-table thead tr { background: var(--cgm-verde); }
+.cgm-cap-table thead th { color: #fff; font-family: 'Estricta', sans-serif; font-size: 13px; letter-spacing: .4px; padding: 14px 18px; text-align: left; }
+.cgm-cap-table tbody tr { background: #fff; border-bottom: 1px solid #eee; transition: background .15s; }
+.cgm-cap-table tbody tr:hover { background: #f0f9f7; }
+.cgm-cap-table tbody td { padding: 14px 18px; font-size: 14px; color: #444; }
+.cgm-cap-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+.cgm-cap-badge.presencial { background: #e0f5f0; color: var(--cgm-verde); }
+.cgm-cap-badge.semipresencial { background: #fff3cd; color: #856404; }
+.cgm-cap-badge.virtual { background: #cfe2ff; color: #0a58ca; }
+
+/* ── Por que elegirnos */
+.cgm-cap-why-section { background: var(--cgm-verde); }
+.cgm-cap-why-section .cgm-title-line { background: var(--cgm-lima); }
+.cgm-cap-why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+}
+.cgm-cap-why-card {
+  background: rgba(255,255,255,.1);
+  border: 2px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  transition: background .2s, transform .2s;
+}
+.cgm-cap-why-card:hover { background: rgba(255,255,255,.18); transform: translateY(-4px); }
+.cgm-cap-why-icon { font-size: 2.2rem; color: var(--cgm-lima); margin-bottom: 12px; }
+.cgm-cap-why-label { font-family: 'Estricta', sans-serif; font-size: 14px; color: #fff; line-height: 1.3; }
+
+/* ── Ventajas */
+.cgm-cap-ventajas { display: flex; flex-direction: column; gap: 10px; }
+.cgm-cap-ventaja { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #333; }
+.cgm-cap-ventaja i { color: var(--cgm-verde); font-size: 1.2rem; flex-shrink: 0; }
+
+/* ── Instalaciones */
+.cgm-cap-inst-grid { display: flex; flex-direction: column; gap: 12px; }
+.cgm-cap-inst-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  transition: transform .2s;
+}
+.cgm-cap-inst-card:hover { transform: translateX(6px); }
+.cgm-cap-inst-icon { font-size: 1.8rem; color: var(--cgm-verde); flex-shrink: 0; }
+.cgm-cap-inst-text { font-size: 14px; color: #444; font-weight: 500; }
+
+/* ── Contacto */
+.cgm-cap-contact-card {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+}
+.cgm-cap-contact-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+.cgm-cap-contact-icon { font-size: 2rem; color: var(--cgm-verde); margin-bottom: 10px; }
+.cgm-cap-contact-label { font-family: 'Estricta', sans-serif; font-size: 11px; letter-spacing: 1px; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+.cgm-cap-contact-val { font-size: 15px; color: var(--cgm-verde); font-weight: 600; text-decoration: none; display: block; }
+
+/* ── Sucursales */
+.cgm-cap-suc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.cgm-cap-suc-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  border-top: 3px solid var(--cgm-lima);
+  transition: transform .2s;
+}
+.cgm-cap-suc-card:hover { transform: translateY(-3px); }
+.cgm-cap-suc-icon { font-size: 1.5rem; color: var(--cgm-verde); margin-bottom: 8px; }
+.cgm-cap-suc-name { font-family: 'Estricta', sans-serif; font-size: 13px; color: var(--cgm-verde); letter-spacing: .4px; margin-bottom: 6px; }
+.cgm-cap-suc-addr { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 6px; }
+.cgm-cap-suc-tel { font-size: 12px; color: #888; }
+
+/* ── Franja contacto CAPACITA */
+.cgm-cap-contact-strip {
+  background: var(--cgm-lima);
+  padding: 18px 0;
+}
+.cgm-cap-contact-strip-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+.cgm-cap-contact-strip-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.cgm-cap-contact-strip-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--cgm-verde);
+  opacity: .7;
+}
+.cgm-cap-contact-strip-name {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 17px;
+  color: var(--cgm-verde);
+}
+.cgm-cap-contact-strip-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(2,83,76,.25);
+  flex-shrink: 0;
+}
+.cgm-cap-contact-strip-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cgm-verde);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.cgm-cap-contact-strip-item:hover { opacity: .7; }
+.cgm-cap-contact-strip-item i { font-size: 1.1rem; }
+.cgm-cap-contact-strip-social {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.cgm-cap-contact-strip-social-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--cgm-verde);
+  opacity: .7;
+}
+.cgm-cap-contact-strip-social a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cgm-verde);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.cgm-cap-contact-strip-social a:hover { opacity: .7; }
+.cgm-cap-contact-strip-social a i { font-size: 1rem; }
+/* Pantalla media: todo en una sola fila */
+@media (max-width: 1100px) {
+  .cgm-cap-contact-strip { padding: 12px 0; }
+  .cgm-cap-contact-strip-inner { flex-wrap: nowrap; gap: 10px 14px; }
+  .cgm-cap-contact-strip-name { font-size: 13px; }
+  .cgm-cap-contact-strip-label { font-size: 9px; }
+  .cgm-cap-contact-strip-item { font-size: 12px; }
+  .cgm-cap-contact-strip-social { flex-wrap: nowrap; gap: 6px 10px; }
+  .cgm-cap-contact-strip-social a { font-size: 11px; }
+  .cgm-cap-contact-strip-social-label { display: none; }
+  .cgm-cap-contact-strip-divider { height: 26px; }
+}
+@media (max-width: 768px) {
+  .cgm-cap-contact-strip-divider { display: none; }
+  .cgm-cap-contact-strip-inner { gap: 8px 10px; }
+  .cgm-cap-contact-strip-social a span { display: none; }
+}
+
+@media (max-width: 768px) {
+  .cgm-cap-prog-stats { gap: 8px; }
+  .cgm-cap-stat { min-width: 70px; }
+  .cgm-cap-tabs { gap: 6px; }
+  .cgm-cap-tab { padding: 8px 14px; font-size: 12px; }
+}

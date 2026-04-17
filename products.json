@@ -718,5 +718,57 @@
     "unidad": "Agrícola",
     "imagen": "atomizador-citrus-torre-2000-cip-m432647/1.webp",
     "activo": 1
+  },
+  {
+    "slug": "cisterna-cf410",
+    "nombre": "Camión Cisterna DAF CF 410",
+    "marca": "DAF",
+    "descripcion": "Potencia: 408 CV / 300 kW|MMA: 33,000 kg|Motor: PACCAR MX-13 Euro 6|Transmisión: TraXon automática 12 velocidades|Eje trasero: 13 tn|Suspensión trasera: neumática",
+    "ficha_url": "fichas/cisterna-cf410.pdf",
+    "tags": "alquiler",
+    "tipo": "Camión Cisterna",
+    "unidad": "Construcción",
+    "imagen": "cisterna-cf410/1.webp",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "excavadora-hidraulica-350p",
+    "nombre": "Excavadora Hidráulica 350 P-Tier",
+    "marca": "John Deere",
+    "descripcion": "Potencia: 271 HP / 202 kW|Peso operativo: 36,734 kg|Profundidad de excavación: 8.18 m|Capacidad de cuchara: 1.63 m³|Motor: John Deere 6090HDW84 Tier 4|Cabina climatizada ROPS/FOPS",
+    "ficha_url": "fichas/excavadora-hidraulica-350p.pdf",
+    "tags": "alquiler",
+    "tipo": "Excavadora",
+    "unidad": "Construcción",
+    "imagen": "excavadora-hidraulica-350p/1.webp",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "motoniveladora-620p",
+    "nombre": "Motoniveladora 620 P-Tier",
+    "marca": "John Deere",
+    "descripcion": "Potencia: 200 HP / 149 kW|Peso operativo: 14,904 kg|Longitud de vertedera: 3.66 m|Motor: John Deere 6090HDW80 Tier 4|Transmisión: PowerShift 8F/4R|Tracción tándem trasera",
+    "ficha_url": "fichas/motoniveladora-620p.pdf",
+    "tags": "alquiler",
+    "tipo": "Motoniveladora",
+    "unidad": "Construcción",
+    "imagen": "motoniveladora-620p/1.webp",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "rodillo-hc-100",
+    "nombre": "Rodillo Compactador HC 100i C",
+    "marca": "HAMM",
+    "descripcion": "Potencia: 115.7 PS / 85 kW|Peso operativo: 12,045 kg|Ancho de tambor: 2,140 mm|Motor: Deutz TCD 3.6 L4 Stage V|Amplitud de vibración: 0.8 / 0.4 mm|Frecuencia: 30 / 37 Hz",
+    "ficha_url": "fichas/rodillo-hc-100.pdf",
+    "tags": "alquiler",
+    "tipo": "Rodillo Compactador",
+    "unidad": "Construcción",
+    "imagen": "rodillo-hc-100/1.webp",
+    "activo": 1,
+    "show_arg": 1
   }
 ]

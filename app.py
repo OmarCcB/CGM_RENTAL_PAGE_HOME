@@ -127,22 +127,25 @@ def seed_db():
     """Seed products and blog posts if tables are empty."""
     conn = get_conn()
     # Products
-    if conn.execute("SELECT COUNT(*) FROM products").fetchone()[0] == 0:
-        products_file = os.path.join(os.path.dirname(__file__), "products.json")
-        if os.path.exists(products_file):
-            with open(products_file, encoding="utf-8") as f:
-                products = json.load(f)
-            for p in products:
-                try:
-                    conn.execute(
-                        "INSERT OR IGNORE INTO products (slug,nombre,marca,descripcion,ficha_url,tags,tipo,unidad,imagen,activo) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                        (p["slug"], p["nombre"], p.get("marca",""), p.get("descripcion",""),
-                         p.get("ficha_url",""), p.get("tags",""), p.get("tipo",""),
-                         p.get("unidad",""), p.get("imagen",""), p.get("activo",1))
-                    )
-                except Exception:
-                    pass
-            conn.commit()
+    products_file = os.path.join(os.path.dirname(__file__), "products.json")
+    if os.path.exists(products_file):
+        with open(products_file, encoding="utf-8") as f:
+            products = json.load(f)
+        for p in products:
+            try:
+                conn.execute(
+                    "INSERT OR IGNORE INTO products (slug,nombre,marca,descripcion,ficha_url,tags,tipo,unidad,imagen,activo,show_arg) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    (p["slug"], p["nombre"], p.get("marca",""), p.get("descripcion",""),
+                     p.get("ficha_url",""), p.get("tags",""), p.get("tipo",""),
+                     p.get("unidad",""), p.get("imagen",""), p.get("activo",1),
+                     p.get("show_arg", 0))
+                )
+                # Update show_arg in case the row already existed without it
+                if p.get("show_arg"):
+                    conn.execute("UPDATE products SET show_arg=1 WHERE slug=?", (p["slug"],))
+            except Exception:
+                pass
+        conn.commit()
 
     # Blog posts
     if conn.execute("SELECT COUNT(*) FROM blog_posts").fetchone()[0] == 0:
@@ -692,6 +695,14 @@ ISO_DATA = {
 #         return redirect(f"/{DEFAULT_COUNTRY}/politica-integrada/")
 #     c = get_country(country)
 #     return render_template("pages/politica_integrada.html", country=c, country_code=country)
+
+
+@app.route("/<country>/capacita/")
+def capacita(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/capacita/")
+    c = get_country(country)
+    return render_template("pages/capacita.html", country=c, country_code=country)
 
 
 @app.route("/<country>/portalproveedores/")

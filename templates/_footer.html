@@ -1,14 +1,87 @@
 <footer class="cgm-footer">
   <div class="container-fluid px-4 py-5">
-    <div class="row g-5">
 
-      <!-- Col 1: Logo + botones -->
-      <div class="col-12 col-sm-6 col-lg-2">
-        <a href="/{{ country_code }}/" class="d-inline-block mb-4">
+    {% if country_code == 'arg' %}
+    <!-- ══ ARGENTINA ══ -->
+    <div class="cgm-footer-arg">
+
+      <div class="cgm-footer-arg__logo">
+        <a href="/{{ country_code }}/">
           <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
-               alt="CGM Rental" height="60" style="width:auto">
+               alt="CGM Rental">
         </a>
-        <div class="d-flex flex-column gap-2 ps-5">
+      </div>
+
+      <section class="cgm-footer-arg__contact">
+        <h5 class="cgm-footer-title">CONTÁCTANOS</h5>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Oficina Principal:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-geo-alt-fill me-1 text-cgm-lima"></i>{{ country.direccion }}
+          </p>
+        </div>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Correo Electrónico:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-envelope-fill me-1 text-cgm-lima"></i>
+            <a href="mailto:{{ country.email }}" class="cgm-footer-link">{{ country.email }}</a>
+          </p>
+        </div>
+        <div class="cgm-footer-contact-block">
+          <p class="cgm-footer-contact-label">Número Telefónico:</p>
+          <p class="cgm-footer-text">
+            <i class="bi bi-telephone-fill me-1 text-cgm-lima"></i>
+            <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-footer-link">{{ country.telefono }}</a>
+          </p>
+        </div>
+      </section>
+
+      <section class="cgm-footer-arg__sedes">
+        <h5 class="cgm-footer-title">NUESTRAS SEDES</h5>
+        <div class="cgm-footer-pins">
+          <div class="cgm-footer-pin-card">
+            <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="cgm-footer-pin-title">CGM <span>San Juan</span></div>
+            <div class="cgm-footer-pin-country">ARGENTINA</div>
+            <div class="cgm-footer-pin-addr">Avenida Libertador 521 - 4to piso, San Juan</div>
+          </div>
+          <div class="cgm-footer-pin-card">
+            <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="cgm-footer-pin-title">CGM <span>Lima</span></div>
+            <div class="cgm-footer-pin-country">PERÚ</div>
+            <div class="cgm-footer-pin-addr">Carretera Panamericana Sur Km. 30.5, San Pedro, Lurín</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="cgm-footer-arg__buttons">
+        <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener">
+          <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
+               alt="Bolsa de Trabajo" class="cgm-footer-btn-img">
+        </a>
+        <a href="/{{ country_code }}/canal-de-denuncias/">
+          <img src="{{ url_for('static', filename='images/footer/btn-canal-denuncias.webp') }}"
+               alt="Canal de Denuncias" class="cgm-footer-btn-img">
+        </a>
+        <a href="{{ country.libro_reclamaciones_url }}" target="_blank" rel="noopener">
+          <img src="{{ url_for('static', filename='images/footer/btn-libro-reclamaciones.webp') }}"
+               alt="Libro de Reclamaciones" class="cgm-footer-btn-img">
+        </a>
+      </div>
+
+    </div>
+
+    {% else %}
+    <!-- ══ PERÚ ══ -->
+    <div class="cgm-footer-pe">
+
+      <!-- Aside: Logo + Botones -->
+      <aside class="cgm-footer-pe__aside">
+        <a href="/{{ country_code }}/" class="cgm-footer-pe__logo">
+          <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
+               alt="CGM Rental">
+        </a>
+        <div class="cgm-footer-pe__buttons">
           <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener">
             <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
                  alt="Bolsa de Trabajo" class="cgm-footer-btn-img">
@@ -38,57 +111,66 @@
           </a>
           {% endif %}
         </div>
-      </div>
+      </aside>
 
-      <!-- Col 2: Contáctanos -->
-      <div class="col-12 col-sm-6 col-lg-3">
-        <h5 class="cgm-footer-title">CONTÁCTANOS</h5>
-        <div class="cgm-footer-contact-block">
-          <p class="cgm-footer-contact-label">Sede Principal:</p>
-          <p class="cgm-footer-text">
-            <i class="bi bi-geo-alt-fill me-1 text-cgm-lima"></i>{{ country.direccion }}
-          </p>
-        </div>
-        <div class="cgm-footer-contact-block">
-          <p class="cgm-footer-contact-label">Correo Electrónico:</p>
-          <p class="cgm-footer-text">
-            <i class="bi bi-envelope-fill me-1 text-cgm-lima"></i>
-            <a href="mailto:{{ country.email }}" class="cgm-footer-link">{{ country.email }}</a>
-          </p>
-        </div>
-        <div class="cgm-footer-contact-block">
-          <p class="cgm-footer-contact-label">Número Telefónico:</p>
-          <p class="cgm-footer-text">
-            <i class="bi bi-telephone-fill me-1 text-cgm-lima"></i>
-            <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-footer-link">{{ country.telefono }}</a>
-          </p>
-        </div>
-      </div>
+      <!-- Main: Contáctanos + Sucursales -->
+      <div class="cgm-footer-pe__main">
 
-      <!-- Col 3: Sucursales -->
-      <div class="col-12 col-lg-7">
-        <h5 class="cgm-footer-title">SUCURSALES</h5>
-        <div class="cgm-footer-suc-grid">
-          {% for s in country.sucursales %}
-          <div class="cgm-footer-suc-item">
-            <img src="{{ url_for('static', filename='images/footer/pin-ubicacion.webp') }}"
-                 alt="ubicación" class="cgm-footer-pin">
-            <div>
-              <div class="cgm-footer-suc-name">{{ s.nombre.split('(')[0].strip() }}</div>
-              <div class="cgm-footer-small">{{ s.direccion }}</div>
+        <section class="cgm-footer-pe__contact">
+          <h5 class="cgm-footer-title">CONTÁCTANOS</h5>
+          <div class="cgm-footer-contact-block">
+            <p class="cgm-footer-contact-label">Sede Principal:</p>
+            <p class="cgm-footer-text">
+              <i class="bi bi-geo-alt-fill me-1 text-cgm-lima"></i>{{ country.direccion }}
+            </p>
+          </div>
+          <div class="cgm-footer-contact-block">
+            <p class="cgm-footer-contact-label">Correo Electrónico:</p>
+            <p class="cgm-footer-text">
+              <i class="bi bi-envelope-fill me-1 text-cgm-lima"></i>
+              <a href="mailto:{{ country.email }}" class="cgm-footer-link">{{ country.email }}</a>
+            </p>
+          </div>
+          <div class="cgm-footer-contact-block">
+            <p class="cgm-footer-contact-label">Número Telefónico:</p>
+            <p class="cgm-footer-text">
+              <i class="bi bi-telephone-fill me-1 text-cgm-lima"></i>
+              <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-footer-link">{{ country.telefono }}</a>
+            </p>
+          </div>
+        </section>
+
+        <section class="cgm-footer-pe__sucursales">
+          <h5 class="cgm-footer-title">SUCURSALES</h5>
+          <div class="cgm-footer-pins">
+            {% for s in country.sucursales %}
+            <div class="cgm-footer-pin-card">
+              <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="cgm-footer-pin-title">CGM <span>{{ s.nombre.split('(')[0].strip() }}</span></div>
+              <div class="cgm-footer-pin-country">PERÚ</div>
+              <div class="cgm-footer-pin-addr">{{ s.direccion }}</div>
+            </div>
+            {% endfor %}
+            <div class="cgm-footer-pin-card">
+              <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="cgm-footer-pin-title">CGM <span>San Juan</span></div>
+              <div class="cgm-footer-pin-country">ARGENTINA</div>
+              <div class="cgm-footer-pin-addr">Avenida Libertador 521 - 4to piso, San Juan</div>
             </div>
           </div>
-          {% endfor %}
-        </div>
+        </section>
+
       </div>
 
     </div>
+    {% endif %}
+
   </div>
 
   <!-- Franja inferior -->
   <div class="cgm-footer-bottom">
     <div class="container-fluid px-4">
-      <div class="d-flex flex-column flex-md-row align-items-center justify-content-center py-3 gap-2">
+      <div class="d-flex align-items-center justify-content-center py-3">
         <span class="cgm-footer-copy">© CGM Rental | Todos los derechos reservados</span>
       </div>
     </div>

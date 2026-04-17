@@ -134,14 +134,14 @@
 
       <!-- Capacita -->
       {% if country_code == 'arg' %}
-      <a href="#" onclick="abrirCapacitaPdf(); return false;"
+      <a href="/{{ country_code }}/capacita/"
          class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
          style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">CAPACITA</span>
       </a>
       {% else %}
-      <a href="https://www.facebook.com/cgmrenta.capacita" target="_blank" rel="noopener"
+      <a href="/{{ country_code }}/capacita/"
          class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
          style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
         <div class="cgm-unidad-overlay"></div>

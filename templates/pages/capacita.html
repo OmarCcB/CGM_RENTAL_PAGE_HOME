@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+
+{% block title %}CGM CAPACITA — Centro de Entrenamiento | Operación de Maquinaria Pesada{% endblock %}
+{% block meta_desc %}CGM Rental Capacita: Centro de entrenamiento para operadores de maquinaria pesada. Programas de Formación Básica, Especialización, Perfeccionamiento y Actualización Virtual.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ HERO ══════════ -->
+<section class="cgm-cap-hero">
+  <div class="cgm-cap-hero-overlay"></div>
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt=""
+       style="position:absolute;left:5%;top:50%;transform:translateY(-50%);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt=""
+       style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <div class="cgm-cap-hero-content container">
+    {% if country_code == 'per' %}
+    <div class="cgm-cap-hero-badge fade-up">OPERADORES FUERZA PERÚ</div>
+    {% endif %}
+    <h1 class="cgm-cap-hero-title fade-up fade-up-delay-1">
+      CGM RENTAL <span>CAPACITA</span>
+    </h1>
+    <p class="cgm-cap-hero-sub fade-up fade-up-delay-2">
+      CENTRO DE ENTRENAMIENTO<br>OPERACIÓN DE MAQUINARIA PESADA
+    </p>
+    <div class="d-flex flex-wrap gap-3 justify-content-center mt-4 fade-up fade-up-delay-3">
+      {% for badge in [
+        ('sig/iso-9001.svg',  'ISO 9001'),
+        ('sig/iso-14001.svg', 'ISO 14001'),
+        ('sig/iso-45001.svg', 'ISO 45001'),
+        ('sig/iso-37001.svg', 'ISO 37001')
+      ] %}
+      <div style="background:#e8e8e8;border-radius:8px;padding:6px 10px;display:flex;align-items:center;">
+        <img src="{{ url_for('static', filename='images/' + badge[0]) }}"
+             alt="{{ badge[1] }}" style="height:56px;width:auto;"
+             onerror="this.parentElement.style.display='none'">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ EQUIPOS ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Aprende a operar los siguientes equipos</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="cgm-cap-equipos-grid fade-up">
+      {% for eq in [
+        ('products/excavadora-hidraulica-350g/1.webp',           'Excavadora Hidráulica'),
+        ('products/motoniveladora-670g/1.webp',                  'Motoniveladora'),
+        ('products/cargador-frontal-644k/1.webp',                'Cargador Frontal'),
+        ('products/retroexcavadora-310-sl-310-l/1.webp',         'Retroexcavadora'),
+        ('products/tractor-de-orugas-850j-ii/1.webp',            'Tractor sobre Orugas'),
+        ('products/rodillo-hc-100/1.webp',                       'Rodillo Compactador'),
+        ('products/minicargadores-320-324g/1.webp',              'Minicargador')
+      ] %}
+      <div class="cgm-cap-equipo-card">
+        <div class="cgm-cap-equipo-img-wrap">
+          <img src="{{ url_for('static', filename=eq[0]) }}" alt="{{ eq[1] }}" loading="lazy"
+               onerror="this.parentElement.innerHTML='<i class=\'bi bi-tools\' style=\'font-size:2rem;color:var(--cgm-verde)\'></i>'">
+        </div>
+        <div class="cgm-cap-equipo-name">{{ eq[1] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PROGRAMAS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Nuestros Programas</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="cgm-cap-tabs fade-up" id="capTabs">
+      <li class="cgm-cap-tab active" data-tab="basica">Formación Básica</li>
+      <li class="cgm-cap-tab" data-tab="especializacion">Especialización</li>
+      <li class="cgm-cap-tab" data-tab="perfeccionamiento">Perfeccionamiento</li>
+      <li class="cgm-cap-tab" data-tab="virtual">Actualización Virtual</li>
+    </ul>
+
+    <!-- Panel: Formación Básica -->
+    <div class="cgm-cap-panel active" id="panel-basica">
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-prog-info">
+            <div class="cgm-cap-prog-header">
+              <h3>Formación Básica</h3>
+              <span class="cgm-cap-prog-nivel">Sin experiencia</span>
+            </div>
+            <div class="cgm-cap-prog-stats">
+              <div class="cgm-cap-stat"><i class="bi bi-clock"></i><span>12 días</span><small>Duración</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-currency-dollar"></i><span>{% if country_code == 'arg' %}-{% else %}Desde S/. 3,250{% endif %}</span><small>Inversión</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-person-video3"></i><span>Presencial</span><small>Modalidad</small></div>
+            </div>
+            <p class="cgm-cap-prog-desc">Dirigido a personas <strong>sin experiencia</strong> que desean ingresar al campo de la operación de maquinaria pesada. No se requieren conocimientos previos.</p>
+            <div class="cgm-cap-prog-req">
+              <div class="cgm-cap-req-title">Requisitos</div>
+              <ul>
+                <li>Edad mínima 19 años</li>
+                <li>Secundaria completa</li>
+                <li>Motivación para ingresar al mundo de la operación</li>
+              </ul>
+            </div>
+            <div class="cgm-cap-prog-contenido">
+              <div class="cgm-cap-req-title">Contenido</div>
+              <ul>
+                <li>2 días de teoría en aula (5 hrs/sesión)</li>
+                <li>4 días de prácticas en simulador (2 hrs/sesión)</li>
+                <li>6 días de prácticas en equipo real (1 hr/sesión)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-aprende">
+            <h4>¿Qué aprenderás?</h4>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-shield-check"></i></div>
+              <div><strong>Manejo seguro de maquinaria básica</strong><br>Interpretará correctamente el manual de operación de equipos de manera segura y eficiente.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-file-earmark-ruled"></i></div>
+              <div><strong>Normas y Regulaciones</strong><br>Aprende sobre normativas de seguridad y mantenimiento.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-joystick"></i></div>
+              <div><strong>Técnicas Operativas</strong><br>Adquiere habilidades prácticas para el manejo de equipos.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-lightbulb"></i></div>
+              <div><strong>Resolución de problemas básicos</strong><br>Identifica y soluciona problemas comunes durante la operación.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-beneficios">
+            <h4>Beneficios</h4>
+            <div class="cgm-cap-beneficio"><i class="bi bi-patch-check-fill"></i> Certificación al finalizar el curso</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-briefcase-fill"></i> Bolsa de trabajo en empresas asociadas</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-person-badge-fill"></i> Instructores altamente calificados</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Especialización -->
+    <div class="cgm-cap-panel" id="panel-especializacion">
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-prog-info">
+            <div class="cgm-cap-prog-header">
+              <h3>Especialización</h3>
+              <span class="cgm-cap-prog-nivel">+1 año experiencia</span>
+            </div>
+            <div class="cgm-cap-prog-stats">
+              <div class="cgm-cap-stat"><i class="bi bi-clock"></i><span>10 días</span><small>Duración</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-currency-dollar"></i><span>{% if country_code == 'arg' %}-{% else %}Desde S/. 2,800{% endif %}</span><small>Inversión</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-display"></i><span>Semi Presencial</span><small>Modalidad</small></div>
+            </div>
+            <p class="cgm-cap-prog-desc">Dirigido a operadores con <strong>experiencia intermedia</strong> que buscan perfeccionar sus habilidades y asumir mayores responsabilidades en su campo.</p>
+            <div class="cgm-cap-prog-req">
+              <div class="cgm-cap-req-title">Requisitos</div>
+              <ul>
+                <li>Más de 1 año en operación de maquinaria pesada o haber completado Formación Básica</li>
+                <li>Competencia en manejo y mantenimiento básico</li>
+              </ul>
+            </div>
+            <div class="cgm-cap-prog-contenido">
+              <div class="cgm-cap-req-title">Contenido</div>
+              <ul>
+                <li>5 días de teoría en aula virtual (5 módulos)</li>
+                <li>1 día de prácticas en simulador (2 hrs/sesión)</li>
+                <li>4 días de prácticas en equipo real (2 hrs/sesión)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-aprende">
+            <h4>¿Qué aprenderás?</h4>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-shield-check"></i></div>
+              <div><strong>Manejo seguro de maquinaria intermedia</strong><br>Interpretará condiciones reales de trabajo para ejecutar un trabajo seguro aplicando técnicas correctas.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-graph-up-arrow"></i></div>
+              <div><strong>Optimización de técnicas operativas</strong><br>Profundiza en el manejo intermedio y técnicas de operación específicas.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-clipboard2-check"></i></div>
+              <div><strong>Cumplimiento de normativas avanzadas</strong><br>Cumple con normativas y estándares avanzados del sector minería y construcción.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-beneficios">
+            <h4>Beneficios</h4>
+            <div class="cgm-cap-beneficio"><i class="bi bi-patch-check-fill"></i> Certificación de especialización</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-briefcase-fill"></i> Acceso a mejores oportunidades laborales</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-person-badge-fill"></i> Instructores con experiencia en proyectos reales</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Perfeccionamiento -->
+    <div class="cgm-cap-panel" id="panel-perfeccionamiento">
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-prog-info">
+            <div class="cgm-cap-prog-header">
+              <h3>Perfeccionamiento</h3>
+              <span class="cgm-cap-prog-nivel">+2 años experiencia</span>
+            </div>
+            <div class="cgm-cap-prog-stats">
+              <div class="cgm-cap-stat"><i class="bi bi-clock"></i><span>8 días</span><small>Duración</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-currency-dollar"></i><span>{% if country_code == 'arg' %}-{% else %}Desde S/. 2,800{% endif %}</span><small>Inversión</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-display"></i><span>Semi Presencial</span><small>Modalidad</small></div>
+            </div>
+            <p class="cgm-cap-prog-desc">Dirigido a operadores con <strong>experiencia avanzada mayor a 2 años</strong> en proyectos mineros y construcción que buscan perfeccionar habilidades y conocer producción y productividad.</p>
+            <div class="cgm-cap-prog-req">
+              <div class="cgm-cap-req-title">Requisitos</div>
+              <ul>
+                <li>Amplia experiencia en operación de maquinaria y formación intermedia</li>
+                <li>Dominio de técnicas avanzadas de operación y gestión</li>
+              </ul>
+            </div>
+            <div class="cgm-cap-prog-contenido">
+              <div class="cgm-cap-req-title">Contenido</div>
+              <ul>
+                <li>5 días de teoría en aula virtual (6 módulos)</li>
+                <li>1 día de prácticas en simulador (2 hrs/sesión)</li>
+                <li>2 días de prácticas en equipo real (5 hrs/sesión)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-aprende">
+            <h4>¿Qué aprenderás?</h4>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-shield-check"></i></div>
+              <div><strong>Manejo seguro de maquinaria avanzada</strong><br>Interpreta correctamente el manual de operación de forma segura y eficiente.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-bar-chart-fill"></i></div>
+              <div><strong>Producción y productividad</strong><br>Realiza cálculos de producción en ciclos de trabajo real e interpreta sus resultados.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-people-fill"></i></div>
+              <div><strong>Liderazgo y gestión de equipos</strong><br>Adquiere habilidades para dirigir equipos y gestionar proyectos con eficacia.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-joystick"></i></div>
+              <div><strong>Perfecciona técnicas operativas</strong><br>Profundiza en el manejo avanzado y técnicas de operación específicas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-beneficios">
+            <h4>Beneficios</h4>
+            <div class="cgm-cap-beneficio"><i class="bi bi-patch-check-fill"></i> Certificación Avanzada</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-trophy-fill"></i> Desarrollo de habilidades estratégicas</div>
+            <div class="cgm-cap-beneficio"><i class="bi bi-diagram-3-fill"></i> Acceso a red de profesionales de la industria</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Actualización Virtual -->
+    <div class="cgm-cap-panel" id="panel-virtual">
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-prog-info">
+            <div class="cgm-cap-prog-header">
+              <h3>Actualización Virtual</h3>
+              <span class="cgm-cap-prog-nivel">+3 años experiencia</span>
+            </div>
+            <div class="cgm-cap-prog-stats">
+              <div class="cgm-cap-stat"><i class="bi bi-clock"></i><span>6 días</span><small>Duración</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-currency-dollar"></i><span>{% if country_code == 'arg' %}-{% else %}S/. 500{% endif %}</span><small>Inversión</small></div>
+              <div class="cgm-cap-stat"><i class="bi bi-wifi"></i><span>100% Virtual</span><small>Modalidad</small></div>
+            </div>
+            <p class="cgm-cap-prog-desc">Diseñado para operadores con <strong>experiencia avanzada mayor a 3 años</strong> que buscan actualizar sus conocimientos, adaptarse a nuevas tecnologías y mejorar su liderazgo.</p>
+            <div class="cgm-cap-prog-req">
+              <div class="cgm-cap-req-title">Requisitos</div>
+              <ul>
+                <li>Mínimo 3 años de experiencia en operación de maquinaria pesada</li>
+                <li>Haber completado formación intermedia o similar</li>
+                <li>Dominio de técnicas avanzadas de operación</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-aprende">
+            <h4>¿Qué aprenderás?</h4>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-shield-check"></i></div>
+              <div><strong>Manejo seguro actualizado</strong><br>Actualízate e interpreta correctamente el manual de operación de forma segura y eficiente.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-search"></i></div>
+              <div><strong>Familiarización del equipo</strong><br>Reconoce las partes y funciones de la maquinaria y sus aplicaciones.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-bar-chart-fill"></i></div>
+              <div><strong>Producción y productividad</strong><br>Realiza cálculos de producción en ciclos de trabajo real.</div>
+            </div>
+            <div class="cgm-cap-aprendizaje-item">
+              <div class="cgm-cap-ai-icon"><i class="bi bi-joystick"></i></div>
+              <div><strong>Técnicas operativas avanzadas</strong><br>Profundiza en el manejo avanzado y técnicas de operación específicas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="cgm-cap-beneficios">
+            <h4>Equipos que dominarás</h4>
+            {% for eq in ['Excavadora Hidráulica','Motoniveladora','Cargador Frontal','Retroexcavadora','Tractor sobre Orugas','Rodillo Compactador','Minicargador'] %}
+            <div class="cgm-cap-beneficio"><i class="bi bi-check-circle-fill"></i> {{ eq }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════ COMPARATIVA ══════════ -->
+<section class="cgm-section bg-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up">Comparativa de Programas</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+    </div>
+    <div class="table-responsive fade-up">
+      <table class="cgm-cap-table">
+        <thead>
+          <tr>
+            <th>Programa</th>
+            <th>Dirigido a</th>
+            <th>Duración</th>
+            <th>Inversión</th>
+            <th>Modalidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Formación Básica</strong></td>
+            <td>Sin experiencia</td>
+            <td>12 días</td>
+            <td>{% if country_code == 'arg' %}-{% else %}Desde S/. 3,250{% endif %}</td>
+            <td><span class="cgm-cap-badge presencial">Presencial</span></td>
+          </tr>
+          <tr>
+            <td><strong>Especialización</strong></td>
+            <td>+1 año experiencia</td>
+            <td>10 días</td>
+            <td>{% if country_code == 'arg' %}-{% else %}Desde S/. 2,800{% endif %}</td>
+            <td><span class="cgm-cap-badge semipresencial">Semi Presencial</span></td>
+          </tr>
+          <tr>
+            <td><strong>Perfeccionamiento</strong></td>
+            <td>+2 años experiencia</td>
+            <td>8 días</td>
+            <td>{% if country_code == 'arg' %}-{% else %}Desde S/. 2,800{% endif %}</td>
+            <td><span class="cgm-cap-badge semipresencial">Semi Presencial</span></td>
+          </tr>
+          <tr>
+            <td><strong>Actualización Virtual</strong></td>
+            <td>+3 años experiencia</td>
+            <td>6 días</td>
+            <td>{% if country_code == 'arg' %}-{% else %}S/. 500{% endif %}</td>
+            <td><span class="cgm-cap-badge virtual">100% Virtual</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ ¿POR QUÉ ELEGIRNOS? ══════════ -->
+<section class="cgm-section cgm-cap-why-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="cgm-section-title fade-up" style="color:#fff;">¿Por qué elegirnos?</h2>
+      <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
+      <p class="fade-up fade-up-delay-2" style="color:rgba(255,255,255,.8);max-width:680px;margin:16px auto 0;">
+        Nuestros programas de entrenamiento están desarrollados de acuerdo a nuestros años de experiencia en diversos proyectos, cumpliendo con los más altos estándares de calidad alineados a las necesidades reales de los operadores.
+      </p>
+    </div>
+    <div class="cgm-cap-why-grid fade-up">
+      {% for item in [
+        ('bi-person-check-fill',    'Instructores calificados'),
+        ('bi-cpu-fill',             'Maquinaria moderna'),
+        ('bi-graph-up-arrow',       'Enfoque de productividad'),
+        ('bi-building-fill',        'Experiencia en proyectos'),
+        ('bi-briefcase-fill',       'Bolsa de trabajo')
+      ] %}
+      <div class="cgm-cap-why-card">
+        <div class="cgm-cap-why-icon"><i class="bi {{ item[0] }}"></i></div>
+        <div class="cgm-cap-why-label">{{ item[1] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ VENTAJAS ══════════ -->
+<section class="cgm-section bg-cgm-gris">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+      <div class="col-12 col-lg-6 fade-up">
+        <h2 class="cgm-section-title text-start">Ventajas de capacitarte con nosotros</h2>
+        <div class="cgm-title-line left mb-4"></div>
+        <p class="mb-4" style="color:#555;font-size:1.05rem;font-weight:600;">Serás un operador altamente competitivo</p>
+        <div class="cgm-cap-ventajas">
+          {% for v in [
+            'Mejora tus habilidades técnicas avanzadas',
+            'Incrementa tu eficiencia y productividad',
+            'Mejora tu empleabilidad y competitividad',
+            'Desarrolla habilidades blandas laborales',
+            'Ingreso a la bolsa de trabajo',
+            'Incrementa tu red de contactos',
+            'Serás un operador altamente competitivo'
+          ] %}
+          <div class="cgm-cap-ventaja"><i class="bi bi-check2-circle"></i> {{ v }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-12 col-lg-6 fade-up fade-up-delay-2">
+        <div class="cgm-cap-instalaciones">
+          <h3 class="cgm-section-title text-start mb-3">Ponemos a tu disposición</h3>
+          <div class="cgm-title-line left mb-4"></div>
+          <div class="cgm-cap-inst-grid">
+            <div class="cgm-cap-inst-card">
+              <div class="cgm-cap-inst-icon"><i class="bi bi-display-fill"></i></div>
+              <div class="cgm-cap-inst-text">Modernas salas y simuladores de alta gama</div>
+            </div>
+            <div class="cgm-cap-inst-card">
+              <div class="cgm-cap-inst-icon"><i class="bi bi-tools"></i></div>
+              <div class="cgm-cap-inst-text">Maquinaria y campo de entrenamiento</div>
+            </div>
+            <div class="cgm-cap-inst-card">
+              <div class="cgm-cap-inst-icon"><i class="bi bi-patch-check-fill"></i></div>
+              <div class="cgm-cap-inst-text">Equipos modernos y certificación</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FRANJA CONTACTO CAPACITA ══════════ -->
+<div class="cgm-cap-contact-strip">
+  <div class="container">
+    <div class="cgm-cap-contact-strip-inner">
+      <div class="cgm-cap-contact-strip-brand">
+        <span class="cgm-cap-contact-strip-label">Contacto</span>
+        <span class="cgm-cap-contact-strip-name">CGM <strong>CAPACITA</strong></span>
+      </div>
+      <div class="cgm-cap-contact-strip-divider"></div>
+      <a href="tel:+51964313974" class="cgm-cap-contact-strip-item">
+        <i class="bi bi-telephone-fill"></i>
+        <span>+51 964 313 974</span>
+      </a>
+      <div class="cgm-cap-contact-strip-divider"></div>
+      <div class="cgm-cap-contact-strip-social">
+        <span class="cgm-cap-contact-strip-social-label">Redes CAPACITA:</span>
+        <a href="https://www.facebook.com/CGMRentalCapacita" target="_blank" rel="noopener" title="@CGMRentalCapacita">
+          <i class="bi bi-facebook"></i><span>@CGMRentalCapacita</span>
+        </a>
+        <a href="https://www.facebook.com/operadoresfuerzaperu" target="_blank" rel="noopener" title="@operadoresfuerzaperu">
+          <i class="bi bi-facebook"></i><span>@operadoresfuerzaperu</span>
+        </a>
+        <a href="https://www.tiktok.com/@cgmcapacita" target="_blank" rel="noopener" title="@CGMCapacita">
+          <i class="bi bi-tiktok"></i><span>@CGMCapacita</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Tabs de programas ──
+document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
+  tab.addEventListener('click', function () {
+    document.querySelectorAll('.cgm-cap-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.cgm-cap-panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-' + this.dataset.tab).classList.add('active');
+  });
+});
+</script>
+{% endblock %}
