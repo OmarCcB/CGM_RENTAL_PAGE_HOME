@@ -6,28 +6,32 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# ── GeoIP (opcional: base de datos local MaxMind GeoLite2) ────────────────────
-try:
-    import geoip2.database as _geoip2_db
-    _GEOIP_DB_PATH = os.path.join(os.path.dirname(__file__), "GeoLite2-Country.mmdb")
-    _geoip2_reader = _geoip2_db.Reader(_GEOIP_DB_PATH) if os.path.exists(_GEOIP_DB_PATH) else None
-except ImportError:
-    _geoip2_reader = None
+# ── GeoIP via ipapi.co ────────────────────────────────────────────────────────
+import urllib.request as _urllib_req
+import urllib.error  as _urllib_err
+
+# Caché simple en memoria: { ip: country_code }
+# Evita llamar a la API cada vez que el mismo IP visita la raíz
+_IP_CACHE: dict = {}
 
 def _detect_country_from_ip(ip: str) -> str:
-    """Devuelve 'per' o 'arg' según el IP. Fallback: 'per'."""
-    # Nunca redirigir IPs internas/de desarrollo
+    """Devuelve 'per' o 'arg' según el IP. Fallback: None."""
+    # IPs locales / desarrollo → no redirigir
     if not ip or ip.startswith(("127.", "10.", "192.168.", "172.")):
         return None
-    # Usar base de datos local si está disponible
-    if _geoip2_reader:
-        try:
-            record = _geoip2_reader.country(ip)
-            code = record.country.iso_code  # "PE", "AR", etc.
-            return {"PE": "per", "AR": "arg"}.get(code)
-        except Exception:
-            return None
-    return None
+    # Usar caché si ya consultamos este IP antes
+    if ip in _IP_CACHE:
+        return _IP_CACHE[ip]
+    try:
+        url = f"https://ipapi.co/{ip}/country/"
+        req = _urllib_req.Request(url, headers={"User-Agent": "cgmrental/1.0"})
+        with _urllib_req.urlopen(req, timeout=3) as resp:
+            code = resp.read().decode().strip()   # devuelve "PE", "AR", etc.
+        result = {"PE": "per", "AR": "arg"}.get(code)
+        _IP_CACHE[ip] = result   # guardar en caché
+        return result
+    except Exception:
+        return None              # si falla → usar DEFAULT_COUNTRY
 
 from flask import (Flask, render_template, redirect, url_for, request,
                    session, jsonify, abort, g)
