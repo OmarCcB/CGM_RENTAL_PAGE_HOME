@@ -276,20 +276,37 @@
 .cgm-cap-ventaja i { color: var(--cgm-verde); font-size: 1.2rem; flex-shrink: 0; }
 
 /* ── Instalaciones */
-.cgm-cap-inst-grid { display: flex; flex-direction: column; gap: 12px; }
+.cgm-cap-inst-grid { display: flex; flex-direction: column; gap: 14px; }
 .cgm-cap-inst-card {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 0;
   background: #fff;
-  border-radius: 10px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.06);
-  transition: transform .2s;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  transition: transform .2s, box-shadow .2s;
 }
-.cgm-cap-inst-card:hover { transform: translateX(6px); }
-.cgm-cap-inst-icon { font-size: 1.8rem; color: var(--cgm-verde); flex-shrink: 0; }
-.cgm-cap-inst-text { font-size: 14px; color: #444; font-weight: 500; }
+.cgm-cap-inst-card:hover { transform: translateX(4px); box-shadow: 0 4px 18px rgba(0,0,0,.13); }
+.cgm-cap-inst-img {
+  width: 130px;
+  min-width: 130px;
+  height: 90px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+.cgm-cap-inst-text {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+  padding: 14px 18px;
+  line-height: 1.4;
+}
+@media (max-width: 575.98px) {
+  .cgm-cap-inst-img { width: 100px; min-width: 100px; height: 74px; }
+  .cgm-cap-inst-text { font-size: 13px; padding: 10px 14px; }
+}
 
 /* ── Contacto */
 .cgm-cap-contact-card {
