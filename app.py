@@ -6,6 +6,29 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# ── GeoIP (opcional: base de datos local MaxMind GeoLite2) ────────────────────
+try:
+    import geoip2.database as _geoip2_db
+    _GEOIP_DB_PATH = os.path.join(os.path.dirname(__file__), "GeoLite2-Country.mmdb")
+    _geoip2_reader = _geoip2_db.Reader(_GEOIP_DB_PATH) if os.path.exists(_GEOIP_DB_PATH) else None
+except ImportError:
+    _geoip2_reader = None
+
+def _detect_country_from_ip(ip: str) -> str:
+    """Devuelve 'per' o 'arg' según el IP. Fallback: 'per'."""
+    # Nunca redirigir IPs internas/de desarrollo
+    if not ip or ip.startswith(("127.", "10.", "192.168.", "172.")):
+        return None
+    # Usar base de datos local si está disponible
+    if _geoip2_reader:
+        try:
+            record = _geoip2_reader.country(ip)
+            code = record.country.iso_code  # "PE", "AR", etc.
+            return {"PE": "per", "AR": "arg"}.get(code)
+        except Exception:
+            return None
+    return None
+
 from flask import (Flask, render_template, redirect, url_for, request,
                    session, jsonify, abort, g)
 from flask_compress import Compress
@@ -381,7 +404,12 @@ def inject_globals():
 
 @app.route("/")
 def root():
-    return redirect(f"/{DEFAULT_COUNTRY}/")
+    # Obtener IP real (Nginx pasa X-Forwarded-For)
+    ip = (request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+          or request.remote_addr)
+    detected = _detect_country_from_ip(ip)
+    country = detected if detected else DEFAULT_COUNTRY
+    return redirect(f"/{country}/")
 
 
 @app.route("/<country>/")
