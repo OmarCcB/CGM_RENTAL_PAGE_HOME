@@ -6,32 +6,43 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-# ── GeoIP via ipapi.co ────────────────────────────────────────────────────────
+# ── GeoIP ─────────────────────────────────────────────────────────────────────
+# Prioridad:
+#   1. CF-IPCountry  (Cloudflare proxy — gratis, sin límites, 0ms)
+#   2. ipapi.co      (fallback si no hay Cloudflare)
 import urllib.request as _urllib_req
-import urllib.error  as _urllib_err
 
-# Caché simple en memoria: { ip: country_code }
-# Evita llamar a la API cada vez que el mismo IP visita la raíz
-_IP_CACHE: dict = {}
+_IP_CACHE: dict = {}   # caché para ipapi.co
 
 def _detect_country_from_ip(ip: str) -> str:
-    """Devuelve 'per' o 'arg' según el IP. Fallback: None."""
-    # IPs locales / desarrollo → no redirigir
+    """Devuelve 'per' o 'arg'. Fallback: None."""
+    from flask import request as _req
+
+    # ── 1. Cloudflare header (más rápido, sin coste) ──────────────────────────
+    cf_country = _req.headers.get("CF-IPCountry", "").strip().upper()
+    if cf_country and cf_country not in ("XX", "T1", ""):
+        # XX = Cloudflare no pudo detectar | T1 = Tor
+        return {"PE": "per", "AR": "arg"}.get(cf_country)
+
+    # ── 2. IPs locales / desarrollo ───────────────────────────────────────────
     if not ip or ip.startswith(("127.", "10.", "192.168.", "172.")):
         return None
-    # Usar caché si ya consultamos este IP antes
+
+    # ── 3. Fallback: ipapi.co (máx 1000 req/día gratis) ──────────────────────
     if ip in _IP_CACHE:
         return _IP_CACHE[ip]
     try:
-        url = f"https://ipapi.co/{ip}/country/"
-        req = _urllib_req.Request(url, headers={"User-Agent": "cgmrental/1.0"})
+        req = _urllib_req.Request(
+            f"https://ipapi.co/{ip}/country/",
+            headers={"User-Agent": "cgmrental/1.0"}
+        )
         with _urllib_req.urlopen(req, timeout=3) as resp:
-            code = resp.read().decode().strip()   # devuelve "PE", "AR", etc.
+            code = resp.read().decode().strip()
         result = {"PE": "per", "AR": "arg"}.get(code)
-        _IP_CACHE[ip] = result   # guardar en caché
+        _IP_CACHE[ip] = result
         return result
     except Exception:
-        return None              # si falla → usar DEFAULT_COUNTRY
+        return None
 
 from flask import (Flask, render_template, redirect, url_for, request,
                    session, jsonify, abort, g)
