@@ -172,7 +172,7 @@
         {% for r in relacionados %}
         <div class="swiper-slide">
           <div class="cgm-prod-card">
-            <img src="{{ url_for('static', filename='products/' + r.slug + '/1.webp') }}"
+            <img src="{{ url_for('static', filename='products/' + (r.imagen if r.imagen else r.slug + '/1.webp')) }}"
                  alt="{{ r.nombre }}" class="cgm-prod-img" loading="lazy"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="cgm-prod-img-placeholder" style="display:none;">

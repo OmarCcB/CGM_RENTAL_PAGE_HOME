@@ -137,7 +137,7 @@
               <div style="position:relative;">
                 {% if p.imagen %}
                 <a href="/{{ country_code }}/producto/{{ p.slug }}/" style="display:block;cursor:pointer;">
-                <img src="{{ url_for('static', filename='products/' + p.slug + '/1.webp') }}"
+                <img src="{{ url_for('static', filename='products/' + p.imagen) }}"
                      alt="{{ p.nombre }}" class="cgm-prod-img" loading="lazy"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                 </a>
