@@ -282,7 +282,7 @@
   overflow: hidden;
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0,0,0,.10);
-  height: 220px;           /* altura fija = una sola card visible */
+  height: 253px;           /* 220 × 1.15 */
 }
 .cgm-cap-inst-track {
   display: flex;
@@ -293,7 +293,7 @@
   display: flex;
   align-items: stretch;
   background: #fff;
-  height: 220px;           /* misma altura que el wrapper */
+  height: 253px;           /* misma altura que el wrapper */
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -312,36 +312,16 @@
   gap: 10px;
 }
 .cgm-cap-inst-text {
-  font-size: 18px;
+  font-size: 27px;          /* 18 × 1.5 */
   color: #1a1a1a;
   font-weight: 700;
-  line-height: 1.35;
-}
-.cgm-cap-inst-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
-}
-.cgm-cap-inst-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ccc;
-  cursor: pointer;
-  transition: background .3s, transform .3s;
-  border: none;
-  padding: 0;
-}
-.cgm-cap-inst-dot.active {
-  background: var(--cgm-verde);
-  transform: scale(1.3);
+  line-height: 1.3;
 }
 @media (max-width: 767.98px) {
-  .cgm-cap-inst-carousel { height: 160px; }
-  .cgm-cap-inst-card      { height: 160px; }
+  .cgm-cap-inst-carousel { height: 184px; }  /* 160 × 1.15 */
+  .cgm-cap-inst-card      { height: 184px; }
   .cgm-cap-inst-img       { width: 40%; min-width: 40%; }
-  .cgm-cap-inst-text      { font-size: 14px; }
+  .cgm-cap-inst-text      { font-size: 19px; }  /* 14 × 1.5 ≈ 21, ajustado para móvil */
   .cgm-cap-inst-body      { padding: 16px 14px; }
 }
 

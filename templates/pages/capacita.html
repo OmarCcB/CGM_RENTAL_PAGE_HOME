@@ -482,11 +482,6 @@
               </div>
             </div>
           </div>
-          <div class="cgm-cap-inst-dots" id="instDots">
-            <button class="cgm-cap-inst-dot active" data-idx="0" aria-label="Slide 1"></button>
-            <button class="cgm-cap-inst-dot" data-idx="1" aria-label="Slide 2"></button>
-            <button class="cgm-cap-inst-dot" data-idx="2" aria-label="Slide 3"></button>
-          </div>
         </div>
       </div>
     </div>
@@ -539,34 +534,22 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
 
 // ── Carrusel vertical instalaciones ──
 (function () {
-  const track   = document.getElementById('instTrack');
-  const dots    = document.querySelectorAll('#instDots .cgm-cap-inst-dot');
-  const cards   = track ? track.querySelectorAll('.cgm-cap-inst-card') : [];
-  let current   = 0;
-  let timer     = null;
+  const track  = document.getElementById('instTrack');
+  const cards  = track ? track.querySelectorAll('.cgm-cap-inst-card') : [];
+  let current  = 0;
+  let timer    = null;
 
   function goTo(idx) {
     current = (idx + cards.length) % cards.length;
-    const cardH = cards[0].offsetHeight;
-    track.style.transform = 'translateY(-' + (current * cardH) + 'px)';
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    track.style.transform = 'translateY(-' + (current * cards[0].offsetHeight) + 'px)';
   }
-
-  function next() { goTo(current + 1); }
 
   function startTimer() {
     clearInterval(timer);
-    timer = setInterval(next, 3200);
+    timer = setInterval(() => goTo(current + 1), 3200);
   }
 
   if (cards.length) {
-    dots.forEach(d => {
-      d.addEventListener('click', function () {
-        goTo(+this.dataset.idx);
-        startTimer();
-      });
-    });
-    // Pause on hover
     const carousel = document.getElementById('instCarousel');
     if (carousel) {
       carousel.addEventListener('mouseenter', () => clearInterval(timer));
