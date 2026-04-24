@@ -9,7 +9,8 @@
     "tipo": "Excavadora",
     "unidad": "Construcción",
     "imagen": "excavadora-hidraulica-210glc/1.webp",
-    "activo": 1
+    "activo": 1,
+    "show_arg": 0
   },
   {
     "slug": "excavadora-hidraulica-250g",
@@ -153,7 +154,8 @@
     "tipo": "Cargador Frontal",
     "unidad": "Construcción",
     "imagen": "cargador-frontal-644k/1.webp",
-    "activo": 1
+    "activo": 1,
+    "show_arg": 0
   },
   {
     "slug": "cargador-frontal-744k-cip-m241341",
@@ -189,7 +191,8 @@
     "tipo": "Minicargador",
     "unidad": "Construcción",
     "imagen": "minicargadores-320-324g/1.webp",
-    "activo": 1
+    "activo": 1,
+    "show_arg": 0
   },
   {
     "slug": "motoniveladora-670g",
@@ -743,7 +746,7 @@
     "unidad": "Construcción",
     "imagen": "excavadora-hidraulica-350p/1.webp",
     "activo": 1,
-    "show_arg": 1
+    "show_arg": 0
   },
   {
     "slug": "motoniveladora-620p",
@@ -769,7 +772,7 @@
     "unidad": "Construcción",
     "imagen": "rodillo-hc-100/1.webp",
     "activo": 1,
-    "show_arg": 1
+    "show_arg": 0
   },
   {
     "slug": "tableros-de-barras",
@@ -1368,5 +1371,70 @@
     "imagen": "portabines-chaski-p2500/1.avif",
     "activo": 1,
     "show_arg": 0
+  },
+  {
+    "slug": "cargador-frontal-644p",
+    "nombre": "CARGADOR FRONTAL 644P",
+    "marca": "JOHN DEERE",
+    "descripcion": "Potencia: 232 HP @1,700 RPM | Peso de Operación: 18,724 KG | Cap. de cucharón: 3.2 M3",
+    "ficha_url": "",
+    "tags": "alquiler",
+    "tipo": "Cargador Frontal",
+    "unidad": "Construcción",
+    "imagen": "cargador-frontal-644p/1.jpg",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "excavadora-hidraulica-210p",
+    "nombre": "EXCAVADORA HIDRÁULICA 210P",
+    "marca": "JOHN DEERE",
+    "descripcion": "Potencia: 159 HP @1,900 RPM | Peso de Operación: 22,309 KG | Cap. de cucharón: 1.2 M3",
+    "ficha_url": "",
+    "tags": "alquiler",
+    "tipo": "Excavadora",
+    "unidad": "Construcción",
+    "imagen": "excavadora-hidraulica-210p/1.jpg",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "minicargadores-324g",
+    "nombre": "MINICARGADORES 324G",
+    "marca": "JOHN DEERE",
+    "descripcion": "Potencia: 71 HP @1,966 RPM | Peso de Operación: 3,246 KG | Capacidad de operación: 1,221 KG",
+    "ficha_url": "fichas/minicargadores-324g.pdf",
+    "tags": "alquiler",
+    "tipo": "Minicargador",
+    "unidad": "Construcción",
+    "imagen": "minicargadores-324g/1.jpg",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "rodillo-compactador-hc110",
+    "nombre": "RODILLO COMPACTADOR HC110",
+    "marca": "HAMM",
+    "descripcion": "Potencia: 115.7 PS / 85 kW|Peso operativo: 12,045 kg|Ancho de tambor: 2,140 mm|Motor: Deutz TCD 3.6 L4 Stage V|Amplitud de vibración: 0.8 / 0.4 mm|Frecuencia: 30 / 37 Hz",
+    "ficha_url": "",
+    "tags": "alquiler",
+    "tipo": "Rodillo Compactador",
+    "unidad": "Construcción",
+    "imagen": "rodillo-compactador-hc110/1.webp",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "excavadora-hidraulica-350p-ar",
+    "nombre": "EXCAVADORA HIDRÁULICA 350 P",
+    "marca": "John Deere",
+    "descripcion": "Potencia: 271 HP / 202 kW|Peso operativo: 36,734 kg|Profundidad de excavación: 8.18 m|Capacidad de cuchara: 1.63 m³|Motor: John Deere 6090HDW84 Tier 4|Cabina climatizada ROPS/FOPS",
+    "ficha_url": "fichas/excavadora-hidraulica-350p-ar.pdf",
+    "tags": "alquiler",
+    "tipo": "Excavadora",
+    "unidad": "Construcción",
+    "imagen": "excavadora-hidraulica-350p-ar/1.png",
+    "activo": 1,
+    "show_arg": 1
   }
 ]
