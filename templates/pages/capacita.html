@@ -456,22 +456,36 @@
         <div class="cgm-cap-instalaciones">
           <h3 class="cgm-section-title text-start mb-3">Ponemos a tu disposición</h3>
           <div class="cgm-title-line left mb-4"></div>
-          <div class="cgm-cap-inst-grid">
-            <div class="cgm-cap-inst-card">
-              <img src="{{ url_for('static', filename='images/fotos-capacita/14.webp') }}"
-                   alt="Modernas salas y simuladores" class="cgm-cap-inst-img" loading="lazy">
-              <div class="cgm-cap-inst-text">Modernas salas y simuladores de alta gama</div>
+          <!-- Carrusel vertical automático -->
+          <div class="cgm-cap-inst-carousel" id="instCarousel">
+            <div class="cgm-cap-inst-track" id="instTrack">
+              <div class="cgm-cap-inst-card">
+                <img src="{{ url_for('static', filename='images/fotos-capacita/14.webp') }}"
+                     alt="Modernas salas y simuladores" class="cgm-cap-inst-img" loading="lazy">
+                <div class="cgm-cap-inst-body">
+                  <div class="cgm-cap-inst-text">Modernas salas y simuladores de alta gama</div>
+                </div>
+              </div>
+              <div class="cgm-cap-inst-card">
+                <img src="{{ url_for('static', filename='images/fotos-capacita/9.webp') }}"
+                     alt="Maquinaria y campo de entrenamiento" class="cgm-cap-inst-img" loading="lazy">
+                <div class="cgm-cap-inst-body">
+                  <div class="cgm-cap-inst-text">Maquinaria y campo de entrenamiento</div>
+                </div>
+              </div>
+              <div class="cgm-cap-inst-card">
+                <img src="{{ url_for('static', filename='images/fotos-capacita/8.webp') }}"
+                     alt="Equipos modernos y certificación" class="cgm-cap-inst-img" loading="lazy">
+                <div class="cgm-cap-inst-body">
+                  <div class="cgm-cap-inst-text">Equipos modernos y certificación</div>
+                </div>
+              </div>
             </div>
-            <div class="cgm-cap-inst-card">
-              <img src="{{ url_for('static', filename='images/fotos-capacita/9.webp') }}"
-                   alt="Maquinaria y campo de entrenamiento" class="cgm-cap-inst-img" loading="lazy">
-              <div class="cgm-cap-inst-text">Maquinaria y campo de entrenamiento</div>
-            </div>
-            <div class="cgm-cap-inst-card">
-              <img src="{{ url_for('static', filename='images/fotos-capacita/8.webp') }}"
-                   alt="Equipos modernos y certificación" class="cgm-cap-inst-img" loading="lazy">
-              <div class="cgm-cap-inst-text">Equipos modernos y certificación</div>
-            </div>
+          </div>
+          <div class="cgm-cap-inst-dots" id="instDots">
+            <button class="cgm-cap-inst-dot active" data-idx="0" aria-label="Slide 1"></button>
+            <button class="cgm-cap-inst-dot" data-idx="1" aria-label="Slide 2"></button>
+            <button class="cgm-cap-inst-dot" data-idx="2" aria-label="Slide 3"></button>
           </div>
         </div>
       </div>
@@ -522,5 +536,44 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
     document.getElementById('panel-' + this.dataset.tab).classList.add('active');
   });
 });
+
+// ── Carrusel vertical instalaciones ──
+(function () {
+  const track   = document.getElementById('instTrack');
+  const dots    = document.querySelectorAll('#instDots .cgm-cap-inst-dot');
+  const cards   = track ? track.querySelectorAll('.cgm-cap-inst-card') : [];
+  let current   = 0;
+  let timer     = null;
+
+  function goTo(idx) {
+    current = (idx + cards.length) % cards.length;
+    const cardH = cards[0].offsetHeight;
+    track.style.transform = 'translateY(-' + (current * cardH) + 'px)';
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function next() { goTo(current + 1); }
+
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(next, 3200);
+  }
+
+  if (cards.length) {
+    dots.forEach(d => {
+      d.addEventListener('click', function () {
+        goTo(+this.dataset.idx);
+        startTimer();
+      });
+    });
+    // Pause on hover
+    const carousel = document.getElementById('instCarousel');
+    if (carousel) {
+      carousel.addEventListener('mouseenter', () => clearInterval(timer));
+      carousel.addEventListener('mouseleave', startTimer);
+    }
+    startTimer();
+  }
+})();
 </script>
 {% endblock %}
