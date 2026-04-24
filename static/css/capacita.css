@@ -172,6 +172,8 @@
   padding: 24px;
   height: 100%;
   box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
 }
 .cgm-cap-aprende h4 { font-family: 'CGM BOLD', sans-serif; font-size: 16px; color: var(--cgm-verde); margin-bottom: 18px; }
 .cgm-cap-aprendizaje-item {
@@ -203,6 +205,20 @@
   padding: 24px;
   height: 100%;
   box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  display: flex;
+  flex-direction: column;
+}
+.cgm-cap-panel-img {
+  margin-top: auto;
+  padding-top: 16px;
+  width: 100%;
+}
+.cgm-cap-panel-img img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  max-height: 220px;
 }
 .cgm-cap-beneficios h4 { font-family: 'CGM BOLD', sans-serif; font-size: 16px; color: var(--cgm-lima); margin-bottom: 18px; }
 .cgm-cap-beneficio {
