@@ -1516,7 +1516,7 @@ select.cgm-contacto-input { cursor: pointer; }
 /* ── Contacto bloques ───────────────────────────────────────── */
 .cgm-footer-contact-block { margin-bottom: 10px; }
 .cgm-footer-contact-label {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 700;
   color: rgba(255,255,255);
   text-transform: uppercase;
@@ -1588,6 +1588,12 @@ select.cgm-contacto-input { cursor: pointer; }
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+/* Sucursales Perú: columnas angostas para que la dirección salte a 2 líneas */
+@media (min-width: 768px) {
+  .cgm-footer-pe__sucursales .cgm-footer-pins {
+    grid-template-columns: repeat(4, minmax(0, 230px));
+  }
+}
 
 /* Argentina: solo 2 sedes → auto-fit para no dejar columnas vacías */
 .cgm-footer-arg__sedes .cgm-footer-pins {
@@ -1610,7 +1616,7 @@ select.cgm-contacto-input { cursor: pointer; }
 
 .cgm-footer-pe__aside {
   flex: 0 0 auto;
-  width: 170px;
+  width: 280px;
   display: flex;
   flex-direction: column;
   gap: .5rem;
@@ -1623,20 +1629,20 @@ select.cgm-contacto-input { cursor: pointer; }
 }
 .cgm-footer-pe__logo img {
   width: 100%;
-  max-width: 170px;  /* logo más grande que los botones */
+  max-width: 200px;
   height: auto;
   display: block;
 }
 
 .cgm-footer-pe__buttons {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: .4rem;
-  align-items: flex-start;
+  width: 100%;
 }
 .cgm-footer-pe__buttons .cgm-footer-btn-img {
   width: 100%;
-  max-width: 130px;  /* botones más pequeños */
+  max-width: 130px;
 }
 
 .cgm-footer-pe__main {
@@ -1669,8 +1675,8 @@ select.cgm-contacto-input { cursor: pointer; }
     align-items: center;
   }
   .cgm-footer-pe__buttons {
-    align-items: center;
-    max-width: 220px;
+    grid-template-columns: 1fr 1fr;
+    max-width: 280px;
     width: 100%;
     margin: 0 auto;
   }
@@ -1741,14 +1747,14 @@ select.cgm-contacto-input { cursor: pointer; }
   .cgm-footer-arg__buttons { grid-area: buttons; width: 140px; }
 }
 .cgm-footer-pin-drop {
-  font-size: 22px;
+  font-size: 28px;
   color: var(--cgm-lima);
   line-height: 1;
   margin-bottom: 3px;
 }
 .cgm-footer-pin-title {
   font-family: 'Estricta', sans-serif;
-  font-size: 15px;
+  font-size: 19px;
   font-style: normal;
   color: #fff;
   line-height: 1.1;
@@ -1757,7 +1763,7 @@ select.cgm-contacto-input { cursor: pointer; }
   color: var(--cgm-lima);
 }
 .cgm-footer-pin-country {
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.5px;
   color: rgba(255,255,255,.55);
@@ -1765,7 +1771,7 @@ select.cgm-contacto-input { cursor: pointer; }
   margin-top: 1px;
 }
 .cgm-footer-pin-addr {
-  font-size: 11px;
+  font-size: 14px;
   color: rgba(255,255,255,.75);
   line-height: 1.4;
   margin-top: 4px;
@@ -1874,7 +1880,7 @@ select.cgm-contacto-input { cursor: pointer; }
 
 .cgm-footer-title {
   font-family: 'Estricta', sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   font-style: normal;
   letter-spacing: .5px;
   color: var(--cgm-blanco);
@@ -1883,19 +1889,19 @@ select.cgm-contacto-input { cursor: pointer; }
   border-bottom: 1px solid rgba(255,255,255,.1);
 }
 .cgm-footer-subtitle {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
   color: rgba(255,255,255,.5);
   text-transform: uppercase;
 }
-.cgm-footer-text { color: rgba(255,255,255); font-size: 13px; line-height: 1.6; }
-.cgm-footer-small { font-size: 12px; color: rgba(255,255,255); }
+.cgm-footer-text { color: rgba(255,255,255); font-size: 16px; line-height: 1.6; }
+.cgm-footer-small { font-size: 15px; color: rgba(255,255,255); }
 .cgm-footer-list { margin: 0; padding: 0; }
-.cgm-footer-list li { margin-bottom: 6px; color: rgba(255,255,255,.65); font-size: 13px; }
+.cgm-footer-list li { margin-bottom: 6px; color: rgba(255,255,255,.65); font-size: 16px; }
 .cgm-footer-link {
   color: rgba(255,255,255);
-  font-size: 13px;
+  font-size: 16px;
   transition: color var(--transition);
   display: inline-block;
 }
@@ -1932,8 +1938,8 @@ select.cgm-contacto-input { cursor: pointer; }
   font-weight: 900;
 }
 .cgm-footer-bottom { background: rgba(0,0,0,.3); }
-.cgm-footer-copy { font-size: 12px; color: rgba(255,255,255); }
-.cgm-footer-copy-link { font-size: 12px; color: rgba(255,255,255,.4); transition: color var(--transition); }
+.cgm-footer-copy { font-size: 15px; color: rgba(255,255,255); }
+.cgm-footer-copy-link { font-size: 15px; color: rgba(255,255,255,.4); transition: color var(--transition); }
 .cgm-footer-copy-link:hover { color: rgba(255,255,255,.8); }
 
 .cgm-whatsapp-btn {

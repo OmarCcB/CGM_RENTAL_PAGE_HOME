@@ -134,10 +134,10 @@
   },
   {
     "slug": "camiones-cisterna",
-    "nombre": "Camiones Cisterna",
-    "marca": "CGM",
-    "descripcion": "Potencia: 430 CV|Peso Bruto: 35,000 GVW|Motor: Perkins Euro 5|Capacidad de transporte de agua y fluidos para obra",
-    "ficha_url": "",
+    "nombre": "CAMIÓN CISTERNA DAF CF 410",
+    "marca": "DAF",
+    "descripcion": "Modelo: CF 410 | Motor: Paccar MX11 Euro 5 | Potencia: 408 HP @ 1,600 rpm | Transmisión: 12 Vel. Automatizada | Tracción: 6x4 | Cisterna: Capacidad de 5,000 gal. / 6,000 gal.",
+    "ficha_url": "fichas/camiones-cisterna.pdf",
     "tags": "alquiler",
     "tipo": "Camión Cisterna",
     "unidad": "Construcción",
@@ -732,7 +732,7 @@
     "tipo": "Camión Cisterna",
     "unidad": "Construcción",
     "imagen": "cisterna-cf410/1.webp",
-    "activo": 1,
+    "activo": 0,
     "show_arg": 1
   },
   {
@@ -1434,6 +1434,32 @@
     "tipo": "Excavadora",
     "unidad": "Construcción",
     "imagen": "excavadora-hidraulica-350p-ar/1.png",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "camion-cisterna-ar",
+    "nombre": "CAMION CISTERNA",
+    "marca": "DAF",
+    "descripcion": "Tracción: 6x4 | Potencia Motor: 400 HP | Capacidad: 5,000 GL a 6,000 GL | Sistema de riego: Por gravedad o Bajo presión | Ancho de riego: 13 a 15 m aprox., según configuración",
+    "ficha_url": "",
+    "tags": "alquiler",
+    "tipo": "Camión Cisterna",
+    "unidad": "Construcción",
+    "imagen": "camion-cisterna-ar/1.webp",
+    "activo": 1,
+    "show_arg": 1
+  },
+  {
+    "slug": "camion-volquete-ar",
+    "nombre": "CAMION VOLQUETE",
+    "marca": "DAF",
+    "descripcion": "Tracción: 6x4 / 8x4 | Potencia Motor: 450 - 500 HP | Capacidad de tolva: 32 TN aprox. / 42 TN aprox.",
+    "ficha_url": "",
+    "tags": "alquiler",
+    "tipo": "Camión Volquete",
+    "unidad": "Construcción",
+    "imagen": "camion-volquete-ar/1.png",
     "activo": 1,
     "show_arg": 1
   }

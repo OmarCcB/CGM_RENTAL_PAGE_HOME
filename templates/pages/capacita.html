@@ -456,7 +456,7 @@
         <div class="cgm-cap-instalaciones">
           <h3 class="cgm-section-title text-start mb-3">Ponemos a tu disposición</h3>
           <div class="cgm-title-line left mb-4"></div>
-          <!-- Carrusel vertical automático -->
+          <!-- Carrusel horizontal automático (2 visibles, avanza de 1 en 1) -->
           <div class="cgm-cap-inst-carousel" id="instCarousel">
             <div class="cgm-cap-inst-track" id="instTrack">
               <div class="cgm-cap-inst-card">
@@ -532,31 +532,60 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   });
 });
 
-// ── Carrusel vertical instalaciones ──
+// ── Carrusel horizontal instalaciones (loop infinito hacia adelante) ──
 (function () {
-  const track  = document.getElementById('instTrack');
-  const cards  = track ? track.querySelectorAll('.cgm-cap-inst-card') : [];
-  let current  = 0;
-  let timer    = null;
+  const track   = document.getElementById('instTrack');
+  if (!track) return;
 
-  function goTo(idx) {
-    current = (idx + cards.length) % cards.length;
-    track.style.transform = 'translateY(-' + (current * cards[0].offsetHeight) + 'px)';
+  // Clonar las tarjetas originales y añadirlas al final para el loop
+  const origCards = Array.from(track.querySelectorAll('.cgm-cap-inst-card'));
+  const total     = origCards.length;
+  origCards.forEach(c => track.appendChild(c.cloneNode(true)));
+
+  let current = 0;
+  let timer   = null;
+  let moving  = false;
+
+  // Distancia real entre el inicio de una tarjeta y la siguiente (incluye el gap)
+  function cardW() {
+    const all = track.querySelectorAll('.cgm-cap-inst-card');
+    if (all.length < 2) return all[0].offsetWidth;
+    return all[1].getBoundingClientRect().left - all[0].getBoundingClientRect().left;
+  }
+
+  function goTo(idx, animate) {
+    track.style.transition = animate ? 'transform .7s cubic-bezier(.4,0,.2,1)' : 'none';
+    current = idx;
+    track.style.transform  = 'translateX(-' + (current * cardW()) + 'px)';
+  }
+
+  // Al terminar la transición, si estamos en zona de clones, saltar al original
+  track.addEventListener('transitionend', () => {
+    if (current >= total) {
+      goTo(current - total, false);
+      track.getBoundingClientRect(); // forzar reflow
+    }
+    moving = false;
+  });
+
+  function next() {
+    if (moving) return;
+    moving = true;
+    goTo(current + 1, true);
   }
 
   function startTimer() {
     clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), 3200);
+    timer = setInterval(next, 3200);
   }
 
-  if (cards.length) {
-    const carousel = document.getElementById('instCarousel');
-    if (carousel) {
-      carousel.addEventListener('mouseenter', () => clearInterval(timer));
-      carousel.addEventListener('mouseleave', startTimer);
-    }
-    startTimer();
+  const carousel = document.getElementById('instCarousel');
+  if (carousel) {
+    carousel.addEventListener('mouseenter', () => clearInterval(timer));
+    carousel.addEventListener('mouseleave', startTimer);
   }
+
+  startTimer();
 })();
 </script>
 {% endblock %}

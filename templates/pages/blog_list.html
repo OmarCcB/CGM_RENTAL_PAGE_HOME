@@ -6,16 +6,21 @@
 {% block content %}
 
 <!-- ══════════ HERO ══════════ -->
-<section class="cgm-page-hero">
-  <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/blog/cap-blog.svg') }}');
-              background-size: cover;
-              background-position: center center;"></div>
+<section class="cgm-cap-hero">
+  <div class="cgm-cap-hero-overlay"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
        alt=""
-       style="position:absolute; left:5%; top:50%; transform:translateY(-50%); height:clamp(80px,20%,200px); width:auto; pointer-events:none;">
-  <div class="cgm-page-hero-content">
-    <h1>Blog & Novedades</h1>
+       style="position:absolute;left:5%;top:50%;transform:translateY(-50%);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt=""
+       style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <div class="cgm-cap-hero-content container">
+    <h1 class="cgm-cap-hero-title fade-up">
+      BLOG <span>&amp; NOVEDADES</span>
+    </h1>
+    <p class="cgm-cap-hero-sub fade-up fade-up-delay-1">
+      NOTICIAS · ARTÍCULOS · ENTREVISTAS
+    </p>
   </div>
 </section>
 
