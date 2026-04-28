@@ -95,8 +95,13 @@
         <div class="cgm-stat-label">Proyectos ejecutados</div>
       </div>
       <div class="cgm-stat-circle">
+        {% if country_code == 'arg' %}
+        <div class="cgm-stat-number">+ de 1000</div>
+        <div class="cgm-stat-label">Equipos con tecnología de punta</div>
+        {% else %}
         <div class="cgm-stat-number">+1000</div>
         <div class="cgm-stat-label">Con disponibilidad mecánica propios</div>
+        {% endif %}
       </div>
       <div class="cgm-stat-circle">
         <div class="cgm-stat-number">+400</div>
@@ -229,7 +234,7 @@
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
-      <h2 class="cgm-section-title fade-up">Socios Estratégicos</h2>
+      <h2 class="cgm-section-title fade-up">{% if country_code == 'arg' %}Socios Estratégicos Regionales{% else %}Socios Estratégicos{% endif %}</h2>
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
     <div class="swiper cgm-socios-swiper fade-up">
@@ -393,7 +398,7 @@ function cerrarIsoPdf(e) {
 }
 
 // ── Modal Política Integrada PDF ──
-const _politicaPdfUrl = "{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}#toolbar=0&navpanes=0&scrollbar=0";
+const _politicaPdfUrl = "{% if country_code == 'arg' %}{{ url_for('static', filename='images/docs/Politica_integrada_2026_Argentina.pdf') }}{% else %}{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}{% endif %}#toolbar=0&navpanes=0&scrollbar=0";
 function abrirPoliticaPdf() {
   document.getElementById('politicaModalFrame').src = _politicaPdfUrl;
   document.getElementById('politicaModal').classList.add('active');

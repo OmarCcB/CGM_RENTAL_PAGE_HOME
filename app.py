@@ -462,18 +462,19 @@ def blog_list(country, p=1):
     PER_PAGE = 6
     cat_filter = request.args.get("cat", "")
     conn = get_conn()
+    arg_filter = " AND show_arg=1" if country == "arg" else ""
     if cat_filter:
         total = conn.execute(
-            "SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?", (cat_filter,)
+            f"SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?{arg_filter}", (cat_filter,)
         ).fetchone()[0]
         posts = conn.execute(
-            "SELECT * FROM blog_posts WHERE activo=1 AND categoria=? ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            f"SELECT * FROM blog_posts WHERE activo=1 AND categoria=?{arg_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
             (cat_filter, PER_PAGE, (p - 1) * PER_PAGE)
         ).fetchall()
     else:
-        total = conn.execute("SELECT COUNT(*) FROM blog_posts WHERE activo=1").fetchone()[0]
+        total = conn.execute(f"SELECT COUNT(*) FROM blog_posts WHERE activo=1{arg_filter}").fetchone()[0]
         posts = conn.execute(
-            "SELECT * FROM blog_posts WHERE activo=1 ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            f"SELECT * FROM blog_posts WHERE activo=1{arg_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
             (PER_PAGE, (p - 1) * PER_PAGE)
         ).fetchall()
     conn.close()
