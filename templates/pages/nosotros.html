@@ -8,7 +8,7 @@
 <!-- ══════════ BANNER ══════════ -->
 <section class="cgm-page-hero">
   <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/nosotros/evolucion.png') }}');
+       style="background-image:url('{{ url_for('static', filename='images/nosotros/linea-de-evolucion-ar.png' if country.code == 'arg' else 'images/nosotros/evolucion.png') }}');
               background-size: contain;
               background-repeat: no-repeat;
               background-position: center;
@@ -343,6 +343,52 @@
 
 {% block extra_scripts %}
 <script>
+// ── Stats: aparición + count-up al entrar en pantalla ──
+(function () {
+  const circles = document.querySelectorAll('.cgm-stat-circle');
+  if (!circles.length) return;
+
+  // Extrae el número de un texto como "+15", "+800", "+ de 1000", "+4"
+  function parseNum(text) {
+    const m = text.replace(/\s/g, '').match(/\d+/);
+    return m ? parseInt(m[0], 10) : 0;
+  }
+
+  // Cuenta desde 0 hasta target en ~1.2s
+  function countUp(el, target, prefix, suffix) {
+    const dur = 1200, step = 16;
+    const steps = Math.ceil(dur / step);
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      const val = Math.round(target * (i / steps));
+      el.textContent = prefix + val + suffix;
+      if (i >= steps) { el.textContent = prefix + target + suffix; clearInterval(t); }
+    }, step);
+  }
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const circle = entry.target;
+      circle.classList.add('cgm-stat-visible');
+
+      // Count-up en el número
+      const numEl = circle.querySelector('.cgm-stat-number');
+      if (numEl) {
+        const original = numEl.textContent.trim();
+        const target   = parseNum(original);
+        // Detectar prefijo/sufijo: "+ de X" o "+X"
+        const prefix   = original.includes('de') ? '+ de ' : '+';
+        setTimeout(() => countUp(numEl, target, prefix, ''), 200);
+      }
+      obs.unobserve(circle);
+    });
+  }, { threshold: 0.3 });
+
+  circles.forEach(c => obs.observe(c));
+})();
+
 // ── Política Integrada ──
 const politicaSwiper = new Swiper('.cgm-politica-swiper', {
   loop: true,

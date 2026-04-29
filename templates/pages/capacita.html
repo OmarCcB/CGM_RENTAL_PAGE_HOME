@@ -339,9 +339,6 @@
             {% for eq in ['Excavadora Hidráulica','Motoniveladora','Cargador Frontal','Retroexcavadora','Tractor sobre Orugas','Rodillo Compactador','Minicargador'] %}
             <div class="cgm-cap-beneficio"><i class="bi bi-check-circle-fill"></i> {{ eq }}</div>
             {% endfor %}
-            <div class="cgm-cap-panel-img">
-              <img src="{{ url_for('static', filename='images/fotos-capacita/12.webp') }}" alt="Actualización Virtual" loading="lazy">
-            </div>
           </div>
         </div>
       </div>
@@ -457,30 +454,44 @@
           <h3 class="cgm-section-title text-start mb-3">Ponemos a tu disposición</h3>
           <div class="cgm-title-line left mb-4"></div>
           <!-- Carrusel horizontal automático (2 visibles, avanza de 1 en 1) -->
-          <div class="cgm-cap-inst-carousel" id="instCarousel">
-            <div class="cgm-cap-inst-track" id="instTrack">
-              <div class="cgm-cap-inst-card">
-                <img src="{{ url_for('static', filename='images/fotos-capacita/14.webp') }}"
-                     alt="Modernas salas y simuladores" class="cgm-cap-inst-img" loading="lazy">
-                <div class="cgm-cap-inst-body">
-                  <div class="cgm-cap-inst-text">Modernas salas y simuladores de alta gama</div>
+          <div class="cgm-cap-inst-wrapper">
+            <button class="cgm-cap-inst-arrow cgm-cap-inst-arrow--prev" id="instPrev" aria-label="Anterior">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <div class="cgm-cap-inst-carousel" id="instCarousel">
+              <div class="cgm-cap-inst-track" id="instTrack">
+                <div class="cgm-cap-inst-card">
+                  <img src="{{ url_for('static', filename='images/fotos-capacita/14.webp') }}"
+                       alt="Modernas salas y simuladores" class="cgm-cap-inst-img" loading="lazy">
+                  <div class="cgm-cap-inst-body">
+                    <div class="cgm-cap-inst-text">Modernas salas y simuladores de alta gama</div>
+                  </div>
                 </div>
-              </div>
-              <div class="cgm-cap-inst-card">
-                <img src="{{ url_for('static', filename='images/fotos-capacita/9.webp') }}"
-                     alt="Maquinaria y campo de entrenamiento" class="cgm-cap-inst-img" loading="lazy">
-                <div class="cgm-cap-inst-body">
-                  <div class="cgm-cap-inst-text">Maquinaria y campo de entrenamiento</div>
+                <div class="cgm-cap-inst-card">
+                  <img src="{{ url_for('static', filename='images/fotos-capacita/9.webp') }}"
+                       alt="Maquinaria y campo de entrenamiento" class="cgm-cap-inst-img" loading="lazy">
+                  <div class="cgm-cap-inst-body">
+                    <div class="cgm-cap-inst-text">Maquinaria y campo de entrenamiento</div>
+                  </div>
                 </div>
-              </div>
-              <div class="cgm-cap-inst-card">
-                <img src="{{ url_for('static', filename='images/fotos-capacita/8.webp') }}"
-                     alt="Equipos modernos y certificación" class="cgm-cap-inst-img" loading="lazy">
-                <div class="cgm-cap-inst-body">
-                  <div class="cgm-cap-inst-text">Equipos modernos y certificación</div>
+                <div class="cgm-cap-inst-card">
+                  <img src="{{ url_for('static', filename='images/fotos-capacita/8.webp') }}"
+                       alt="Equipos modernos y certificación" class="cgm-cap-inst-img" loading="lazy">
+                  <div class="cgm-cap-inst-body">
+                    <div class="cgm-cap-inst-text">Equipos modernos y certificación</div>
+                  </div>
                 </div>
               </div>
             </div>
+            <button class="cgm-cap-inst-arrow cgm-cap-inst-arrow--next" id="instNext" aria-label="Siguiente">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <!-- Puntos indicadores -->
+          <div class="cgm-cap-inst-dots" id="instDots">
+            <span class="cgm-cap-inst-dot active" data-idx="0"></span>
+            <span class="cgm-cap-inst-dot" data-idx="1"></span>
+            <span class="cgm-cap-inst-dot" data-idx="2"></span>
           </div>
         </div>
       </div>
@@ -537,7 +548,6 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   const track   = document.getElementById('instTrack');
   if (!track) return;
 
-  // Clonar las tarjetas originales y añadirlas al final para el loop
   const origCards = Array.from(track.querySelectorAll('.cgm-cap-inst-card'));
   const total     = origCards.length;
   origCards.forEach(c => track.appendChild(c.cloneNode(true)));
@@ -546,7 +556,13 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   let timer   = null;
   let moving  = false;
 
-  // Distancia real entre el inicio de una tarjeta y la siguiente (incluye el gap)
+  const dots = document.querySelectorAll('.cgm-cap-inst-dot');
+
+  function updateDots() {
+    const real = current % total;
+    dots.forEach((d, i) => d.classList.toggle('active', i === real));
+  }
+
   function cardW() {
     const all = track.querySelectorAll('.cgm-cap-inst-card');
     if (all.length < 2) return all[0].offsetWidth;
@@ -556,14 +572,14 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   function goTo(idx, animate) {
     track.style.transition = animate ? 'transform .7s cubic-bezier(.4,0,.2,1)' : 'none';
     current = idx;
-    track.style.transform  = 'translateX(-' + (current * cardW()) + 'px)';
+    track.style.transform = 'translateX(-' + (current * cardW()) + 'px)';
+    updateDots();
   }
 
-  // Al terminar la transición, si estamos en zona de clones, saltar al original
   track.addEventListener('transitionend', () => {
     if (current >= total) {
       goTo(current - total, false);
-      track.getBoundingClientRect(); // forzar reflow
+      track.getBoundingClientRect();
     }
     moving = false;
   });
@@ -574,10 +590,29 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
     goTo(current + 1, true);
   }
 
+  function prev() {
+    if (moving) return;
+    moving = true;
+    if (current === 0) {
+      goTo(total, false);
+      track.getBoundingClientRect();
+      current = total;
+    }
+    goTo(current - 1, true);
+  }
+
   function startTimer() {
     clearInterval(timer);
     timer = setInterval(next, 3200);
   }
+
+  document.getElementById('instNext').addEventListener('click', () => { next(); startTimer(); });
+  document.getElementById('instPrev').addEventListener('click', () => { prev(); startTimer(); });
+
+  dots.forEach(d => d.addEventListener('click', () => {
+    goTo(parseInt(d.dataset.idx), true);
+    startTimer();
+  }));
 
   const carousel = document.getElementById('instCarousel');
   if (carousel) {
@@ -585,6 +620,7 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
     carousel.addEventListener('mouseleave', startTimer);
   }
 
+  updateDots();
   startTimer();
 })();
 </script>

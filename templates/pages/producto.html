@@ -28,7 +28,9 @@
         <!-- Imagen principal -->
         <div style="border-radius:10px;border:1px solid #eee;overflow:hidden;
                     background:#fafafa;aspect-ratio:4/3;display:flex;
-                    align-items:center;justify-content:center;">
+                    align-items:center;justify-content:center;
+                    cursor:zoom-in;position:relative;"
+             onclick="openLightbox()">
           <img id="mainImg"
                src="{{ url_for('static', filename='products/' + product.imagen) if product.imagen else '' }}"
                alt="{{ product.nombre }}"
@@ -38,6 +40,12 @@
                style="display:none;width:100%;height:100%;align-items:center;
                       justify-content:center;font-size:80px;color:#ccc;">
             <i class="bi bi-truck"></i>
+          </div>
+          <!-- Ícono lupa -->
+          <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.45);
+                      border-radius:50%;width:34px;height:34px;display:flex;
+                      align-items:center;justify-content:center;pointer-events:none;">
+            <i class="bi bi-zoom-in" style="color:#fff;font-size:15px;"></i>
           </div>
         </div>
 
@@ -205,10 +213,131 @@
 </section>
 {% endif %}
 
+<!-- ══════════ LIGHTBOX MODAL ══════════ -->
+<div class="modal fade" id="imgLightbox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content"
+         style="background:transparent;border:none;box-shadow:none;">
+      <div class="modal-body p-0 text-center" style="position:relative;">
+
+        <!-- Cerrar -->
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal" aria-label="Cerrar"
+                style="position:absolute;top:-14px;right:-14px;
+                       background-color:rgba(0,0,0,.55);border-radius:50%;
+                       padding:10px;opacity:1;z-index:10;"></button>
+
+        <!-- Flecha Anterior -->
+        <button onclick="lbPrev()" aria-label="Anterior"
+                style="position:absolute;left:-22px;top:50%;transform:translateY(-50%);
+                       width:44px;height:44px;border-radius:50%;border:2px solid var(--cgm-lima);
+                       background:transparent;color:var(--cgm-lima);font-size:20px;
+                       cursor:pointer;display:flex;align-items:center;justify-content:center;
+                       z-index:10;transition:background .2s,color .2s;"
+                onmouseover="this.style.background='var(--cgm-lima)';this.style.color='var(--cgm-verde)';"
+                onmouseout="this.style.background='transparent';this.style.color='var(--cgm-lima)';">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <!-- Imagen ampliada -->
+        <img id="lightboxImg" src="" alt=""
+             style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:8px;
+                    transition:opacity .15s;">
+
+        <!-- Flecha Siguiente -->
+        <button onclick="lbNext()" aria-label="Siguiente"
+                style="position:absolute;right:-22px;top:50%;transform:translateY(-50%);
+                       width:44px;height:44px;border-radius:50%;border:2px solid var(--cgm-lima);
+                       background:transparent;color:var(--cgm-lima);font-size:20px;
+                       cursor:pointer;display:flex;align-items:center;justify-content:center;
+                       z-index:10;transition:background .2s,color .2s;"
+                onmouseover="this.style.background='var(--cgm-lima)';this.style.color='var(--cgm-verde)';"
+                onmouseout="this.style.background='transparent';this.style.color='var(--cgm-lima)';">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+
+        <!-- Contador -->
+        <div id="lbCounter"
+             style="position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
+                    font-size:12px;color:rgba(255,255,255,.7);white-space:nowrap;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+/* ── Lightbox ── */
+let _lbImgs = [];   // lista de src disponibles
+let _lbIdx  = 0;    // índice actual
+
+function _buildLbImgs() {
+  // Recoge todos los thumbnails cuyo slide NO esté oculto
+  const thumbs = document.querySelectorAll('.cgm-prod-thumb-swiper .cgm-thumb-img');
+  const imgs = [];
+  thumbs.forEach(t => {
+    const slide = t.closest('.swiper-slide');
+    if (!slide || slide.style.display === 'none') return; // onerror los ocultó
+    imgs.push({ src: t.src, alt: t.alt });
+  });
+  // Si no hay thumbnails usa la imagen principal directamente
+  if (imgs.length === 0) {
+    const main = document.getElementById('mainImg');
+    if (main && main.src) imgs.push({ src: main.src, alt: main.alt });
+  }
+  return imgs;
+}
+
+function _lbShow() {
+  const item = _lbImgs[_lbIdx];
+  if (!item) return;
+  const img = document.getElementById('lightboxImg');
+  img.style.opacity = '0';
+  setTimeout(() => { img.src = item.src; img.alt = item.alt; img.style.opacity = '1'; }, 150);
+  document.getElementById('lbCounter').textContent =
+    _lbImgs.length > 1 ? (_lbIdx + 1) + ' / ' + _lbImgs.length : '';
+  // sincroniza thumbnail activo en la página
+  document.querySelectorAll('.cgm-thumb-img').forEach((t, i) => {
+    t.classList.toggle('active', i === _lbIdx);
+  });
+}
+
+function openLightbox() {
+  const main = document.getElementById('mainImg');
+  if (!main || !main.src) return;
+  _lbImgs = _buildLbImgs();
+  // Abre en la imagen que esté activa en los thumbnails
+  const activeThumb = document.querySelector('.cgm-thumb-img.active');
+  if (activeThumb) {
+    _lbIdx = _lbImgs.findIndex(i => i.src === activeThumb.src);
+    if (_lbIdx < 0) _lbIdx = 0;
+  } else {
+    _lbIdx = 0;
+  }
+  _lbShow();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('imgLightbox')).show();
+}
+
+function lbPrev() {
+  if (_lbImgs.length < 2) return;
+  _lbIdx = (_lbIdx - 1 + _lbImgs.length) % _lbImgs.length;
+  _lbShow();
+}
+
+function lbNext() {
+  if (_lbImgs.length < 2) return;
+  _lbIdx = (_lbIdx + 1) % _lbImgs.length;
+  _lbShow();
+}
+
+// Navegar con teclado cuando el lightbox está abierto
+document.getElementById('imgLightbox').addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowLeft')  lbPrev();
+  if (e.key === 'ArrowRight') lbNext();
+});
+
 function swapMainImg(thumb) {
   const main = document.getElementById('mainImg');
   if (!main) return;

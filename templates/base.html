@@ -80,5 +80,22 @@
   <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 
   {% block extra_scripts %}{% endblock %}
+
+  <!-- Title-line draw animation -->
+  <script>
+  (function () {
+    var lines = document.querySelectorAll('.cgm-title-line');
+    if (!lines.length) return;
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('cgm-line-visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    lines.forEach(function (el) { obs.observe(el); });
+  })();
+  </script>
 </body>
 </html>

@@ -10,7 +10,7 @@
   --cgm-lima: #c4e76c;
   --cgm-blanco:   #ffffff;
   --cgm-negro:    #1a1a1a;
-  --cgm-gris:     #f5f5f5;
+  --cgm-gris:     #ededed;
   --cgm-gris-txt: #666666;
   --cgm-topbar-h: 50px;
   --cgm-nav-h:    80px;
@@ -549,13 +549,18 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   margin-bottom: 8px;
 }
 .cgm-title-line {
-  width: 180px;
+  width: 0;                        /* empieza en 0 */
+  max-width: 180px;
   height: 4px;
   background: var(--cgm-lima);
   border-radius: 2px;
   margin: 0 auto 40px;
+  transition: width .7s cubic-bezier(.4,0,.2,1);
 }
 .cgm-title-line.left { margin-left: 0; }
+/* Al entrar en pantalla, crece hasta su ancho final */
+.cgm-title-line.cgm-line-visible       { width: 180px; }
+.cgm-historia-card-body .cgm-title-line.cgm-line-visible { width: 80px; }
 
 /* ══════════════════════════════════════════════════════════════
    BOTONES
@@ -1620,7 +1625,7 @@ select.cgm-contacto-input { cursor: pointer; }
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .cgm-footer-pe__logo {
@@ -1818,14 +1823,10 @@ select.cgm-contacto-input { cursor: pointer; }
   justify-content: center;
   gap: 24px 32px;
 }
-@keyframes cgm-float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
-}
-@keyframes cgm-pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(2,83,76,.35); }
-  70%  { box-shadow: 0 0 0 14px rgba(2,83,76,0); }
-  100% { box-shadow: 0 0 0 0 rgba(2,83,76,0); }
+/* ── Animación entrada círculos stats ── */
+@keyframes cgm-stat-in {
+  from { opacity: 0; transform: scale(.5); }
+  to   { opacity: 1; transform: scale(1); }
 }
 .cgm-stat-circle {
   display: flex;
@@ -1834,36 +1835,38 @@ select.cgm-contacto-input { cursor: pointer; }
   justify-content: center;
   width: 148px;
   height: 148px;
-  border-radius: 50%;
-  border: 3px solid var(--cgm-verde);
+  border-radius: 12px;
+  background-color: var(--cgm-verde);
   padding: 16px;
   text-align: center;
-  transition: transform .25s, border-color .25s;
-  animation: cgm-float 4s ease-in-out infinite, cgm-pulse-ring 3s ease-out infinite;
+  opacity: 0;
+  transition: transform .2s, box-shadow .2s;
 }
-/* Escalonar la animación de cada círculo */
-.cgm-stat-circle:nth-child(1) { animation-delay: 0s,   0s;   }
-.cgm-stat-circle:nth-child(2) { animation-delay: .6s,  .6s;  }
-.cgm-stat-circle:nth-child(3) { animation-delay: 1.2s, 1.2s; }
-.cgm-stat-circle:nth-child(4) { animation-delay: 1.8s, 1.8s; }
-.cgm-stat-circle:nth-child(5) { animation-delay: 2.4s, 2.4s; }
+/* Al activarse por IntersectionObserver */
+.cgm-stat-circle.cgm-stat-visible {
+  animation: cgm-stat-in .55s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+/* Escalonar cada círculo */
+.cgm-stat-circle:nth-child(1) { animation-delay: .0s; }
+.cgm-stat-circle:nth-child(2) { animation-delay: .12s; }
+.cgm-stat-circle:nth-child(3) { animation-delay: .24s; }
+.cgm-stat-circle:nth-child(4) { animation-delay: .36s; }
+.cgm-stat-circle:nth-child(5) { animation-delay: .48s; }
 .cgm-stat-circle:hover {
-  animation: none;
-  transform: scale(1.08);
-  border-color: var(--cgm-lima);
-  box-shadow: 0 0 0 6px rgba(196,214,0,.25);
+  transform: scale(1.07);
+  box-shadow: 0 0 0 6px rgba(196,214,0,.2);
 }
 .cgm-stat-number {
   font-family: 'Estricta', sans-serif;
   font-size: 26px;
   font-style: normal;
   font-weight: 900;
-  color: var(--cgm-verde);
+  color: var(--cgm-lima);
   line-height: 1;
 }
 .cgm-stat-label {
   font-size: 11px;
-  color: #555;
+  color: var(--cgm-lima);
   margin-top: 6px;
   line-height: 1.3;
   text-align: center;
@@ -3251,7 +3254,7 @@ select.cgm-contacto-input { cursor: pointer; }
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: clamp(8px, 2vw, 24px);
   max-width: 960px;
   margin: 0 auto;
 }
@@ -3259,25 +3262,27 @@ select.cgm-contacto-input { cursor: pointer; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
-  width: 200px;
-  flex-shrink: 0;
+  gap: clamp(6px, 1vw, 12px);
+  flex: 0 0 22%;
+  min-width: 0;
 }
 .cgm-suc-mapa-centro {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .cgm-suc-mapa-img {
-  width: 380px;
+  width: 100%;
+  max-width: 380px;
   height: auto;
   filter: drop-shadow(0 4px 18px rgba(0,0,0,.18));
 }
 
 /* SVG sucursal directo */
 .cgm-suc-svg {
-  width: 200px;
+  width: 100%;
   height: auto;
   display: block;
 }
@@ -3371,16 +3376,42 @@ select.cgm-contacto-input { cursor: pointer; }
 @media (max-width: 991px) {
   .cgm-politica-cards { grid-template-columns: repeat(2, 1fr); }
   .cgm-politica-card { border-bottom: 1px solid #eee; }
-  .cgm-suc-mapa-layout { grid-template-columns: 1fr; }
-  .cgm-suc-mapa-centro { order: -1; }
-  .cgm-suc-mapa-img { max-width: 220px; margin: 0 auto; }
-  .cgm-suc-col { flex-direction: row; flex-wrap: wrap; }
-  .cgm-suc-card { flex: 1 1 calc(50% - 8px); min-width: 160px; }
-  .cgm-suc-thumb { flex: 1 1 calc(33% - 10px); min-width: 120px; }
+  /* El layout de sucursales se mantiene en 3 columnas y escala proporcionalmente */
 }
+@media (max-width: 767px) {
+  /* Política integrada: imagen completa sin barras ni recortes en móvil */
+  .cgm-politica-slide {
+    min-height: unset;
+    padding: 0;
+    padding-top: 77.5%;   /* ratio exacto 671/866 de las imágenes */
+    background-size: cover;
+    background-color: transparent;
+  }
+  /* Sucursales: mantener 3 columnas, reducir gaps y ajustar proporciones */
+  .cgm-suc-mapa-layout {
+    gap: 6px;
+    align-items: center;
+  }
+  .cgm-suc-col {
+    flex: 0 0 29%;
+    gap: 6px;
+    justify-content: center;
+  }
+  .cgm-suc-svg {
+    width: 100%;
+    height: auto;
+  }
+  .cgm-suc-mapa-img {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 575px) {
   .cgm-politica-cards { grid-template-columns: 1fr 1fr; }
   .cgm-ubicanos-rect { flex-direction: column; }
   .cgm-ubicanos-rect-label { min-width: unset; padding: 16px 20px; }
-  .cgm-suc-thumb { flex: 1 1 calc(50% - 8px); }
+  /* Sucursales en móvil pequeño: columnas un poco más anchas, gaps mínimos */
+  .cgm-suc-mapa-layout { gap: 4px; }
+  .cgm-suc-col { flex: 0 0 30%; gap: 4px; }
 }

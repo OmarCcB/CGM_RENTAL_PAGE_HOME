@@ -280,9 +280,61 @@
 
 /* ── Instalaciones */
 /* ── Carrusel horizontal (2 visibles, avanza de 1 en 1, loop infinito) ── */
+
+/* Wrapper general que contiene flechas + carrusel */
+.cgm-cap-inst-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Flechas */
+.cgm-cap-inst-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--cgm-lima);
+  background: transparent;
+  color: var(--cgm-lima);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+  z-index: 2;
+}
+.cgm-cap-inst-arrow:hover {
+  background: var(--cgm-lima);
+  color: var(--cgm-verde);
+}
+
+/* Puntos indicadores */
+.cgm-cap-inst-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cgm-cap-inst-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  cursor: pointer;
+  transition: background .3s, transform .3s;
+}
+.cgm-cap-inst-dot.active {
+  background: var(--cgm-lima);
+  transform: scale(1.3);
+}
+
 .cgm-cap-inst-carousel {
   position: relative;
   overflow: hidden;
+  flex: 1;
 }
 .cgm-cap-inst-track {
   display: flex;

@@ -9,6 +9,20 @@
 <section class="cgm-hero" aria-label="Hero principal">
   <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
+      {% if country.code == 'arg' %}
+      <div class="swiper-slide">
+        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-1.png') }}')"></div>
+      </div>
+      <div class="swiper-slide">
+        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-2.png') }}')"></div>
+      </div>
+      <div class="swiper-slide">
+        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-3.png') }}')"></div>
+      </div>
+      <div class="swiper-slide">
+        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-4.png') }}')"></div>
+      </div>
+      {% else %}
       <div class="swiper-slide">
         <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/hero-principal.png') }}')"></div>
       </div>
@@ -21,6 +35,7 @@
       <div class="swiper-slide">
         <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/BANNER-HOME_4.png') }}')"></div>
       </div>
+      {% endif %}
     </div>
     <div class="swiper-pagination"></div>
     <div class="swiper-button-prev"></div>

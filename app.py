@@ -126,7 +126,9 @@ def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, prox
         clauses.append("tipo = ?")
         params.append(extra_tipo)
     if country == "arg" and not proximamente:
-        clauses.append("show_arg = 1")
+        clauses.append("(show_arg = 1 OR show_arg IS NULL)")
+    elif country != "arg":
+        clauses.append("(show_arg = 0 OR show_arg IS NULL)")
     where = f"WHERE {' AND '.join(clauses)}"
     total = conn.execute(f"SELECT COUNT(*) FROM products {where}", params).fetchone()[0]
     offset = (page - 1) * PER_PAGE
@@ -407,12 +409,14 @@ def home(country):
         return redirect(f"/{DEFAULT_COUNTRY}/")
     conn = get_conn()
     # 6 productos activos de alquiler aleatorios
+    show_arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == "arg" else "AND (show_arg = 0 OR show_arg IS NULL)"
     featured = conn.execute(
-        "SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' ORDER BY RANDOM() LIMIT 6"
+        f"SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' {show_arg_filter} ORDER BY RANDOM() LIMIT 6"
     ).fetchall()
     # Últimas 6 noticias
+    arg_filter = " AND show_arg=1" if country == "arg" else ""
     posts = conn.execute(
-        "SELECT * FROM blog_posts WHERE activo=1 ORDER BY fecha DESC LIMIT 6"
+        f"SELECT * FROM blog_posts WHERE activo=1{arg_filter} ORDER BY fecha DESC LIMIT 6"
     ).fetchall()
     conn.close()
     return render_template("pages/home.html",
@@ -520,7 +524,7 @@ def categoria(country=None, cat_path=""):
     total_pages = (total + PER_PAGE - 1) // PER_PAGE
 
     conn = get_conn()
-    arg_filter = " AND show_arg=1" if country == "arg" else ""
+    arg_filter = " AND (show_arg=1 OR show_arg IS NULL)" if country == "arg" else " AND (show_arg=0 OR show_arg IS NULL)"
 
     # ── Conteo por unidad (misma etiqueta) ──
     unidad_counts = {}
@@ -607,7 +611,7 @@ def producto(slug, country=None):
     # ficha_url puede venir como ficha_tecnica en importaciones antiguas
     prod["ficha_url"] = prod.get("ficha_url") or prod.get("ficha_tecnica") or ""
     # ── Productos relacionados con sistema de prioridades ──────────────────
-    arg_filter = "AND show_arg = 1" if country == "arg" else ""
+    arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == "arg" else "AND (show_arg = 0 OR show_arg IS NULL)"
     p_tipo   = prod.get("tipo", "")
     p_unidad = prod.get("unidad", "")
     p_tags   = prod.get("tags", "")
