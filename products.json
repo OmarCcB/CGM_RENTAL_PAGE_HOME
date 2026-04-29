@@ -925,7 +925,7 @@
     "tipo": "Aditamento",
     "unidad": "Energía",
     "imagen": "tableros-de-barras/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "Los tableros de barras están fabricados con la más alta calidad de cobre (99.9%). Por lo cual son excelentes para sumar las potencias de los grupos electrógenos en un bus en común. Esto permite sincronizar tensión, fases y frecuencias, así lograr sumar la potencia de dos o más grupos electrógenos.",
     "show_arg": 0
   },
@@ -940,7 +940,7 @@
     "tipo": "Aditamento",
     "unidad": "Energía",
     "imagen": "tanques-de-combustible/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "Los equipos son diseñados para el correcto funcionamiento del conjunto grupo generador o motor, de manera que se permita interconectar el equipo con el tanque fácil y óptimamente. Son fabricados bajo normas API 650 (pruebas de certificación solicitadas por el cliente en forma adicional) con plancha de acero ASTM A36 de diferentes espesores y capacidades.",
     "show_arg": 0
   },
@@ -1120,7 +1120,7 @@
     "tipo": "Pavimentadora",
     "unidad": "Construcción",
     "imagen": "pavimentadora-vogele-1400/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1150,7 +1150,7 @@
     "tipo": "Cargador Frontal",
     "unidad": "Construcción",
     "imagen": "cargador-frontal-844l/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1165,7 +1165,7 @@
     "tipo": "Rodillo Compactador",
     "unidad": "Construcción",
     "imagen": "rodillo-compactador-hamm-hc200/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1210,7 +1210,7 @@
     "tipo": "Compresora",
     "unidad": "Energía",
     "imagen": "compresora-atlas-copco-xas186/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1225,7 +1225,7 @@
     "tipo": "Aditamento",
     "unidad": "Construcción",
     "imagen": "gancho-excavadora-350g-lc/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1240,7 +1240,7 @@
     "tipo": "Aditamento",
     "unidad": "Construcción",
     "imagen": "ripper-excavadora-350g-lc/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1255,7 +1255,7 @@
     "tipo": "Aditamento",
     "unidad": "Construcción",
     "imagen": "brazo-largo-excavadora-210g/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1270,7 +1270,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-aksa-ak70cust/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1285,7 +1285,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-aksa-ak90cust/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1300,7 +1300,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-aksa-ak320cust/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1315,7 +1315,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk55cust/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1330,7 +1330,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk180pels/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1345,7 +1345,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk220pels/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1360,7 +1360,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk280pels/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1375,7 +1375,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk500pels/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1390,7 +1390,7 @@
     "tipo": "Generador",
     "unidad": "Energía",
     "imagen": "generador-teksan-tk725cust/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1660,7 +1660,7 @@
     "tipo": "Aditamento",
     "unidad": "Agrícola",
     "imagen": "portabines-chaski-p2500/1.avif",
-    "activo": 1,
+    "activo": 0,
     "descripcion_texto": "",
     "show_arg": 0
   },
@@ -1857,6 +1857,6 @@
     "imagen": "motoniveladora-670p-ar/1.webp",
     "activo": 1,
     "descripcion_texto": null,
-    "show_arg": 1
+    "show_arg": 0
   }
 ]
