@@ -46,7 +46,7 @@
           <div class="cgm-historia-card-body">
             <h3 class="cgm-historia-inner-title">NOSOTROS</h3>
             <div class="cgm-title-line left mb-4"></div>
-            {% if country_code == 'arg' %}
+            {% if country_code == 'ar' %}
             <p>Somos una empresa especializada en el alquiler de maquinaria y equipos para los sectores de construcción y minería. Contamos con el respaldo de más de 15 años de experiencia en el mercado peruano.</p>
             <p>Nuestra trayectoria nos ha permitido consolidar una propuesta basada en la confianza, el soporte técnico, la seguridad y la capacidad de respuesta ágil. Además, de ser una empresa cuatrinorma, con estándares de gestión alineados a certificaciones internacionales ISO, lo que refleja nuestro compromiso con la calidad, la seguridad y salud en el trabajo, Antisoborno y el cuidado del medio ambiente para la mejora continua.</p>
             {% else %}
@@ -77,7 +77,7 @@
   </div>
 </section>
 
-{% if country_code == 'arg' %}
+{% if country_code == 'ar' %}
 <!-- ══════════ 2b. CIFRAS (solo Argentina) ══════════ -->
 <section class="cgm-section cgm-stats-section">
   <div class="container">
@@ -95,7 +95,7 @@
         <div class="cgm-stat-label">Proyectos ejecutados</div>
       </div>
       <div class="cgm-stat-circle">
-        {% if country_code == 'arg' %}
+        {% if country_code == 'ar' %}
         <div class="cgm-stat-number">+ de 1000</div>
         <div class="cgm-stat-label">Equipos con tecnología de punta</div>
         {% else %}
@@ -234,12 +234,12 @@
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
-      <h2 class="cgm-section-title fade-up">{% if country_code == 'arg' %}Socios Estratégicos Regionales{% else %}Socios Estratégicos{% endif %}</h2>
+      <h2 class="cgm-section-title fade-up">{% if country_code == 'ar' %}Socios Estratégicos Regionales{% else %}Socios Estratégicos{% endif %}</h2>
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
     <div class="swiper cgm-socios-swiper fade-up">
       <div class="swiper-wrapper align-items-center">
-        {% if country_code == 'arg' %}
+        {% if country_code == 'ar' %}
           {% for p in ['stracon.svg','MILICIC.webp','ROGGIO.webp','rovella.webp','cosapi.svg','JJC.webp'] %}
           <div class="swiper-slide">
             <div class="cgm-partner-logo">
@@ -444,7 +444,7 @@ function cerrarIsoPdf(e) {
 }
 
 // ── Modal Política Integrada PDF ──
-const _politicaPdfUrl = "{% if country_code == 'arg' %}{{ url_for('static', filename='images/docs/Politica_integrada_2026_Argentina.pdf') }}{% else %}{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}{% endif %}#toolbar=0&navpanes=0&scrollbar=0";
+const _politicaPdfUrl = "{% if country_code == 'ar' %}{{ url_for('static', filename='images/docs/Politica_integrada_2026_Argentina.pdf') }}{% else %}{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}{% endif %}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width";
 function abrirPoliticaPdf() {
   document.getElementById('politicaModalFrame').src = _politicaPdfUrl;
   document.getElementById('politicaModal').classList.add('active');

@@ -152,7 +152,7 @@
                            id="chkAlquiler" name="00NUU000001AZFF" value="1" checked>
                     <label class="form-check-label" for="chkAlquiler" style="font-size:13px;">Alquiler</label>
                   </div>
-                  {% if country_code != 'arg' %}
+                  {% if country_code != 'ar' %}
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox"
                            id="chkCompra" name="00NUU000001AZK5" value="1">
@@ -195,8 +195,8 @@
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfPais">País</label>
                 <select id="sfPais" name="00NUU000001uSU5" class="cgm-form-control">
-                  <option value="Perú" {% if country_code == 'per' %}selected{% endif %}>Perú</option>
-                  <option value="Argentina" {% if country_code == 'arg' %}selected{% endif %}>Argentina</option>
+                  <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
+                  <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
                   <option value="Otro">Otro</option>
                 </select>
               </div>

@@ -162,7 +162,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 /* Nav links */
 .cgm-nav-link {
   font-family: 'Estricta', sans-serif !important;
-  font-size: 15px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
   color: var(--cgm-verde) !important;
   letter-spacing: .4px;
@@ -3127,13 +3127,13 @@ select.cgm-contacto-input { cursor: pointer; }
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0,0,0,.10);
-  max-width: 700px;    /* ← ANCHO del bloque (ej: 80% para más angosto) */
+  max-width: 805px;    /* ← ANCHO del bloque (700px + 15%) */
   margin: 0 auto;
 }
 .cgm-politica-swiper { width: 100%; }
 .cgm-politica-slide {
   position: relative;
-  min-height: 500px;  /* ← ALTURA del cuadro de imagen */
+  min-height: 575px;  /* ← ALTURA del cuadro de imagen (500px + 15%) */
   background-size: cover;
   background-position: center;
   display: flex;

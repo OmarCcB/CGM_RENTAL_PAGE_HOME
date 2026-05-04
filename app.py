@@ -8,13 +8,13 @@ from email.mime.multipart import MIMEMultipart
 
 # ── GeoIP via Cloudflare proxy ────────────────────────────────────────────────
 def _detect_country_from_ip(_ip: str = None) -> str:
-    """Devuelve 'per' o 'arg' usando el header CF-IPCountry de Cloudflare.
+    """Devuelve 'pe' o 'ar' usando el header CF-IPCountry de Cloudflare.
     Fallback: None  →  la ruta raíz usará DEFAULT_COUNTRY."""
     from flask import request as _req
     cf = _req.headers.get("CF-IPCountry", "").strip().upper()
     # XX = Cloudflare no detectó país  |  T1 = Tor
     if cf and cf not in ("XX", "T1"):
-        return {"PE": "per", "AR": "arg"}.get(cf)
+        return {"PE": "pe", "AR": "ar"}.get(cf)
     return None
 
 from flask import (Flask, render_template, redirect, url_for, request,
@@ -125,9 +125,9 @@ def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, prox
     elif extra_tipo:
         clauses.append("tipo = ?")
         params.append(extra_tipo)
-    if country == "arg" and not proximamente:
+    if country == 'ar' and not proximamente:
         clauses.append("(show_arg = 1 OR show_arg IS NULL)")
-    elif country != "arg":
+    elif country != 'ar':
         clauses.append("(show_arg = 0 OR show_arg IS NULL)")
     where = f"WHERE {' AND '.join(clauses)}"
     total = conn.execute(f"SELECT COUNT(*) FROM products {where}", params).fetchone()[0]
@@ -409,12 +409,12 @@ def home(country):
         return redirect(f"/{DEFAULT_COUNTRY}/")
     conn = get_conn()
     # 6 productos activos de alquiler aleatorios
-    show_arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == "arg" else "AND (show_arg = 0 OR show_arg IS NULL)"
+    show_arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == 'ar' else "AND (show_arg = 0 OR show_arg IS NULL)"
     featured = conn.execute(
         f"SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' {show_arg_filter} ORDER BY RANDOM() LIMIT 6"
     ).fetchall()
     # Últimas 6 noticias
-    arg_filter = " AND show_arg=1" if country == "arg" else ""
+    arg_filter = " AND show_arg=1" if country == 'ar' else ""
     posts = conn.execute(
         f"SELECT * FROM blog_posts WHERE activo=1{arg_filter} ORDER BY fecha DESC LIMIT 6"
     ).fetchall()
@@ -466,7 +466,7 @@ def blog_list(country, p=1):
     PER_PAGE = 6
     cat_filter = request.args.get("cat", "")
     conn = get_conn()
-    arg_filter = " AND show_arg=1" if country == "arg" else ""
+    arg_filter = " AND show_arg=1" if country == 'ar' else ""
     if cat_filter:
         total = conn.execute(
             f"SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?{arg_filter}", (cat_filter,)
@@ -519,12 +519,12 @@ def categoria(country=None, cat_path=""):
     tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
     extra_tipo = request.args.get("tipo")
     page = max(1, request.args.get("page", 1, type=int))
-    proximamente = country == "arg" and unidad in UNIDADES_PROXIMAMENTE_ARG
+    proximamente = country == 'ar' and unidad in UNIDADES_PROXIMAMENTE_ARG
     products, total = get_products_for_cat(tags, unidad, tipo, extra_tipo, country=country, proximamente=proximamente, page=page)
     total_pages = (total + PER_PAGE - 1) // PER_PAGE
 
     conn = get_conn()
-    arg_filter = " AND (show_arg=1 OR show_arg IS NULL)" if country == "arg" else " AND (show_arg=0 OR show_arg IS NULL)"
+    arg_filter = " AND (show_arg=1 OR show_arg IS NULL)" if country == 'ar' else " AND (show_arg=0 OR show_arg IS NULL)"
 
     # ── Conteo por unidad (misma etiqueta) ──
     unidad_counts = {}
@@ -611,7 +611,7 @@ def producto(slug, country=None):
     # ficha_url puede venir como ficha_tecnica en importaciones antiguas
     prod["ficha_url"] = prod.get("ficha_url") or prod.get("ficha_tecnica") or ""
     # ── Productos relacionados con sistema de prioridades ──────────────────
-    arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == "arg" else "AND (show_arg = 0 OR show_arg IS NULL)"
+    arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == 'ar' else "AND (show_arg = 0 OR show_arg IS NULL)"
     p_tipo   = prod.get("tipo", "")
     p_unidad = prod.get("unidad", "")
     p_tags   = prod.get("tags", "")
@@ -641,7 +641,7 @@ def producto(slug, country=None):
 
     relacionados = [dict(r) for r in list(nivel1) + list(nivel2)]
     conn.close()
-    proximamente = country == "arg" and prod.get("unidad") in UNIDADES_PROXIMAMENTE_ARG
+    proximamente = country == 'ar' and prod.get("unidad") in UNIDADES_PROXIMAMENTE_ARG
     return render_template("pages/producto.html",
                            country=c, country_code=country, product=prod,
                            relacionados=relacionados, proximamente=proximamente)

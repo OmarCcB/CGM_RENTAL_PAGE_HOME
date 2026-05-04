@@ -9,7 +9,7 @@
 <section class="cgm-hero" aria-label="Hero principal">
   <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
-      {% if country.code == 'arg' %}
+      {% if country.code == 'ar' %}
       <div class="swiper-slide">
         <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-1.png') }}')"></div>
       </div>
@@ -148,7 +148,7 @@
       {% endif %}
 
       <!-- Capacita -->
-      {% if country_code == 'arg' %}
+      {% if country_code == 'ar' %}
       <a href="/{{ country_code }}/capacita/"
          class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
          style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
@@ -192,7 +192,7 @@
           <div class="swiper-slide">
             <div class="cgm-nosotros-slide"
                  style="background-image:url('{{ url_for('static', filename='images/' + img) }}');
-                        {% if img == 'nosotros/linea-de-evolucion-ar.png' %}background-size:contain;background-color:#fff;{% endif %}">
+                        {% if img == 'nosotros/linea-de-evolucion-ar.png' %}background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;{% endif %}">
               <div class="cgm-nosotros-dark"></div>
             </div>
           </div>
@@ -324,7 +324,7 @@
 </section>
 
 <!-- Modal Brochure Capacita (solo Argentina) -->
-{% if country_code == 'arg' %}
+{% if country_code == 'ar' %}
 <div id="capacitaModal" class="cgm-iso-modal" onclick="cerrarCapacitaPdf(event)">
   <div class="cgm-iso-modal-box">
     <div class="cgm-iso-modal-header">
@@ -371,10 +371,10 @@ const catOpciones = {
     {v: 'retroexcavadora',       l: 'Retroexcavadora'},
     {v: 'minicargador',          l: 'Minicargador'},
     {v: 'camion-cisterna',       l: 'Camión Cisterna'},
-    {% if country_code != 'arg' %}{v: 'camion-grua',           l: 'Camión Grúa'},{% endif %}
-    {% if country_code != 'arg' %}{v: 'compresora',            l: 'Compresora'},{% endif %}
+    {% if country_code != 'ar' %}{v: 'camion-grua',           l: 'Camión Grúa'},{% endif %}
+    {% if country_code != 'ar' %}{v: 'compresora',            l: 'Compresora'},{% endif %}
     {v: 'torre-de-iluminacion',  l: 'Torre de Iluminación'},
-    {% if country_code != 'arg' %}{v: 'aditamentos',           l: 'Aditamentos'},{% endif %}
+    {% if country_code != 'ar' %}{v: 'aditamentos',           l: 'Aditamentos'},{% endif %}
   ],
   'mineria':  [],
   'agricola': [],
@@ -440,7 +440,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') cerrarIsoPdf(null);
 });
 
-{% if country_code == 'arg' %}
+{% if country_code == 'ar' %}
 // ── Modal Brochure Capacita (Argentina) ──
 const _capacitaPdfUrl = "{{ url_for('static', filename='docs/Brochure Capacita 2026.pdf') }}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width";
 function abrirCapacitaPdf() {

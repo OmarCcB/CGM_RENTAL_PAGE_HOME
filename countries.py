@@ -1,6 +1,6 @@
 COUNTRIES = {
-    "per": {
-        "code": "per",
+    "pe": {
+        "code": "pe",
         "nombre": "Perú",
         "bandera": "🇵🇪",
         "bandera_svg": "per.svg",
@@ -35,8 +35,8 @@ COUNTRIES = {
         "show_leasing": True,
         "show_portal_proveedores": True,
     },
-    "arg": {
-        "code": "arg",
+    "ar": {
+        "code": "ar",
         "nombre": "Argentina",
         "bandera": "🇦🇷",
         "bandera_svg": "arg.svg",
@@ -67,4 +67,4 @@ COUNTRIES = {
     }
 }
 
-DEFAULT_COUNTRY = "per"
+DEFAULT_COUNTRY = "pe"

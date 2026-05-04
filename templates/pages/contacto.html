@@ -92,7 +92,7 @@
                 <input type="checkbox" name="00NUU000001AZFF" value="1" id="tipoAlquiler">
                 Alquiler:
               </label>
-              {% if country_code != 'arg' %}
+              {% if country_code != 'ar' %}
               <label class="cgm-contacto-check-label ms-4">
                 <input type="checkbox" name="00NUU000001AZK5" value="1" id="tipoCompra">
                 Compra:
@@ -117,8 +117,8 @@
                 <label class="cgm-contacto-field-label">País:</label>
                 <select name="00NUU000001uSU5" class="cgm-contacto-input">
                   <option value="">–Ninguno–</option>
-                  <option value="Perú" {% if country_code == 'per' %}selected{% endif %}>Perú</option>
-                  <option value="Argentina" {% if country_code == 'arg' %}selected{% endif %}>Argentina</option>
+                  <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
+                  <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
                   <option value="Otro">Otro</option>
                 </select>
               </div>
