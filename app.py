@@ -83,7 +83,7 @@ def get_country(code):
 
 
 def send_email(subject, body, to=None):
-    to = to or os.getenv("EMAIL_DESTINO", "inteligenciacomercial@cgmrental.com")
+    to = to or os.getenv("EMAIL_DESTINO", "contacto@cgmrental.com")
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
     smtp_user = os.getenv("SMTP_USER", "")
