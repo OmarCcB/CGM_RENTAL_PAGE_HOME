@@ -12,9 +12,9 @@
   onScroll();
 })();
 
-/* ── Dropdown hover (desktop) ───────────────── */
+/* ── Dropdown hover (desktop grande ≥1200px) ── */
 (function () {
-  if (window.innerWidth < 768) return;
+  if (window.innerWidth < 1200) return;
   document.querySelectorAll('.cgm-dropdown').forEach(li => {
     li.addEventListener('mouseenter', () => li.classList.add('show'));
     li.addEventListener('mouseleave', () => li.classList.remove('show'));
@@ -25,7 +25,45 @@
   });
 })();
 
-/* ── Mobile dropdown click (acordeón) ──────── */
+/* ── Dropdown click (tablet 768–1199px) ─────── */
+(function () {
+  if (window.innerWidth < 768 || window.innerWidth >= 1200) return;
+
+  // Click en ALQUILER / USADOS → abre/cierra
+  document.querySelectorAll('.cgm-dropdown > .cgm-nav-link').forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = this.closest('.cgm-dropdown');
+      const isOpen = li.classList.contains('show');
+      // Cierra todos primero
+      document.querySelectorAll('.cgm-dropdown').forEach(d => d.classList.remove('show'));
+      document.querySelectorAll('.dropdown-submenu').forEach(s => s.classList.remove('show'));
+      if (!isOpen) li.classList.add('show');
+    });
+  });
+
+  // Click en Construcción / Minería / etc. → abre/cierra sub-drop
+  document.querySelectorAll('.dropdown-submenu > .cgm-drop-item.has-submenu').forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const sub = this.closest('.dropdown-submenu');
+      const isOpen = sub.classList.contains('show');
+      // Cierra otros sub-drops del mismo nivel
+      sub.closest('.cgm-drop').querySelectorAll('.dropdown-submenu').forEach(s => s.classList.remove('show'));
+      if (!isOpen) sub.classList.add('show');
+    });
+  });
+
+  // Cierra todo al hacer click fuera
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.cgm-dropdown').forEach(d => d.classList.remove('show'));
+    document.querySelectorAll('.dropdown-submenu').forEach(s => s.classList.remove('show'));
+  });
+})();
+
+/* ── Mobile dropdown click (acordeón ≤767px) ── */
 (function () {
   document.querySelectorAll('.cgm-dropdown > .cgm-nav-link').forEach(link => {
     link.addEventListener('click', function (e) {
@@ -90,6 +128,21 @@
       }
     });
   }, { threshold: 0.12 });
+  els.forEach(el => obs.observe(el));
+})();
+
+/* ── Slide-in ¿Por qué elegirnos? ──────────── */
+(function () {
+  const els = document.querySelectorAll('.cgm-porque-item');
+  if (!els.length) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('cgm-visible');
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
   els.forEach(el => obs.observe(el));
 })();
 

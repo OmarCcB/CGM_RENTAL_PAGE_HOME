@@ -34,6 +34,7 @@ COUNTRIES = {
         "show_usados": True,
         "show_leasing": True,
         "show_portal_proveedores": True,
+        "moneda": "S/.",
     },
     "ar": {
         "code": "ar",
@@ -57,8 +58,9 @@ COUNTRIES = {
         "operadores_url":         "",
         "huella_carbono_url":     "",
         "libro_reclamaciones_url":"https://docs.google.com/forms/d/e/1FAIpQLSdJmM4ve1HR4jrq_1gXtt8Y7KZYaGhzM3o34ZdcF9iZSDBGcA/viewform",
+        "moneda": "ARS",
         # Flags
-        "show_mineria": False,
+        "show_mineria": True,
         "show_agricola": False,
         "show_energia": False,
         "show_usados": False,

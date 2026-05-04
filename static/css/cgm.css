@@ -226,6 +226,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 }
 .cgm-dropdown:hover > .cgm-drop,
 .cgm-dropdown.show > .cgm-drop,
+.cgm-dropdown.cgm-hover > .cgm-drop,
 .cgm-drop.show {
   display: block !important;
 }
@@ -287,7 +288,8 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   box-shadow: -4px 4px 20px rgba(0,0,0,.15) !important;
   overflow: hidden;
 }
-.dropdown-submenu:hover > .cgm-sub-drop {
+.dropdown-submenu:hover > .cgm-sub-drop,
+.dropdown-submenu.cgm-hover > .cgm-sub-drop {
   display: block !important;
 }
 
@@ -432,21 +434,75 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
 .cgm-country-btn {
   background: transparent;
   border: 1px solid rgba(2,83,76,.3);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 13px;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
   color: var(--cgm-verde);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   cursor: pointer;
   transition: border-color var(--transition);
   white-space: nowrap;
+  line-height: 1;
 }
+.cgm-country-flag { width: 28px; height: 20px; border-radius: 2px; display: block; }
+.cgm-country-label { display: flex; align-items: center; gap: 3px; font-size: 11px; }
+.cgm-country-code { font-size: 11px; font-weight: 700; }
+.cgm-country-chevron { font-size: 9px; transition: transform var(--transition); }
+
+/* En móvil/tablet: layout horizontal compacto */
+@media (max-width: 991px) {
+  .cgm-country-btn {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .cgm-country-flag { width: 20px; height: 14px; }
+}
+
 .cgm-country-btn:hover { border-color: var(--cgm-lima); color: var(--cgm-verde); }
 .cgm-country-btn::after { display: none; }
-.cgm-country-btn .bi-chevron-down { transition: transform var(--transition); }
-.cgm-country-sel.show .cgm-country-btn .bi-chevron-down { transform: rotate(180deg); }
+.cgm-country-sel.show .cgm-country-btn .cgm-country-chevron { transform: rotate(180deg); }
+
+/* Dropdown país — estilo tarjetas */
+.cgm-country-drop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: auto;
+  min-width: 160px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+}
+.cgm-country-drop.open { display: block; }
+.cgm-country-drop-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cgm-negro);
+  transition: background .18s;
+}
+.cgm-country-drop-item:hover { background: #f4f4f4; color: var(--cgm-negro); }
+.cgm-country-drop-item.active {
+  background: rgba(2,83,76,.08);
+  border: 1px solid rgba(2,83,76,.2);
+  color: var(--cgm-verde);
+}
 
 /* ── Mobile menu — Acordeón ─────────────────── */
 @media (max-width: 767px) {
@@ -3107,6 +3163,72 @@ select.cgm-contacto-input { cursor: pointer; }
   min-width: 44px;
 }
 .cgm-blog-date-badge small { font-size: 10px; font-weight: 400; display: block; }
+
+/* ══════════════════════════════════════════════════════════════
+   ¿POR QUÉ ELEGIRNOS? — Nosotros
+   ══════════════════════════════════════════════════════════════ */
+.cgm-porque-list { display: flex; flex-direction: column; gap: 18px; }
+
+.cgm-porque-item {
+  display: flex;
+  height: 130px;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 72%;
+  box-shadow: 0 4px 18px rgba(0,0,0,.12);
+  /* Estado inicial para animación */
+  opacity: 0;
+  transition: opacity .65s ease, transform .65s ease;
+}
+.cgm-porque-left  { transform: translateX(-70px); margin-right: auto; }
+.cgm-porque-right { transform: translateX( 70px); margin-left:  auto; }
+
+.cgm-porque-item.cgm-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.cgm-porque-band {
+  background: var(--cgm-verde);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 36px 16px 22px;
+  flex: 0 0 66%;
+  /* Flecha apuntando a la imagen */
+  clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 50%, calc(100% - 30px) 100%, 0 100%);
+}
+.cgm-porque-num {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 50px;
+  color: var(--cgm-lima);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.cgm-porque-text {
+  color: rgba(255,255,255,.92);
+  font-family: 'Estricta', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+.cgm-porque-img {
+  flex: 1;
+  background-size: cover;
+  background-position: center;
+}
+
+@media (max-width: 991px) {
+  .cgm-porque-item { max-width: 88%; }
+}
+@media (max-width: 767px) {
+  .cgm-porque-item { max-width: 100%; height: auto; min-height: 90px; }
+  .cgm-porque-left, .cgm-porque-right { margin-left: 0; margin-right: 0; }
+  .cgm-porque-band { flex: 0 0 72%; padding: 12px 28px 12px 14px; gap: 12px; }
+  .cgm-porque-num  { font-size: 34px; }
+  .cgm-porque-text { font-size: 12px; }
+  .cgm-porque-img  { flex: 0 0 28%; }
+}
 
 /* ══════════════════════════════════════════════════════════════
    RESPONSIVE EXTRAS
