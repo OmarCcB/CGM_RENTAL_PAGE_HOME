@@ -364,9 +364,27 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   flex-direction: column;
   gap: 5px;
 }
-@media (max-width: 991.98px) {
-  .cgm-toggler { order: 3; }
-  .cgm-main-nav .d-flex.align-items-center.gap-3.ms-3 { order: 2; }
+/* Nav mobile: Logo | Carrito | País | ☰  — fila 1; menú → fila 2 full width */
+@media (max-width: 767.98px) {
+  .cgm-main-nav .container-fluid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    height: auto;
+    min-height: var(--cgm-nav-h);
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  /* Logo más pequeño para que quepa todo en fila 1 */
+  .cgm-main-nav .navbar-brand img { max-height: 45px !important; width: auto; }
+  /* 1) Logo — fila 1, izquierda */
+  .cgm-main-nav .navbar-brand { order: 1; flex: 0 0 auto; margin-right: 0; }
+  /* 2) Carrito + País — fila 1, centro-derecha */
+  .cgm-main-nav .cgm-nav-actions { order: 2; flex: 0 0 auto; margin-left: auto !important; margin-right: 6px; gap: 8px !important; }
+  /* 3) Hamburguesa — fila 1, extremo derecho */
+  .cgm-main-nav .cgm-toggler { order: 3; flex: 0 0 auto; }
+  /* 4) Menú colapsado — fila 2, ocupa el 100% del ancho */
+  .cgm-main-nav .navbar-collapse { order: 4; flex: 0 0 100%; width: 100%; }
 }
 .toggler-bar {
   display: block;
@@ -423,38 +441,131 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   gap: 6px;
   cursor: pointer;
   transition: border-color var(--transition);
+  white-space: nowrap;
 }
 .cgm-country-btn:hover { border-color: var(--cgm-lima); }
 .cgm-country-btn::after { display: none; } /* remove BS caret */
 .cgm-country-sel .dropdown-toggle::after { display: inline-block; border: 4px solid transparent; border-top-color: currentColor; vertical-align: middle; margin-left: 4px; }
 
-/* Mobile menu */
+/* ── Mobile menu — Acordeón ─────────────────── */
 @media (max-width: 767px) {
   .cgm-main-nav { height: auto; min-height: var(--cgm-nav-h); }
+
+  /* Panel desplegable */
   #cgmNav {
-    background: #fff;
-    padding: 12px 0;
-    border-top: 1px solid #eee;
+    background: var(--cgm-verde);
+    padding: 0;
+    border-top: 3px solid var(--cgm-lima);
     max-height: calc(100vh - var(--cgm-topbar-h) - var(--cgm-nav-h));
     overflow-y: auto;
     overflow-x: hidden;
+    width: 100%;
   }
+
+  /* Lista principal */
+  #cgmNav .navbar-nav { width: 100%; gap: 0 !important; margin: 0 !important; }
+  #cgmNav .nav-item   { width: 100%; border-bottom: 1px solid rgba(255,255,255,.1); }
+
+  /* Links primer nivel */
+  #cgmNav .cgm-nav-link {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 15px 20px !important;
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 0 !important;
+  }
+  #cgmNav .cgm-nav-link:hover,
+  #cgmNav .cgm-nav-link:focus { background: rgba(255,255,255,.08); color: var(--cgm-lima) !important; }
+
+  /* Flecha + / − en items expandibles */
+  #cgmNav .cgm-nav-link.dropdown-toggle::after {
+    display: inline-block !important;
+    border: none !important;
+    content: '+';
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1;
+    margin-left: auto;
+    padding-left: 10px;
+    transition: none;
+  }
+  #cgmNav .cgm-dropdown.show > .cgm-nav-link.dropdown-toggle::after { content: '−'; }
+
+  /* ── Dropdown nivel 1 (fondo más oscuro) */
   .cgm-drop {
     position: static !important;
-    box-shadow: none;
-    border-left: 3px solid var(--cgm-lima);
-    margin-left: 16px;
-    padding: 4px 0;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: rgba(0,0,0,.2) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
     display: none !important;
+    overflow: hidden;
   }
   .cgm-dropdown.show > .cgm-drop,
   .dropdown-submenu.show > .cgm-drop { display: block !important; }
-  .cgm-sub-drop { left: 0; top: 0; margin: 0; border-left: 3px solid var(--cgm-verde) !important; }
-  .dropdown-submenu.show > .cgm-drop-item.has-submenu {
-    background: var(--cgm-lima) !important;
-    color: var(--cgm-verde) !important;
-    font-weight: 700;
+
+  /* Items nivel 1 (Construcción, Minería…) */
+  .cgm-drop > li { width: 100%; }
+  .cgm-drop > li > .cgm-drop-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100% !important;
+    padding: 13px 20px 13px 28px !important;
+    color: rgba(255,255,255,.85) !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,.07) !important;
+    font-size: 13px;
+    white-space: normal !important;
+    transform: none !important;
   }
+  .cgm-drop > li > .cgm-drop-item:hover {
+    background: rgba(255,255,255,.1) !important;
+    color: var(--cgm-lima) !important;
+    transform: none !important;
+  }
+
+  /* Chevron en items con submenu → rota al abrir */
+  .cgm-drop-item .bi-chevron-right { flex-shrink: 0; transition: transform .2s; }
+  .dropdown-submenu.show > .cgm-drop-item .bi-chevron-right { transform: rotate(90deg); }
+
+  /* ── Submenu nivel 2 (Excavadoras, Cargadores…) */
+  .cgm-sub-drop {
+    background: rgba(0,0,0,.25) !important;
+    border-left: none !important;
+    margin: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+  }
+  .cgm-sub-drop .cgm-drop-item {
+    padding: 11px 20px 11px 44px !important;
+    color: rgba(255,255,255,.72) !important;
+    font-size: 12px !important;
+    white-space: normal !important;
+    border-bottom: 1px solid rgba(255,255,255,.05) !important;
+    transform: none !important;
+  }
+  .cgm-sub-drop .cgm-drop-item:hover {
+    background: rgba(255,255,255,.08) !important;
+    color: var(--cgm-lima) !important;
+    transform: none !important;
+  }
+
+  /* Leasing operativo destacado */
+  .cgm-drop .fw-bold.cgm-drop-item { color: var(--cgm-lima) !important; padding-left: 28px !important; }
+
+  /* Dividers */
+  .cgm-drop .dropdown-divider { border-color: rgba(255,255,255,.12); margin: 4px 16px; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3000,7 +3111,7 @@ select.cgm-contacto-input { cursor: pointer; }
    RESPONSIVE EXTRAS
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
-  .cgm-hero { height: 92vh; }
+  .cgm-hero { height: 0; padding-bottom: 37%; max-height: none; }
   .cgm-hero-content { padding: 0 20px; }
   .cgm-section { padding: 48px 0; }
   .cgm-banner-full { height: 260px; }
