@@ -443,9 +443,10 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   transition: border-color var(--transition);
   white-space: nowrap;
 }
-.cgm-country-btn:hover { border-color: var(--cgm-lima); }
-.cgm-country-btn::after { display: none; } /* remove BS caret */
-.cgm-country-sel .dropdown-toggle::after { display: inline-block; border: 4px solid transparent; border-top-color: currentColor; vertical-align: middle; margin-left: 4px; }
+.cgm-country-btn:hover { border-color: var(--cgm-lima); color: var(--cgm-verde); }
+.cgm-country-btn::after { display: none; }
+.cgm-country-btn .bi-chevron-down { transition: transform var(--transition); }
+.cgm-country-sel.show .cgm-country-btn .bi-chevron-down { transform: rotate(180deg); }
 
 /* ── Mobile menu — Acordeón ─────────────────── */
 @media (max-width: 767px) {

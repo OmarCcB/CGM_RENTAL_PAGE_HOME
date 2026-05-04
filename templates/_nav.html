@@ -195,9 +195,11 @@
         <div class="dropdown cgm-country-sel">
           <button class="cgm-country-btn" type="button" aria-expanded="false">
             <img src="{{ url_for('static', filename='flags/' + country.bandera_svg) }}"
-                 alt="{{ country.nombre }}" width="20" height="14"
+                 alt="{{ country.nombre }}" width="24" height="17"
+                 style="border-radius:2px;"
                  onerror="this.style.display='none'">
-            <span>{{ country.nombre }}</span>
+            <span style="font-weight:400;">Portal </span><span style="font-weight:700;">{{ country_code|upper }}</span>
+            <i class="bi bi-chevron-down" style="font-size:10px;margin-left:2px;"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end cgm-drop">
             {% for code, c in COUNTRIES.items() %}
