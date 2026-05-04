@@ -740,6 +740,74 @@ def portal_proveedores(country):
     return redirect("https://portalproveedores.cgmrental.com", code=302)
 
 
+# ── SITEMAP ────────────────────────────────────────────────────────────────────
+
+@app.route("/robots.txt")
+def robots():
+    content = "User-agent: *\nAllow: /\nSitemap: https://cgmrental.com/sitemap.xml\n"
+    return content, 200, {"Content-Type": "text/plain"}
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    BASE = "https://cgmrental.com"
+
+    # Páginas estáticas por país
+    static_pages = [
+        "",           # home
+        "nosotros",
+        "contacto",
+        "leasing-operativo",
+        "novedades",
+        "capacita",
+        "carrito",
+        "canal-de-denuncias",
+    ]
+
+    urls = []
+
+    for country_code in COUNTRIES:
+        # Páginas estáticas
+        for page in static_pages:
+            path = f"/{country_code}/{page}/" if page else f"/{country_code}/"
+            urls.append({"loc": BASE + path, "priority": "1.0" if not page else "0.8"})
+
+        # Categorías de productos activos
+        conn = get_conn()
+        arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country_code == "ar" else "AND (show_arg = 0 OR show_arg IS NULL)"
+        categorias = conn.execute(
+            f"SELECT DISTINCT tags FROM products WHERE activo=1 AND tags != '' {arg_filter}"
+        ).fetchall()
+        for row in categorias:
+            tag = row["tags"]
+            urls.append({
+                "loc": f"{BASE}/{country_code}/categoria-producto/{tag}/",
+                "priority": "0.8"
+            })
+
+        # Productos activos individuales
+        productos = conn.execute(
+            f"SELECT slug FROM products WHERE activo=1 {arg_filter}"
+        ).fetchall()
+        for row in productos:
+            urls.append({
+                "loc": f"{BASE}/{country_code}/producto/{row['slug']}/",
+                "priority": "0.7"
+            })
+        conn.close()
+
+    # Render XML
+    xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls:
+        xml_lines.append(
+            f'  <url><loc>{u["loc"]}</loc><priority>{u["priority"]}</priority></url>'
+        )
+    xml_lines.append("</urlset>")
+
+    return "\n".join(xml_lines), 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+
 # ── API ────────────────────────────────────────────────────────────────────────
 
 @app.route("/api/contacto", methods=["POST"])
