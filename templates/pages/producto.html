@@ -96,11 +96,11 @@
                   onclick="addToCart('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}')">
             <i class="bi bi-cart3 me-2"></i>AÑADIR AL CARRITO
           </button>
-          <a href="/{{ country_code }}/carrito/"
-             class="cgm-btn cgm-btn-verde flex-fill justify-content-center cgm-btn-clip"
-             style="font-size:13px;padding:13px 8px;">
+          <button class="cgm-btn cgm-btn-verde flex-fill justify-content-center cgm-btn-clip"
+                  style="font-size:13px;padding:13px 8px;"
+                  onclick="cotizarProduct('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}','/{{ country_code }}/carrito/')">
             <i class="bi bi-envelope-fill me-2"></i>COTIZAR
-          </a>
+          </button>
         </div>
         {% endif %}
       </div>

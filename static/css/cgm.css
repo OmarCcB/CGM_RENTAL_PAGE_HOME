@@ -3197,6 +3197,10 @@ select.cgm-contacto-input { cursor: pointer; }
   flex: 0 0 66%;
   /* Flecha apuntando a la imagen */
   clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 50%, calc(100% - 30px) 100%, 0 100%);
+  /* Solapar la imagen para que la flecha la tape */
+  margin-right: -30px;
+  position: relative;
+  z-index: 1;
 }
 .cgm-porque-num {
   font-family: 'CGM BOLD', sans-serif;

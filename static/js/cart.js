@@ -102,6 +102,18 @@ async function addToCart(slug, nombre, imagen = '', tipo = '') {
   } catch (err) { console.error('Error al agregar al carrito', err); }
 }
 
+/* Cotizar: agrega al carrito y redirige a la página del carrito */
+async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
+  try {
+    await fetch('/api/cart/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, nombre, imagen, tipo })
+    });
+  } catch (err) { console.error('Error al agregar al carrito', err); }
+  window.location.href = cartUrl;
+}
+
 /* Abrir / cerrar el panel cotizador */
 function openCotizador() {
   const panel = document.getElementById('cgmCotizModal');

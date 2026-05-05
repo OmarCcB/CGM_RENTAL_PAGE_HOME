@@ -111,14 +111,25 @@ UNIDADES_PROXIMAMENTE_ARG = {"Agrícola", "Energía"}
 
 PER_PAGE = 12
 
+
+def _unidad_clause(unidad, col="unidad"):
+    """SQL fragment + params para coincidir con unidad que puede ser pipe-separada.
+    Ej: unidad='Construcción' hace match con 'Construcción', 'Mediana Minería|Construcción', etc.
+    """
+    return (
+        f"({col} = ? OR {col} LIKE ? OR {col} LIKE ? OR {col} LIKE ?)",
+        [unidad, f"{unidad}|%", f"%|{unidad}|%", f"%|{unidad}"]
+    )
+
 def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, proximamente=False, page=1):
     """Consulta SQLite filtrando por tags, unidad y tipo. Retorna (productos, total)."""
     conn = get_conn()
     clauses = ["activo = 1", "tags LIKE ?"]
     params = [f"%{tags}%"]
     if unidad:
-        clauses.append("unidad = ?")
-        params.append(unidad)
+        ucl, upr = _unidad_clause(unidad)
+        clauses.append(ucl)
+        params.extend(upr)
     if tipo:
         clauses.append("tipo = ?")
         params.append(tipo)
@@ -532,9 +543,10 @@ def categoria(country=None, cat_path=""):
         path = f"{tags}/{u_slug}"
         if path in CATEGORIAS:
             _, u_db, _, _ = CATEGORIAS[path]
+            ucl, upr = _unidad_clause(u_db)
             cnt = conn.execute(
-                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND unidad=?{arg_filter}",
-                (tags, u_db)
+                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND {ucl}{arg_filter}",
+                [tags] + upr
             ).fetchone()[0]
             unidad_counts[u_name] = {"count": cnt, "path": path}
 
@@ -557,15 +569,17 @@ def categoria(country=None, cat_path=""):
     # ── Conteo por tipo (Maquinaria) ──
     tipo_counts = {}
     if unidad:
+        ucl_t, upr_t = _unidad_clause(unidad)
         all_tipos = conn.execute(
-            f"SELECT DISTINCT tipo FROM products WHERE activo=1 AND unidad=?{arg_filter} ORDER BY tipo",
-            (unidad,)
+            f"SELECT DISTINCT tipo FROM products WHERE activo=1 AND {ucl_t}{arg_filter} ORDER BY tipo",
+            upr_t
         ).fetchall()
         for row in all_tipos:
             t = row["tipo"]
+            ucl_t2, upr_t2 = _unidad_clause(unidad)
             cnt = conn.execute(
-                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND unidad=? AND tipo=?{arg_filter}",
-                (tags, unidad, t)
+                f"SELECT COUNT(*) FROM products WHERE activo=1 AND tags=? AND {ucl_t2} AND tipo=?{arg_filter}",
+                [tags] + upr_t2 + [t]
             ).fetchone()[0]
             tipo_counts[t] = cnt
 
@@ -615,27 +629,31 @@ def producto(slug, country=None):
     p_tipo   = prod.get("tipo", "")
     p_unidad = prod.get("unidad", "")
     p_tags   = prod.get("tags", "")
+    # Usar la primera unidad para matching de relacionados (soporta multi-unidad pipe-sep)
+    p_unidad_main = p_unidad.split("|")[0].strip() if p_unidad else ""
 
     # Prioridad 1: mismo tipo + misma unidad + mismo tag
+    ucl_r1, upr_r1 = _unidad_clause(p_unidad_main)
     nivel1 = conn.execute(f"""
         SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
         FROM products
         WHERE activo=1 AND slug != ?
-          AND tipo = ? AND unidad = ? AND tags LIKE ? {arg_filter}
+          AND tipo = ? AND {ucl_r1} AND tags LIKE ? {arg_filter}
         ORDER BY RANDOM() LIMIT 3
-    """, (slug, p_tipo, p_unidad, f"%{p_tags}%")).fetchall()
+    """, [slug, p_tipo] + upr_r1 + [f"%{p_tags}%"]).fetchall()
 
     slugs_vistos = {slug} | {r["slug"] for r in nivel1}
 
     # Prioridad 2: mismo tag + misma unidad, distinto tipo
     limite_n2 = 6 - len(nivel1)
+    ucl_r2, upr_r2 = _unidad_clause(p_unidad_main)
     nivel2 = conn.execute(f"""
         SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
         FROM products
         WHERE activo=1 AND slug NOT IN ({','.join('?'*len(slugs_vistos))})
-          AND tags LIKE ? AND unidad = ? AND tipo != ? {arg_filter}
+          AND tags LIKE ? AND {ucl_r2} AND tipo != ? {arg_filter}
         ORDER BY RANDOM() LIMIT {limite_n2}
-    """, (*slugs_vistos, f"%{p_tags}%", p_unidad, p_tipo)).fetchall()
+    """, [*slugs_vistos, f"%{p_tags}%"] + upr_r2 + [p_tipo]).fetchall()
 
     slugs_vistos |= {r["slug"] for r in nivel2}
 

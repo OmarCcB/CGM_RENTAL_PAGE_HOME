@@ -82,8 +82,9 @@
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/excavadora/">Excavadoras</a></li>
+                  {% if country_code == 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/?tipo=Topador">Topadores</a></li>{% endif %}
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/cargador-frontal/">Cargadores Frontales</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/tractor-de-orugas/">Tractores de Orugas</a></li>
+                  {% if country_code != 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/tractor-de-orugas/">Tractores de Orugas</a></li>{% endif %}
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/rodillo-compactador/">Rodillos Compactadores</a></li>
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/motoniveladora/">Motoniveladoras</a></li>
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/retroexcavadora/">Retroexcavadoras</a></li>
@@ -105,7 +106,7 @@
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
                   {% if country_code == 'ar' %}
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Excavadora">Excavadoras</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Bulldozer">Bulldozers</a></li>
+                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Topador">Topadores</a></li>
                   {% else %}
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/">Excavadoras</a></li>
                   <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Aditamento">Aditamentos</a></li>
@@ -251,9 +252,8 @@
      Rangos de pantalla
      · Móvil   ≤ 767px  → acordeón Bootstrap (sin JS aquí)
      · Tablet  768-991px → click para abrir/cerrar (queda fijo)
-     · Desktop ≥ 992px  → hover con delay anti-cierre accidental
+     · Desktop ≥ 992px  → hover inmediato
   ─────────────────────────────────────────────────────────────── */
-  var DELAY = 260;
 
   function screenMode() {
     var w = window.innerWidth;
@@ -269,33 +269,30 @@
     });
   }
 
-  /* ── DESKTOP: hover con delay ── */
+  /* ── DESKTOP: hover sin delay ── */
   document.querySelectorAll('.cgm-main-nav .cgm-dropdown').forEach(function(dd) {
-    var t;
     dd.addEventListener('mouseenter', function() {
       if (screenMode() !== 'desktop') return;
-      clearTimeout(t);
       dd.classList.add('cgm-hover');
     });
     dd.addEventListener('mouseleave', function() {
       if (screenMode() !== 'desktop') return;
-      t = setTimeout(function() {
-        dd.classList.remove('cgm-hover');
-        dd.querySelectorAll('.dropdown-submenu').forEach(function(s){ s.classList.remove('cgm-hover'); });
-      }, DELAY);
+      dd.classList.remove('cgm-hover');
+      dd.querySelectorAll('.dropdown-submenu').forEach(function(s){ s.classList.remove('cgm-hover'); });
     });
   });
 
   document.querySelectorAll('.cgm-main-nav .dropdown-submenu').forEach(function(sub) {
-    var t;
     sub.addEventListener('mouseenter', function() {
       if (screenMode() !== 'desktop') return;
-      clearTimeout(t);
+      /* Cierra submenús hermanos inmediatamente */
+      var parent = sub.closest('.cgm-drop');
+      if (parent) parent.querySelectorAll('.dropdown-submenu').forEach(function(s){ s.classList.remove('cgm-hover'); });
       sub.classList.add('cgm-hover');
     });
     sub.addEventListener('mouseleave', function() {
       if (screenMode() !== 'desktop') return;
-      t = setTimeout(function() { sub.classList.remove('cgm-hover'); }, DELAY);
+      sub.classList.remove('cgm-hover');
     });
   });
 
