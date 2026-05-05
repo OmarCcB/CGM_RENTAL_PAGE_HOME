@@ -70,6 +70,17 @@
         </div>
         {% endif %}
 
+        <!-- Badge A SOLICITUD -->
+        {% if product.a_solicitud %}
+        <div class="mb-3">
+          <span style="display:inline-block;background:var(--cgm-lima);color:var(--cgm-verde);
+                       font-size:12px;font-weight:700;font-family:'Estricta',sans-serif;
+                       padding:5px 16px;border-radius:20px;letter-spacing:.6px;">
+            A SOLICITUD
+          </span>
+        </div>
+        {% endif %}
+
         <!-- Botones acción -->
         {% if proximamente %}
         <div class="mt-4" style="background:#f8f8f8;border:2px dashed #ccc;border-radius:10px;

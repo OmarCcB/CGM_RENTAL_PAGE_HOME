@@ -107,7 +107,7 @@ def send_email(subject, body, to=None):
 
 
 # Unidades no habilitadas para Argentina (se muestran como "Próximamente")
-UNIDADES_PROXIMAMENTE_ARG = {"Mediana Minería", "Agrícola", "Energía"}
+UNIDADES_PROXIMAMENTE_ARG = {"Agrícola", "Energía"}
 
 PER_PAGE = 12
 

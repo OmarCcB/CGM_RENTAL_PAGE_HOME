@@ -12,22 +12,21 @@
   onScroll();
 })();
 
-/* ── Dropdown hover (desktop grande ≥1200px) ── */
+/* ── Dropdown hover (desktop ≥992px) ── */
 (function () {
-  if (window.innerWidth < 1200) return;
   document.querySelectorAll('.cgm-dropdown').forEach(li => {
-    li.addEventListener('mouseenter', () => li.classList.add('show'));
-    li.addEventListener('mouseleave', () => li.classList.remove('show'));
+    li.addEventListener('mouseenter', () => { if (window.innerWidth >= 992) li.classList.add('show'); });
+    li.addEventListener('mouseleave', () => { if (window.innerWidth >= 992) li.classList.remove('show'); });
   });
   document.querySelectorAll('.dropdown-submenu').forEach(sub => {
-    sub.addEventListener('mouseenter', () => sub.classList.add('show'));
-    sub.addEventListener('mouseleave', () => sub.classList.remove('show'));
+    sub.addEventListener('mouseenter', () => { if (window.innerWidth >= 992) sub.classList.add('show'); });
+    sub.addEventListener('mouseleave', () => { if (window.innerWidth >= 992) sub.classList.remove('show'); });
   });
 })();
 
-/* ── Dropdown click (tablet 768–1199px) ─────── */
+/* ── Dropdown click (tablet 992–1199px) ─────── */
 (function () {
-  if (window.innerWidth < 768 || window.innerWidth >= 1200) return;
+  if (window.innerWidth < 992 || window.innerWidth >= 1200) return;
 
   // Click en ALQUILER / USADOS → abre/cierra
   document.querySelectorAll('.cgm-dropdown > .cgm-nav-link').forEach(link => {
@@ -63,11 +62,11 @@
   });
 })();
 
-/* ── Mobile dropdown click (acordeón ≤767px) ── */
+/* ── Mobile dropdown click (acordeón ≤991px) ── */
 (function () {
   document.querySelectorAll('.cgm-dropdown > .cgm-nav-link').forEach(link => {
     link.addEventListener('click', function (e) {
-      if (window.innerWidth >= 768) return;
+      if (window.innerWidth >= 992) return;
       e.preventDefault();
       const li = this.closest('.cgm-dropdown');
       li.classList.toggle('show');
@@ -75,7 +74,7 @@
   });
   document.querySelectorAll('.dropdown-submenu > .cgm-drop-item.has-submenu').forEach(link => {
     link.addEventListener('click', function (e) {
-      if (window.innerWidth >= 768) return;
+      if (window.innerWidth >= 992) return;
       e.preventDefault();
       this.closest('.dropdown-submenu').classList.toggle('show');
     });
@@ -131,19 +130,23 @@
   els.forEach(el => obs.observe(el));
 })();
 
-/* ── Slide-in ¿Por qué elegirnos? ──────────── */
+/* ── Slide-in ¿Por qué elegirnos? (escalonado) */
 (function () {
-  const els = document.querySelectorAll('.cgm-porque-item');
-  if (!els.length) return;
+  const items = document.querySelectorAll('.cgm-porque-item');
+  if (!items.length) return;
+  let fired = false;
   const obs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('cgm-visible');
-        obs.unobserve(e.target);
+      if (e.isIntersecting && !fired) {
+        fired = true;
+        items.forEach((item, i) => {
+          setTimeout(() => item.classList.add('cgm-visible'), i * 180);
+        });
+        obs.disconnect();
       }
     });
-  }, { threshold: 0.15 });
-  els.forEach(el => obs.observe(el));
+  }, { threshold: 0.1 });
+  obs.observe(items[0]); // dispara cuando el primero entra en pantalla
 })();
 
 /* ── Blog filtro por categoría ─────────────── */

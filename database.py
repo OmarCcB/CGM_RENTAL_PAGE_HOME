@@ -89,4 +89,9 @@ def init_db():
         conn.commit()
     except Exception:
         pass
+    try:
+        conn.execute("ALTER TABLE products ADD COLUMN a_solicitud INTEGER DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
