@@ -1,5 +1,5 @@
 <footer class="cgm-footer">
-  <div class="container-fluid px-4 py-5">
+  <div style="width:100%;padding:1.5rem 1rem;">
 
     {% if country_code == 'ar' %}
     <!-- ══ ARGENTINA ══ -->
@@ -39,18 +39,16 @@
       <section class="cgm-footer-arg__sedes">
         <h5 class="cgm-footer-title">NUESTRAS SEDES</h5>
         <div class="cgm-footer-pins">
-          <div class="cgm-footer-pin-card">
-            <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
-            <div class="cgm-footer-pin-title">CGM RENTAL <span>San Juan</span></div>
+          <a class="cgm-footer-pin-card" href="https://www.google.com/maps?q=-31.5360,-68.5310" target="_blank" rel="noopener">
+            <div class="cgm-footer-pin-title"><i class="bi bi-geo-alt-fill cgm-pin-suc me-1"></i>CGM RENTAL <span>San Juan</span></div>
             <div class="cgm-footer-pin-country">ARGENTINA</div>
             <div class="cgm-footer-pin-addr">Avenida Libertador 521 - 4to piso, San Juan</div>
-          </div>
-          <div class="cgm-footer-pin-card">
-            <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
-            <div class="cgm-footer-pin-title">CGM RENTAL <span>Lima</span></div>
+          </a>
+          <a class="cgm-footer-pin-card" href="https://www.google.com/maps?q=-12.2520,-76.8810" target="_blank" rel="noopener">
+            <div class="cgm-footer-pin-title"><i class="bi bi-geo-alt-fill cgm-pin-suc me-1"></i>CGM RENTAL <span>Lima</span></div>
             <div class="cgm-footer-pin-country">PERÚ</div>
             <div class="cgm-footer-pin-addr">Carretera Panamericana Sur Km. 30.5, San Pedro, Lurín</div>
-          </div>
+          </a>
         </div>
       </section>
 
@@ -141,26 +139,49 @@
         </section>
 
         <section class="cgm-footer-pe__sucursales">
-          <h5 class="cgm-footer-title">SUCURSALES</h5>
-          <div class="cgm-footer-pins">
-            {% for s in country.sucursales %}
-            <div class="cgm-footer-pin-card">
-              <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
-              <div class="cgm-footer-pin-title">CGM RENTAL <span>{{ s.nombre.split('(')[0].strip() }}</span></div>
-              <div class="cgm-footer-pin-country">PERÚ</div>
-              <div class="cgm-footer-pin-addr">{{ s.direccion }}</div>
+          <div class="cgm-footer-locs-wrap">
+
+            <!-- ── columna SUCURSALES ── -->
+            <div class="cgm-footer-locs-col">
+              <h5 class="cgm-footer-title cgm-footer-title--suc">SUCURSALES</h5>
+              <div class="cgm-footer-pins cgm-footer-pins--3col">
+                {% for s in country.sucursales if s.tipo == 'sucursal' %}
+                <a class="cgm-footer-pin-card" href="https://www.google.com/maps?q={{ s.lat }},{{ s.lng }}" target="_blank" rel="noopener">
+                  <div class="cgm-footer-pin-title"><i class="bi bi-geo-alt-fill cgm-pin-suc me-1"></i>CGM RENTAL <span>{{ s.nombre.split('(')[0].strip() }}</span></div>
+                  <div class="cgm-footer-pin-country">PERÚ</div>
+                  <div class="cgm-footer-pin-addr">{{ s.direccion }}</div>
+                </a>
+                {% endfor %}
+                <a class="cgm-footer-pin-card" href="https://www.google.com/maps?q=-31.5360,-68.5310" target="_blank" rel="noopener">
+                  <div class="cgm-footer-pin-title"><i class="bi bi-geo-alt-fill cgm-pin-suc me-1"></i>CGM RENTAL <span>San Juan</span></div>
+                  <div class="cgm-footer-pin-country">ARGENTINA</div>
+                  <div class="cgm-footer-pin-addr">Avenida Libertador 521 - 4to piso, San Juan</div>
+                </a>
+              </div>
             </div>
-            {% endfor %}
-            <div class="cgm-footer-pin-card">
-              <div class="cgm-footer-pin-drop"><i class="bi bi-geo-alt-fill"></i></div>
-              <div class="cgm-footer-pin-title">CGM RENTAL <span>San Juan</span></div>
-              <div class="cgm-footer-pin-country">ARGENTINA</div>
-              <div class="cgm-footer-pin-addr">Avenida Libertador 521 - 4to piso, San Juan</div>
+
+            <!-- ── columna PUNTOS DE ATENCIÓN ── -->
+            {% set puntos = country.sucursales | selectattr('tipo', 'equalto', 'atencion') | list %}
+            {% if puntos %}
+            <div class="cgm-footer-locs-col cgm-footer-locs-col--atencion">
+              <h5 class="cgm-footer-title cgm-footer-title--aten">PUNTOS DE ATENCIÓN</h5>
+              <div class="cgm-footer-pins cgm-footer-pins--2col">
+                {% for s in puntos %}
+                <a class="cgm-footer-pin-card" href="https://www.google.com/maps?q={{ s.lat }},{{ s.lng }}" target="_blank" rel="noopener">
+                  <div class="cgm-footer-pin-title"><i class="bi bi-geo-alt-fill cgm-pin-aten me-1"></i>CGM RENTAL <span>{{ s.nombre.split('(')[0].strip() }}</span></div>
+                  <span class="cgm-pin-aten-tag">PUNTO DE ATENCIÓN</span>
+                  <div class="cgm-footer-pin-country">PERÚ</div>
+                  <div class="cgm-footer-pin-addr">{{ s.direccion }}</div>
+                </a>
+                {% endfor %}
+              </div>
             </div>
+            {% endif %}
+
           </div>
         </section>
 
-      </div>
+      </div><!-- /main -->
 
     </div>
     {% endif %}

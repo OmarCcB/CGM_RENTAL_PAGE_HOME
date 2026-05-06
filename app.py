@@ -444,6 +444,14 @@ def nosotros(country):
     return render_template("pages/nosotros.html", country=c, country_code=country)
 
 
+@app.route("/<country>/nuestros-locales/")
+def nuestros_locales(country):
+    if country not in COUNTRIES:
+        return redirect(f"/{DEFAULT_COUNTRY}/nuestros-locales/")
+    c = get_country(country)
+    return render_template("pages/nuestros_locales.html", country=c, country_code=country)
+
+
 @app.route("/<country>/contacto/")
 def contacto(country):
     if country not in COUNTRIES:
@@ -680,9 +688,13 @@ def ficha_tecnica(slug, country=None):
     if not p:
         abort(404)
     prod = dict(p)
-    # Verificar si existe la ficha local
-    local_path = _os.path.join(app.static_folder, "docs", "fichas", f"{slug}.pdf")
-    has_local  = _os.path.exists(local_path)
+    # Verificar si existe la ficha local usando ficha_url del registro
+    ficha_url = prod.get("ficha_url") or ""
+    if ficha_url and not ficha_url.startswith("http"):
+        local_path = _os.path.join(app.static_folder, "docs", ficha_url)
+        has_local  = _os.path.exists(local_path)
+    else:
+        has_local = False
     return render_template("pages/ficha_tecnica.html",
                            country=c, country_code=country, product=prod,
                            has_local=has_local)

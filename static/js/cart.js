@@ -102,16 +102,32 @@ async function addToCart(slug, nombre, imagen = '', tipo = '') {
   } catch (err) { console.error('Error al agregar al carrito', err); }
 }
 
-/* Cotizar: agrega al carrito y redirige a la página del carrito */
+/* Cotizar: agrega al carrito y redirige a la página del carrito.
+   Si el carrito estaba vacío antes del click → muestra formulario simple (?simple=1).
+   Si ya tenía equipos → redirige normalmente con el stepper. */
 async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
   try {
+    /* 1. Ver si el carrito estaba vacío ANTES de agregar */
+    let wasEmpty = true;
+    try {
+      const check = await fetch('/api/cart');
+      const checkJson = await check.json();
+      wasEmpty = Object.keys(checkJson.cart || {}).length === 0;
+    } catch (e) {}
+
+    /* 2. Agregar el equipo */
     await fetch('/api/cart/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug, nombre, imagen, tipo })
     });
-  } catch (err) { console.error('Error al agregar al carrito', err); }
-  window.location.href = cartUrl;
+
+    /* 3. Redirigir según estado previo */
+    window.location.href = wasEmpty ? cartUrl + '?simple=1' : cartUrl;
+  } catch (err) {
+    console.error('Error al cotizar', err);
+    window.location.href = cartUrl;
+  }
 }
 
 /* Abrir / cerrar el panel cotizador */

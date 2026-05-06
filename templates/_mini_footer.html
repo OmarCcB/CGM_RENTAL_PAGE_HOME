@@ -1,0 +1,79 @@
+<footer class="cgm-mini-footer">
+
+  <!-- ── Banda superior: botones + redes ── -->
+  <div class="cgm-mini-footer-top">
+    <div class="cgm-mini-footer-inner">
+
+      <!-- Botones (imágenes) -->
+      <div class="cgm-mini-footer-btns">
+        <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
+               alt="Bolsa de Trabajo">
+        </a>
+        <a href="/{{ country_code }}/canal-de-denuncias/" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-canal-denuncias.webp') }}"
+               alt="Canal de Denuncias">
+        </a>
+        {% if country.show_portal_proveedores %}
+        <a href="{{ country.operadores_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-operadores.webp') }}"
+               alt="Operadores Fuerza Perú">
+        </a>
+        <a href="{{ country.huella_carbono_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-huella-carbono.webp') }}"
+               alt="Certificado Huella Carbono">
+        </a>
+        {% endif %}
+        <a href="{{ country.libro_reclamaciones_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-libro-reclamaciones.webp') }}"
+               alt="Libro de Reclamaciones">
+        </a>
+        {% if country.show_portal_proveedores %}
+        <a href="/{{ country_code }}/portalproveedores/" class="cgm-mini-footer-btn-link">
+          <img src="{{ url_for('static', filename='images/footer/btn-portal-proveedores.webp') }}"
+               alt="Portal de Proveedores">
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Separador vertical -->
+      <div class="cgm-mini-footer-sep"></div>
+
+      <!-- Redes sociales -->
+      <div class="cgm-mini-footer-social">
+        <a href="{{ country.facebook }}" target="_blank" rel="noopener" aria-label="Facebook">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="{{ country.instagram }}" target="_blank" rel="noopener" aria-label="Instagram">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+        <a href="{{ country.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <i class="fa-brands fa-linkedin-in"></i>
+        </a>
+        <a href="{{ country.youtube }}" target="_blank" rel="noopener" aria-label="YouTube">
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Banda inferior: nav links + copyright ── -->
+  <div class="cgm-mini-footer-nav">
+    <div class="cgm-mini-footer-inner">
+      <nav class="cgm-mini-footer-links">
+        <a href="/{{ country_code }}/nosotros/">NOSOTROS</a>
+        <a href="/{{ country_code }}/nuestros-locales/">NUESTROS LOCALES</a>
+        <a href="/{{ country_code }}/categoria-producto/alquiler/">ALQUILER</a>
+        {% if country.show_usados %}
+        <a href="/{{ country_code }}/categoria-producto/usados/">USADOS</a>
+        {% endif %}
+        <a href="/{{ country_code }}/capacita/">CAPACITA</a>
+        <a href="/{{ country_code }}/novedades/">BLOG</a>
+        <a href="/{{ country_code }}/contacto/">CONTACTO</a>
+      </nav>
+      <span class="cgm-mini-footer-copy">© CGM Rental | Todos los derechos reservados</span>
+    </div>
+  </div>
+
+</footer>

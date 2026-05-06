@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Nuestros Locales — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block meta_desc %}Encuentra todas las sucursales y puntos de atención de CGM Rental en {{ country.nombre }}.{% endblock %}
+
+{% block extra_head %}
+<style>
+.cgm-locales-stats-grid {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.cgm-locales-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 1rem 2.5rem;
+  border-right: 1px solid rgba(255,255,255,.15);
+  color: #fff;
+}
+.cgm-locales-stat:last-child { border-right: none; }
+.cgm-locales-stat i {
+  font-size: 1.8rem;
+  color: var(--cgm-lima);
+  margin-bottom: 4px;
+}
+.cgm-locales-stat-num {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--cgm-lima);
+}
+.cgm-locales-stat-label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.75);
+  text-align: center;
+}
+@media (max-width: 575px) {
+  .cgm-locales-stat { padding: .75rem 1.25rem; border-right: none; border-bottom: 1px solid rgba(255,255,255,.15); width: 50%; }
+  .cgm-locales-stat:nth-child(even) { border-left: 1px solid rgba(255,255,255,.15); }
+}
+
+/* Animaciones del banner */
+@keyframes fadeInLeft {
+  from { opacity:0; transform:translateY(-50%) translateX(-30px); }
+  to   { opacity:.85; transform:translateY(-50%) translateX(0); }
+}
+@keyframes fadeInRight {
+  from { opacity:0; transform:translateY(-50%) scaleX(-1) translateX(-30px); }
+  to   { opacity:.85; transform:translateY(-50%) scaleX(-1) translateX(0); }
+}
+.fade-left  { animation: fadeInLeft  .8s ease .2s both; }
+.fade-right { animation: fadeInRight .8s ease .4s both; }
+
+/* ── Layout ── */
+.cgm-locales-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 0;
+  align-items: stretch;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.13);
+  min-height: 700px;
+}
+@media (max-width: 991px) {
+  .cgm-locales-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Mapa ── */
+.cgm-locales-map-wrap { position: relative; min-height: 500px; }
+.cgm-locales-map-wrap iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none; display: block;
+}
+@media (max-width: 991px) {
+  .cgm-locales-map-wrap { height: 420px; position: relative; order: -1; }
+}
+
+/* ── Panel izquierdo ── */
+.cgm-locales-panel {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* ── Filtros (solo Perú) ── */
+.cgm-locales-filters {
+  display: flex;
+  border-bottom: 2px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.cgm-locales-filter-btn {
+  flex: 1;
+  padding: 14px 10px;
+  font-family: 'Estricta', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-align: center;
+  text-transform: uppercase;
+  background: #fff;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  color: #888;
+  transition: color .2s, border-color .2s, background .2s;
+  margin-bottom: -2px;
+}
+.cgm-locales-filter-btn:hover { color: #02534c; background: #f8fdf2; }
+.cgm-locales-filter-btn.active {
+  color: #fff;
+  border-bottom-color: #c5e86c;
+  background: #02534c;
+}
+
+/* ── Sección dentro de la lista ── */
+.cgm-locales-section { display: none; flex-direction: column; overflow-y: auto; flex: 1; }
+.cgm-locales-section.visible { display: flex; }
+.cgm-locales-section-label {
+  padding: 10px 20px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #aaa;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+/* ── Card ── */
+.cgm-locale-card-wrap { border-bottom: 1px solid #f0f0f0; }
+.cgm-locale-card-wrap:last-child { border-bottom: none; }
+
+.cgm-locale-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 20px;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: background .15s, border-color .15s;
+}
+.cgm-locale-card:hover { background: #f8fdf2; border-left-color: #c5e86c; }
+.cgm-locale-card-wrap.active .cgm-locale-card {
+  background: #f2fae3;
+  border-left-color: #c5e86c;
+  border-bottom: none;
+}
+.cgm-locale-card-wrap.active .cgm-locale-num { background: #c5e86c; color: #02534c; }
+.cgm-locale-card-wrap.active .cgm-locale-plus { background: #c5e86c; color: #02534c; transform: rotate(45deg); }
+
+.cgm-locale-num {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #02534c; color: #fff;
+  font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .2s, color .2s;
+}
+.cgm-locale-name {
+  font-size: 14px; font-weight: 700;
+  color: #02534c; text-transform: uppercase;
+  letter-spacing: .5px; flex: 1;
+}
+.cgm-locale-tag {
+  font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  margin-left: 6px; letter-spacing: .5px;
+  vertical-align: middle;
+}
+.cgm-locale-tag--principal { background: #c5e86c; color: #02534c; }
+.cgm-locale-tag--atencion  { background: #e8f4fd; color: #1a6fa8; }
+
+.cgm-locale-plus {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #02534c; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 300; line-height: 1;
+  flex-shrink: 0; transition: background .2s, color .2s, transform .2s;
+}
+
+/* ── Detalle expandible ── */
+.cgm-locale-detail {
+  display: none;
+  padding: 4px 20px 16px 20px;
+  background: #f8fdf2;
+  border-left: 4px solid #c5e86c;
+}
+.cgm-locale-card-wrap.active .cgm-locale-detail { display: block; }
+
+.cgm-locale-addr {
+  font-size: 13px; color: #555;
+  margin: 10px 0 4px; line-height: 1.5;
+}
+.cgm-locale-gmaps {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700;
+  color: #02534c; text-decoration: none;
+  margin-top: 8px; transition: color .2s;
+}
+.cgm-locale-gmaps:hover { color: #8ab528; }
+
+/* ── Scrollbar ── */
+.cgm-locales-section {
+  scrollbar-width: thin;
+  scrollbar-color: #c5e86c #f0f0f0;
+}
+.cgm-locales-section::-webkit-scrollbar { width: 4px; }
+.cgm-locales-section::-webkit-scrollbar-thumb { background: #c5e86c; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════ BANNER ══════════ -->
+<section class="cgm-cap-hero" style="min-height:360px;">
+  <div class="cgm-cap-hero-overlay"></div>
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt="" class="fade-left" style="position:absolute;left:5%;top:50%;transform:translateY(-50%);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt="" class="fade-right" style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
+  <div class="cgm-cap-hero-content container" style="padding:40px 20px;">
+    <h1 class="cgm-cap-hero-title fade-up">Nuestros <span>Locales</span></h1>
+    <p class="cgm-cap-hero-sub fade-up fade-up-delay-1">CONOCE DÓNDE ESTAMOS</p>
+
+    <!-- Stats dentro del banner -->
+    <div class="cgm-locales-stats-grid fade-up fade-up-delay-2" style="margin-top:2rem;">
+      <div class="cgm-locales-stat">
+        <i class="bi bi-geo-alt-fill"></i>
+        <span class="cgm-locales-stat-num">{{ country.sucursales | length }}</span>
+        <span class="cgm-locales-stat-label">Localidades</span>
+      </div>
+      {% set n_suc = country.sucursales | selectattr('tipo', 'in', ['principal','sucursal']) | list | length %}
+      <div class="cgm-locales-stat">
+        <i class="bi bi-building"></i>
+        <span class="cgm-locales-stat-num">{{ n_suc }}</span>
+        <span class="cgm-locales-stat-label">Sucursales</span>
+      </div>
+      {% set n_aten = country.sucursales | selectattr('tipo', 'equalto', 'atencion') | list | length %}
+      {% if n_aten %}
+      <div class="cgm-locales-stat">
+        <i class="bi bi-pin-map-fill"></i>
+        <span class="cgm-locales-stat-num">{{ n_aten }}</span>
+        <span class="cgm-locales-stat-label">Puntos de Atención</span>
+      </div>
+      {% endif %}
+      <div class="cgm-locales-stat">
+        <i class="bi bi-globe-americas"></i>
+        <span class="cgm-locales-stat-num">2</span>
+        <span class="cgm-locales-stat-label">Países</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ LISTA + MAPA ══════════ -->
+<section class="cgm-section-sm" style="background:var(--cgm-gris);">
+  <div class="container-fluid px-3 px-md-5" style="max-width:1400px;margin:0 auto;">
+    <div class="cgm-locales-layout fade-up">
+
+      <!-- ── Panel izquierdo ── -->
+      <div class="cgm-locales-panel">
+
+        <!-- Filtros: Perú muestra Sucursales + Puntos de Atención; otros países solo Sucursales -->
+        <div class="cgm-locales-filters">
+          <button class="cgm-locales-filter-btn active" data-filter="sucursales"
+                  {% if country_code == 'pe' %}onclick="setFilter('sucursales', this)"{% endif %}>
+            Sucursales
+          </button>
+          {% if country_code == 'pe' %}
+          <button class="cgm-locales-filter-btn" data-filter="atencion" onclick="setFilter('atencion', this)">
+            Puntos de Atención
+          </button>
+          {% endif %}
+        </div>
+
+        <!-- ══ SECCIÓN SUCURSALES ══ -->
+        <div class="cgm-locales-section {% if country_code != 'pe' %}visible{% endif %}"
+             id="section-sucursales"
+             {% if country_code == 'pe' %}style="display:flex;"{% endif %}>
+
+          {% set sucursales = country.sucursales | selectattr('tipo', 'in', ['principal', 'sucursal']) | list %}
+          {% for s in sucursales %}
+          <div class="cgm-locale-card-wrap {% if loop.first %}active{% endif %}"
+               data-section="sucursales"
+               data-index="{{ loop.index0 }}"
+               data-lat="{{ s.lat }}"
+               data-lng="{{ s.lng }}">
+            <div class="cgm-locale-card" onclick="selectLocale(this.closest('.cgm-locale-card-wrap'))">
+              <span class="cgm-locale-num">{{ '%02d' % loop.index }}</span>
+              <span class="cgm-locale-name">
+                CGM RENTAL {{ s.nombre.split('(')[0].strip() }}
+                {% if s.tipo == 'principal' %}
+                <span class="cgm-locale-tag cgm-locale-tag--principal">Principal</span>
+                {% endif %}
+              </span>
+              <span class="cgm-locale-plus">+</span>
+            </div>
+            <div class="cgm-locale-detail">
+              <p class="cgm-locale-addr">
+                <i class="bi bi-geo-alt-fill me-1" style="color:#c5e86c;"></i>{{ s.direccion }}
+              </p>
+              <a href="https://maps.google.com/?q={{ s.lat }},{{ s.lng }}"
+                 target="_blank" rel="noopener" class="cgm-locale-gmaps"
+                 onclick="event.stopPropagation()">
+                <i class="bi bi-box-arrow-up-right"></i> Abrir en Google Maps
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- ══ SECCIÓN PUNTOS DE ATENCIÓN (solo Perú) ══ -->
+        {% if country_code == 'pe' %}
+        <div class="cgm-locales-section" id="section-atencion">
+
+          {% set puntos = country.sucursales | selectattr('tipo', 'equalto', 'atencion') | list %}
+          {% for s in puntos %}
+          <div class="cgm-locale-card-wrap {% if loop.first %}active{% endif %}"
+               data-section="atencion"
+               data-index="{{ loop.index0 }}"
+               data-lat="{{ s.lat }}"
+               data-lng="{{ s.lng }}">
+            <div class="cgm-locale-card" onclick="selectLocale(this.closest('.cgm-locale-card-wrap'))">
+              <span class="cgm-locale-num">{{ '%02d' % loop.index }}</span>
+              <span class="cgm-locale-name">
+                CGM RENTAL {{ s.nombre.split('(')[0].strip() }}
+                <span class="cgm-locale-tag cgm-locale-tag--atencion">Punto de Atención</span>
+              </span>
+              <span class="cgm-locale-plus">+</span>
+            </div>
+            <div class="cgm-locale-detail">
+              <p class="cgm-locale-addr">
+                <i class="bi bi-geo-alt-fill me-1" style="color:#c5e86c;"></i>{{ s.direccion }}
+              </p>
+              <a href="https://maps.google.com/?q={{ s.lat }},{{ s.lng }}"
+                 target="_blank" rel="noopener" class="cgm-locale-gmaps"
+                 onclick="event.stopPropagation()">
+                <i class="bi bi-box-arrow-up-right"></i> Abrir en Google Maps
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div><!-- /panel -->
+
+      <!-- ── Mapa Google ── -->
+      <div class="cgm-locales-map-wrap">
+        {% set first = country.sucursales | selectattr('tipo', 'in', ['principal', 'sucursal']) | first %}
+        <iframe id="cgmMapFrame"
+          src="https://maps.google.com/maps?q={{ first.lat }},{{ first.lng }}&z=15&output=embed&hl=es"
+          allowfullscreen loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  var frame = document.getElementById('cgmMapFrame');
+
+  /* ── Seleccionar local ── */
+  window.selectLocale = function (wrap) {
+    var section = wrap.closest('.cgm-locales-section');
+    /* Desactivar otros en la misma sección */
+    section.querySelectorAll('.cgm-locale-card-wrap').forEach(function (w) {
+      w.classList.remove('active');
+    });
+    wrap.classList.add('active');
+
+    /* Actualizar mapa */
+    frame.src = 'https://maps.google.com/maps?q=' + wrap.dataset.lat + ',' + wrap.dataset.lng + '&z=15&output=embed&hl=es';
+
+    /* Scroll en móvil */
+    if (window.innerWidth <= 991) {
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  /* ── Cambiar filtro ── */
+  window.setFilter = function (filter, btn) {
+    /* Botones */
+    document.querySelectorAll('.cgm-locales-filter-btn').forEach(function (b) {
+      b.classList.remove('active');
+    });
+    btn.classList.add('active');
+
+    /* Secciones */
+    document.querySelectorAll('.cgm-locales-section').forEach(function (s) {
+      s.style.display = 'none';
+    });
+    var target = document.getElementById('section-' + filter);
+    if (target) target.style.display = 'flex';
+
+    /* Mostrar en mapa el primer elemento activo de la sección */
+    var firstActive = target.querySelector('.cgm-locale-card-wrap.active');
+    if (firstActive) {
+      frame.src = 'https://maps.google.com/maps?q=' + firstActive.dataset.lat + ',' + firstActive.dataset.lng + '&z=15&output=embed&hl=es';
+    }
+  };
+})();
+</script>
+{% endblock %}

@@ -897,7 +897,7 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   height: 220px;
   object-fit: cover;
   display: block;
-  background: var(--cgm-gris);
+  background: #fff;
 }
 .cgm-prod-img-placeholder {
   width: 100%;
@@ -979,6 +979,52 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   position: relative;
   z-index: 2;
   color: #fff;
+}
+
+/* ── Hero vacío (cotización sin equipos) ────────────────────── */
+.cgm-cotiz-hero-empty {
+  position: relative;
+  min-height: 220px;
+  background: var(--cgm-verde);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cgm-cotiz-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2,60,54,.95) 0%, rgba(2,83,76,.75) 100%);
+}
+.cgm-cotiz-hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 55%;
+  width: auto;
+  pointer-events: none;
+  opacity: .8;
+  z-index: 1;
+}
+.cgm-cotiz-hero-arrow--left  { left: 8%; }
+.cgm-cotiz-hero-arrow--right { right: 8%; transform: translateY(-50%) scaleX(-1); }
+.cgm-cotiz-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 40px 20px;
+}
+.cgm-cotiz-hero-content h1 {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: clamp(28px, 5vw, 48px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: 1px;
+}
+.cgm-cotiz-hero-content p {
+  color: rgba(255,255,255,.75);
+  font-size: 15px;
+  margin: 0;
 }
 
 /* ── Barra de pasos del carrito ─────────────────────────────── */
@@ -1678,7 +1724,7 @@ select.cgm-contacto-input { cursor: pointer; }
 /* ── Botones imagen footer ──────────────────────────────────── */
 .cgm-footer-btn-img {
   width: 100%;
-  max-width: 130px;
+  max-width: 150px;
   height: auto;
   display: block;
   transition: opacity .2s, transform .2s;
@@ -1734,9 +1780,14 @@ select.cgm-contacto-input { cursor: pointer; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity .15s;
+  gap: 3px;
   min-width: 0;
 }
+.cgm-footer-pin-card:hover { opacity: .75; }
 
 /* ── Grid de pines responsive ─────────────────────────────
    Comportamiento por defecto (Perú con 8 tarjetas):
@@ -1767,6 +1818,67 @@ select.cgm-contacto-input { cursor: pointer; }
   }
 }
 
+/* ── Layout dos columnas: Sucursales | Puntos de Atención ── */
+.cgm-footer-locs-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px 20px;
+}
+@media (min-width: 900px) {
+  .cgm-footer-locs-wrap {
+    grid-template-columns: 3fr 2fr;
+    align-items: start;
+  }
+}
+
+/* Divisor entre columnas */
+.cgm-footer-locs-col--atencion {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 20px;
+}
+@media (min-width: 900px) {
+  .cgm-footer-locs-col--atencion {
+    border-top: none;
+    padding-top: 0;
+    border-left: 1px solid rgba(255,255,255,.1);
+    padding-left: 16px;
+  }
+}
+
+/* Sucursales: 3 columnas / Puntos de atención: 3 columnas (una fila) */
+.cgm-footer-pins--3col {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+.cgm-footer-pins--2col {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+@media (max-width: 767px) {
+  .cgm-footer-pins--3col,
+  .cgm-footer-pins--2col { grid-template-columns: 1fr !important; }
+}
+
+/* Pines: verde lima para ambos tipos */
+.cgm-pin-suc  { color: var(--cgm-lima) !important; }
+.cgm-pin-aten { color: var(--cgm-lima) !important; }
+
+/* Línea bajo título: verde lima */
+.cgm-footer-title--suc  { border-bottom-color: var(--cgm-lima); }
+.cgm-footer-title--aten { border-bottom-color: var(--cgm-lima); }
+
+/* Tag "PUNTO DE ATENCIÓN" — bloque independiente debajo del nombre */
+.cgm-pin-aten-tag {
+  display: block;
+  width: fit-content;
+  background: var(--cgm-verde);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+
 /* Argentina: solo 2 sedes → auto-fit para no dejar columnas vacías */
 .cgm-footer-arg__sedes .cgm-footer-pins {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1781,27 +1893,27 @@ select.cgm-contacto-input { cursor: pointer; }
 
 .cgm-footer-pe {
   display: flex;
-  gap: 1.75rem;
+  gap: .75rem;
   align-items: flex-start;
   flex-wrap: wrap;
 }
 
 .cgm-footer-pe__aside {
   flex: 0 0 auto;
-  width: 280px;
+  width: 260px;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .4rem;
   align-items: center;
 }
 
 .cgm-footer-pe__logo {
   display: block;
-  margin-bottom: .5rem;
+  margin-bottom: .25rem;
 }
 .cgm-footer-pe__logo img {
   width: 100%;
-  max-width: 200px;
+  max-width: 190px;
   height: auto;
   display: block;
 }
@@ -1809,7 +1921,7 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-footer-pe__buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: .4rem;
+  gap: .35rem;
   width: 100%;
 }
 .cgm-footer-pe__buttons .cgm-footer-btn-img {
@@ -1818,29 +1930,29 @@ select.cgm-contacto-input { cursor: pointer; }
 }
 
 .cgm-footer-pe__main {
-  flex: 1 1 380px;
+  flex: 1 1 340px;
   min-width: 0;
   display: grid;
-  gap: 1.5rem;
+  gap: 1.25rem;
   grid-template-columns: 1fr;
 }
 
-/* Desktop amplio: contact + sucursales lado a lado */
+/* Desktop: contacto + sucursales lado a lado */
 @media (min-width: 992px) {
   .cgm-footer-pe__main {
-    grid-template-columns: minmax(240px, 1fr) minmax(0, 2.3fr);
+    grid-template-columns: minmax(200px, 1fr) minmax(0, 2.3fr);
   }
 }
 @media (min-width: 1400px) {
   .cgm-footer-pe__main {
-    grid-template-columns: minmax(260px, 1fr) minmax(0, 3fr);
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 3fr);
   }
 }
 
 /* Móvil: aside centrado arriba */
 @media (max-width: 575.98px) {
   .cgm-footer-pe {
-    gap: 2rem;
+    gap: 1.5rem;
   }
   .cgm-footer-pe__aside {
     width: 100%;
@@ -1919,36 +2031,45 @@ select.cgm-contacto-input { cursor: pointer; }
   .cgm-footer-arg__buttons { grid-area: buttons; width: 140px; }
 }
 .cgm-footer-pin-drop {
-  font-size: 28px;
+  font-size: 32px;
   color: var(--cgm-lima);
   line-height: 1;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .cgm-footer-pin-title {
   font-family: 'Estricta', sans-serif;
-  font-size: 19px;
+  font-size: 21px;
   font-style: normal;
   color: #fff;
   line-height: 1.1;
 }
 .cgm-footer-pin-title span {
   color: var(--cgm-lima);
+  display: block;
+}
+@media (max-width: 767px) {
+  .cgm-footer-pin-title span { display: inline; margin-left: 4px; }
 }
 .cgm-footer-pin-country {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1.5px;
   color: rgba(255,255,255,.55);
   text-transform: uppercase;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 .cgm-footer-pin-addr {
-  font-size: 14px;
+  font-size: 15px;
   color: rgba(255,255,255,.75);
   line-height: 1.4;
-  margin-top: 4px;
+  margin-top: 5px;
   word-break: break-word;
   white-space: normal;
+}
+@media (max-width: 767px) {
+  .cgm-footer-pin-addr,
+  .cgm-footer-pin-country,
+  .cgm-pin-aten-tag { display: none !important; }
 }
 
 /* ── Estadísticas en círculo (Argentina Nosotros) ───────────── */
@@ -2129,6 +2250,115 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-footer-copy { font-size: 15px; color: rgba(255,255,255); }
 .cgm-footer-copy-link { font-size: 15px; color: rgba(255,255,255,.4); transition: color var(--transition); }
 .cgm-footer-copy-link:hover { color: rgba(255,255,255,.8); }
+
+/* ══════════════════════════════════════════════════════════════
+   MINI FOOTER (todas las páginas excepto contacto)
+   ══════════════════════════════════════════════════════════════ */
+.cgm-mini-footer {
+  background: var(--cgm-verde);
+  font-family: 'Estricta', sans-serif;
+}
+
+/* Contenedor centrado compartido */
+.cgm-mini-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── Banda superior ── */
+.cgm-mini-footer-top {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+.cgm-mini-footer-btns {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cgm-mini-footer-btn-link {
+  display: inline-flex;
+  transition: opacity .2s, transform .2s;
+}
+.cgm-mini-footer-btn-link:hover { opacity: .85; transform: translateY(-2px); }
+.cgm-mini-footer-btn-link img {
+  height: 52px;
+  width: auto;
+  display: block;
+}
+
+/* Separador vertical */
+.cgm-mini-footer-sep {
+  width: 1px;
+  height: 52px;
+  background: rgba(255,255,255,.2);
+  flex-shrink: 0;
+}
+@media (max-width: 768px) { .cgm-mini-footer-sep { display: none; } }
+
+/* Redes sociales */
+.cgm-mini-footer-social {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cgm-mini-footer-social a {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  transition: background .2s, border-color .2s, color .2s;
+}
+.cgm-mini-footer-social a:hover {
+  background: var(--cgm-lima);
+  border-color: var(--cgm-lima);
+  color: var(--cgm-verde);
+}
+
+/* ── Banda inferior ── */
+.cgm-mini-footer-nav {
+  background: rgba(0,0,0,.25);
+  padding: 16px 0;
+}
+.cgm-mini-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  align-items: center;
+}
+.cgm-mini-footer-links a {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  color: rgba(255,255,255,.75);
+  text-decoration: none;
+  transition: color .2s;
+}
+.cgm-mini-footer-links a:hover { color: var(--cgm-lima); }
+.cgm-mini-footer-copy {
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .cgm-mini-footer-inner { padding: 0 20px; }
+  .cgm-mini-footer-btn-link img { height: 42px; }
+  .cgm-mini-footer-links { gap: 6px 14px; }
+  .cgm-mini-footer-copy { width: 100%; margin-top: 6px; }
+}
 
 .cgm-whatsapp-btn {
   background: #25d366;
@@ -2325,7 +2555,7 @@ select.cgm-contacto-input { cursor: pointer; }
 }
 .cgm-cotiz-foot {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   flex-shrink: 0;
 }
 .cgm-cotiz-foot-btn {

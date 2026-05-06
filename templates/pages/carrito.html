@@ -3,40 +3,44 @@
 
 {% block content %}
 
-<section class="cgm-page-hero cgm-carrito-hero">
+<!-- ── Hero simple (vacío) — visible por defecto ── -->
+<section id="heroEmpty" class="cgm-cotiz-hero-empty">
+  <div class="cgm-cotiz-hero-overlay"></div>
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt="" class="cgm-cotiz-hero-arrow cgm-cotiz-hero-arrow--left">
+  <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
+       alt="" class="cgm-cotiz-hero-arrow cgm-cotiz-hero-arrow--right">
+  <div class="cgm-cotiz-hero-content">
+    <h1>Mi Cotización</h1>
+    <p>Completa tus datos y te contactaremos a la brevedad</p>
+  </div>
+</section>
+
+<!-- ── Hero con pasos (con equipos) — oculto por defecto ── -->
+<section id="heroFull" class="cgm-page-hero cgm-carrito-hero" style="display:none;">
   <div class="cgm-page-hero-bg"
        style="background-image:url('{{ url_for('static', filename='images/banners/cat-carrito.jpg') }}');
               background-color:#555;"
        onerror="this.style.backgroundImage='none'"></div>
   <div class="cgm-page-hero-overlay" style="background:rgba(0,0,0,.45);"></div>
   <div class="cgm-page-hero-content" style="flex-direction:column;gap:20px;">
-
     <h1 style="margin:0;">Mi carrito</h1>
-
-    <!-- Barra de pasos -->
     <div class="cgm-cart-steps">
       <div class="cgm-cart-step cgm-cart-step-done">
-        <div class="cgm-cart-step-icon">
-          <i class="bi bi-clipboard"></i>
-        </div>
+        <div class="cgm-cart-step-icon"><i class="bi bi-clipboard"></i></div>
         <span>TIENDA</span>
       </div>
       <div class="cgm-cart-step-line"></div>
       <div class="cgm-cart-step cgm-cart-step-active">
-        <div class="cgm-cart-step-icon">
-          <i class="bi bi-cart3"></i>
-        </div>
+        <div class="cgm-cart-step-icon"><i class="bi bi-cart3"></i></div>
         <span>CARRITO</span>
       </div>
       <div class="cgm-cart-step-line"></div>
       <div class="cgm-cart-step">
-        <div class="cgm-cart-step-icon">
-          <i class="bi bi-send"></i>
-        </div>
+        <div class="cgm-cart-step-icon"><i class="bi bi-send"></i></div>
         <span>FINALIZAR</span>
       </div>
     </div>
-
   </div>
 </section>
 
@@ -278,5 +282,11 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
   const modal = document.getElementById('sfSuccessModal');
   modal.style.display = 'flex';
 });
+
+/* ── Hero: si viene de COTIZAR con carrito vacío (?simple=1) → banner simple
+         Si viene directo a /carrito/ → banner con stepper (independiente del estado) ── */
+const isSimple = new URLSearchParams(window.location.search).get('simple') === '1';
+document.getElementById('heroEmpty').style.display = isSimple ? '' : 'none';
+document.getElementById('heroFull').style.display  = isSimple ? 'none' : '';
 </script>
 {% endblock %}

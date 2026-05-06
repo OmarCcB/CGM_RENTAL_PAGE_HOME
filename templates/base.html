@@ -30,18 +30,22 @@
 
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body style="min-height:100vh;display:flex;flex-direction:column;">
 
   <!-- ══════════ HEADER ══════════ -->
   {% include "_nav.html" %}
 
   <!-- ══════════ MAIN CONTENT ══════════ -->
-  <main>
+  <main style="flex:1;">
     {% block content %}{% endblock %}
   </main>
 
   <!-- ══════════ FOOTER ══════════ -->
-  {% include "_footer.html" %}
+  {% if '/contacto/' in request.path %}
+    {% include "_footer.html" %}
+  {% else %}
+    {% include "_mini_footer.html" %}
+  {% endif %}
 
   <!-- Cotizador flotante (oculto en la página del carrito) -->
   <div class="cgm-cart-float{% if '/carrito/' in request.path %} d-none{% endif %}" id="cgmCotizFloat">
@@ -55,8 +59,7 @@
         <p class="cgm-cotiz-empty">El carrito está vacío.</p>
       </div>
       <div class="cgm-cotiz-foot">
-        <a href="/{{ country_code }}/carrito/" class="cgm-cotiz-foot-btn cgm-cotiz-foot-sec">Ver Carrito</a>
-        <a href="/{{ country_code }}/carrito/" class="cgm-cotiz-foot-btn cgm-cotiz-foot-pri">Cotizar</a>
+        <a href="/{{ country_code }}/carrito/" class="cgm-cotiz-foot-btn cgm-cotiz-foot-pri">Ver Equipos y Cotizar</a>
       </div>
     </div>
     <!-- Botón -->
