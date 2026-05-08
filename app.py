@@ -151,8 +151,13 @@ def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, prox
     return [dict(r) for r in rows], total
 
 
-def cart_count():
-    return sum(item["qty"] for item in session.get("cart", {}).values())
+def _cart_key(country=None):
+    """Devuelve la clave de sesión del carrito para el país dado."""
+    cc = (country or 'pe').lower()
+    return f"cart_{cc}"
+
+def cart_count(country=None):
+    return sum(item["qty"] for item in session.get(_cart_key(country), {}).values())
 
 
 # ── Inicializar BD al arrancar ────────────────────────────────────────────────
@@ -393,8 +398,11 @@ with app.app_context():
 # ── Context Processor ──────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
+    # Detectar el país activo desde la URL (e.g. /pe/, /ar/)
+    path_parts = request.path.strip('/').split('/')
+    cc = path_parts[0] if path_parts and path_parts[0] in COUNTRIES else 'pe'
     return {
-        "cart_count": cart_count(),
+        "cart_count": cart_count(cc),
         "COUNTRIES": COUNTRIES,
         "PARTNERS": PARTNERS,
     }
@@ -705,7 +713,7 @@ def carrito(country):
     if country not in COUNTRIES:
         return redirect(f"/{DEFAULT_COUNTRY}/carrito/")
     c = get_country(country)
-    cart = session.get("cart", {})
+    cart = session.get(_cart_key(country), {})
     return render_template("pages/carrito.html",
                            country=c, country_code=country, cart=cart)
 
@@ -881,51 +889,57 @@ def api_contacto():
 @app.route("/api/cart/add", methods=["POST"])
 def api_cart_add():
     data = request.get_json(silent=True) or {}
-    slug   = data.get("slug", "").strip()
-    nombre = data.get("nombre", "").strip()
-    imagen = data.get("imagen", "").strip()
-    tipo   = data.get("tipo", "").strip()
+    slug    = data.get("slug", "").strip()
+    nombre  = data.get("nombre", "").strip()
+    imagen  = data.get("imagen", "").strip()
+    tipo    = data.get("tipo", "").strip()
+    country = data.get("country", "pe").lower()
     if not slug:
         return jsonify({"ok": False}), 400
-    cart = session.get("cart", {})
+    key  = _cart_key(country)
+    cart = session.get(key, {})
     if slug in cart:
         cart[slug]["qty"] += 1
     else:
         cart[slug] = {"slug": slug, "nombre": nombre, "imagen": imagen, "tipo": tipo, "qty": 1}
-    session["cart"] = cart
+    session[key] = cart
     session.modified = True
-    return jsonify({"ok": True, "count": cart_count()})
+    return jsonify({"ok": True, "count": cart_count(country)})
 
 
 @app.route("/api/cart/qty", methods=["POST"])
 def api_cart_qty():
-    data = request.get_json(silent=True) or {}
-    slug = data.get("slug", "").strip()
-    qty  = int(data.get("qty", 1))
-    cart = session.get("cart", {})
+    data    = request.get_json(silent=True) or {}
+    slug    = data.get("slug", "").strip()
+    qty     = int(data.get("qty", 1))
+    country = data.get("country", "pe").lower()
+    key     = _cart_key(country)
+    cart    = session.get(key, {})
     if slug in cart:
         if qty < 1:
             del cart[slug]
         else:
             cart[slug]["qty"] = qty
-    session["cart"] = cart
+    session[key] = cart
     session.modified = True
-    return jsonify({"ok": True, "count": cart_count()})
+    return jsonify({"ok": True, "count": cart_count(country)})
 
 
 @app.route("/api/cart", methods=["GET", "DELETE"])
 def api_cart():
+    country = request.args.get("country", "pe").lower()
+    key     = _cart_key(country)
     if request.method == "DELETE":
         slug = request.args.get("slug")
-        cart = session.get("cart", {})
+        cart = session.get(key, {})
         if slug and slug in cart:
             del cart[slug]
         elif not slug:
             cart = {}
-        session["cart"] = cart
+        session[key] = cart
         session.modified = True
-        return jsonify({"ok": True, "count": cart_count()})
-    return jsonify({"cart": session.get("cart", {}), "count": cart_count()})
+        return jsonify({"ok": True, "count": cart_count(country)})
+    return jsonify({"cart": session.get(key, {}), "count": cart_count(country)})
 
 
 @app.route("/api/denuncia", methods=["POST"])

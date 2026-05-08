@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nuestros Locales — CGM Rental | {{ country.nombre }}{% endblock %}
+{% block title %}Nuestras Sucursales — CGM Rental | {{ country.nombre }}{% endblock %}
 {% block meta_desc %}Encuentra todas las sucursales y puntos de atención de CGM Rental en {{ country.nombre }}.{% endblock %}
 
 {% block extra_head %}
@@ -227,7 +227,7 @@
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
        alt="" class="fade-right" style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
   <div class="cgm-cap-hero-content container" style="padding:40px 20px;">
-    <h1 class="cgm-cap-hero-title fade-up">Nuestros <span>Locales</span></h1>
+    <h1 class="cgm-cap-hero-title fade-up">Nuestras <span>Sucursales</span></h1>
     <p class="cgm-cap-hero-sub fade-up fade-up-delay-1">CONOCE DÓNDE ESTAMOS</p>
 
     <!-- Stats dentro del banner -->
@@ -235,7 +235,7 @@
       <div class="cgm-locales-stat">
         <i class="bi bi-geo-alt-fill"></i>
         <span class="cgm-locales-stat-num">{{ country.sucursales | length }}</span>
-        <span class="cgm-locales-stat-label">Localidades</span>
+        <span class="cgm-locales-stat-label">Ciudades</span>
       </div>
       {% set n_suc = country.sucursales | selectattr('tipo', 'in', ['principal','sucursal']) | list | length %}
       <div class="cgm-locales-stat">
@@ -307,7 +307,7 @@
               <p class="cgm-locale-addr">
                 <i class="bi bi-geo-alt-fill me-1" style="color:#c5e86c;"></i>{{ s.direccion }}
               </p>
-              <a href="https://maps.google.com/?q={{ s.lat }},{{ s.lng }}"
+              <a href="{{ s.maps_url if s.maps_url else 'https://maps.google.com/?q=' ~ s.lat ~ ',' ~ s.lng }}"
                  target="_blank" rel="noopener" class="cgm-locale-gmaps"
                  onclick="event.stopPropagation()">
                 <i class="bi bi-box-arrow-up-right"></i> Abrir en Google Maps
@@ -340,7 +340,7 @@
               <p class="cgm-locale-addr">
                 <i class="bi bi-geo-alt-fill me-1" style="color:#c5e86c;"></i>{{ s.direccion }}
               </p>
-              <a href="https://maps.google.com/?q={{ s.lat }},{{ s.lng }}"
+              <a href="{{ s.maps_url if s.maps_url else 'https://maps.google.com/?q=' ~ s.lat ~ ',' ~ s.lng }}"
                  target="_blank" rel="noopener" class="cgm-locale-gmaps"
                  onclick="event.stopPropagation()">
                 <i class="bi bi-box-arrow-up-right"></i> Abrir en Google Maps

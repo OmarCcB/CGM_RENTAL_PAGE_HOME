@@ -2,6 +2,9 @@
    CGM RENTAL — cart.js
    ═══════════════════════════════════════════════ */
 
+/* País activo (inyectado desde base.html) */
+function _cc() { return window.CGM_COUNTRY || 'pe'; }
+
 /* Actualizar badges (header + flotante) */
 function updateCartBadge(count) {
   document.querySelectorAll('#cartBadge,#cartFloatBadge').forEach(el => el.textContent = count);
@@ -10,7 +13,7 @@ function updateCartBadge(count) {
 /* ── Cargar y renderizar items en el modal cotizador ── */
 async function loadCartModal() {
   try {
-    const resp  = await fetch('/api/cart');
+    const resp  = await fetch(`/api/cart?country=${_cc()}`);
     const json  = await resp.json();
     const cart  = json.cart || {};
     const items = Object.values(cart);
@@ -58,7 +61,7 @@ async function cartChangeQty(slug, delta) {
   await fetch('/api/cart/qty', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ slug, qty: next })
+    body: JSON.stringify({ slug, qty: next, country: _cc() })
   });
   if (qtyEl) qtyEl.textContent = next;
   const total = Array.from(document.querySelectorAll('[id^="qty-"]'))
@@ -68,7 +71,7 @@ async function cartChangeQty(slug, delta) {
 
 /* Eliminar item desde el modal */
 async function cartRemoveItem(slug) {
-  const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
+  const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE' });
   const json = await resp.json();
   updateCartBadge(json.count);
   const el = document.getElementById(`citem-${slug}`);
@@ -88,7 +91,7 @@ async function addToCart(slug, nombre, imagen = '', tipo = '') {
     const resp = await fetch('/api/cart/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, nombre, imagen, tipo })
+      body: JSON.stringify({ slug, nombre, imagen, tipo, country: _cc() })
     });
     const json = await resp.json();
     if (json.ok) {
@@ -110,7 +113,7 @@ async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
     /* 1. Ver si el carrito estaba vacío ANTES de agregar */
     let wasEmpty = true;
     try {
-      const check = await fetch('/api/cart');
+      const check = await fetch(`/api/cart?country=${_cc()}`);
       const checkJson = await check.json();
       wasEmpty = Object.keys(checkJson.cart || {}).length === 0;
     } catch (e) {}
@@ -119,7 +122,7 @@ async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
     await fetch('/api/cart/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, nombre, imagen, tipo })
+      body: JSON.stringify({ slug, nombre, imagen, tipo, country: _cc() })
     });
 
     /* 3. Redirigir según estado previo */
@@ -143,7 +146,7 @@ function closeCotizador() {
 /* Eliminar del carrito (página carrito clásica) */
 async function removeFromCart(slug) {
   try {
-    const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
+    const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE' });
     const json = await resp.json();
     if (json.ok) {
       updateCartBadge(json.count);
@@ -161,7 +164,7 @@ async function removeFromCart(slug) {
 
 /* Limpiar carrito completo */
 async function clearCart() {
-  try { await fetch('/api/cart', { method: 'DELETE' }); location.reload(); }
+  try { await fetch(`/api/cart?country=${_cc()}`, { method: 'DELETE' }); location.reload(); }
   catch (err) { console.error(err); }
 }
 
@@ -186,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* Badge inicial */
-  fetch('/api/cart').then(r => r.json()).then(j => {
+  fetch(`/api/cart?country=${_cc()}`).then(r => r.json()).then(j => {
     const cart  = j.cart || {};
     const total = Object.values(cart).reduce((s, i) => s + (i.qty || 1), 0);
     updateCartBadge(total);

@@ -3475,6 +3475,9 @@ select.cgm-contacto-input { cursor: pointer; }
   /* Page-hero (banners de título): elimina el mínimo de 300px y escala con el ancho */
   .cgm-page-hero { height: auto; aspect-ratio: 8/3; min-height: unset; }
 
+  /* Capacita: ocultar flechas del hero en móvil */
+  .cgm-cap-hero-arrow { display: none !important; }
+
   /* Banner-full (CTAs internos): proporcional en vez de altura fija */
   .cgm-banner-full { height: auto; aspect-ratio: 16/5; }
 
