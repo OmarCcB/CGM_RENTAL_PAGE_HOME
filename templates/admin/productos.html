@@ -1,0 +1,189 @@
+{% extends "admin/base.html" %}
+{% block title %}Productos{% endblock %}
+{% block breadcrumb %}Productos{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="adm-page-title mb-0"><i class="bi bi-boxes me-2"></i>Productos</h1>
+    <p class="adm-page-sub mb-0">{{ total }} equipo{% if total != 1 %}s{% endif %} en total</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <form method="post" action="{{ url_for('admin.productos_sync_json') }}"
+          onsubmit="return confirm('¿Reconstruir products.json desde la base de datos? Esto sobreescribe el archivo con el estado actual de la BD.')"
+          style="margin:0;">
+      <button type="submit" class="btn-adm-ghost" title="Si la BD y el JSON están desincronizados, esto fuerza el JSON al estado de la BD.">
+        <i class="bi bi-arrow-repeat"></i> Sync JSON
+      </button>
+    </form>
+    <a href="{{ url_for('admin.producto_nuevo') }}" class="btn-adm-lime">
+      <i class="bi bi-plus-lg"></i> Agregar nuevo
+    </a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="adm-card mb-4">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label class="adm-form-label">Buscar</label>
+      <input type="text" name="q" value="{{ q }}" class="adm-form-control" placeholder="Nombre, marca, slug...">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="adm-form-label">País</label>
+      <select name="pais" class="adm-form-control">
+        <option value="">Todos</option>
+        <option value="pe" {% if pais == 'pe' %}selected{% endif %}>🇵🇪 Perú</option>
+        <option value="ar" {% if pais == 'ar' %}selected{% endif %}>🇦🇷 Argentina</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="adm-form-label">Sector</label>
+      <select name="sector" class="adm-form-control">
+        <option value="">Todos</option>
+        {% for s in sectores %}
+        <option value="{{ s }}" {% if sector == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="adm-form-label">Estado</label>
+      <select name="estado" class="adm-form-control">
+        <option value="">Todos</option>
+        <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
+        <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-1 d-flex gap-2">
+      <button type="submit" class="btn-adm-primary w-100" style="justify-content:center;">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Table -->
+<div class="adm-card">
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Img</th>
+          <th>Nombre</th>
+          <th>Marca</th>
+          <th>País</th>
+          <th>Sector</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in productos %}
+        <tr id="row-{{ p.id }}" {% if p.activo and not p.imagen %}style="background:#fff8e1;"{% endif %}>
+          <td>
+            {% if p.imagen %}
+              <img src="/static/products/{{ p.imagen }}" alt=""
+                   style="width:48px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #e0e0e0;"
+                   onerror="this.src='/static/images/sin-imagen.webp'">
+            {% else %}
+              <img src="/static/images/sin-imagen.webp" alt="Sin imagen"
+                   style="width:48px;height:40px;object-fit:cover;border-radius:6px;border:2px solid #f59e0b;opacity:.7;">
+            {% endif %}
+          </td>
+          <td>
+            <strong style="font-size:0.9rem;">{{ p.nombre }}</strong>
+            <br><span style="font-size:0.75rem;color:#888;">{{ p.slug }}</span>
+            {% if p.activo and not p.imagen %}
+            <br><span style="font-size:0.72rem;color:#d97706;font-weight:700;">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>Activo sin imagen — sube una imagen o desactívalo
+            </span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.88rem;">{{ p.marca or '—' }}</td>
+          <td>
+            {% if p.show_arg %}
+              <span class="adm-badge adm-badge-lime">🇦🇷 AR</span>
+            {% else %}
+              <span class="adm-badge adm-badge-green">🇵🇪 PE</span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.85rem;">{{ p.unidad or '—' }}</td>
+          <td>
+            <label class="adm-toggle" title="Activar / Desactivar">
+              <input type="checkbox" {% if p.activo %}checked{% endif %}
+                     onchange="toggleProducto({{ p.id }}, this)">
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </td>
+          <td>
+            <div class="d-flex gap-2 align-items-center">
+              <a href="{{ url_for('admin.producto_editar', pid=p.id) }}" class="btn-adm-ghost" style="padding:5px 10px;font-size:0.8rem;">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="post" action="{{ url_for('admin.producto_eliminar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Eliminar el producto {{ p.nombre|replace("'", "\\'") }}? Esta acción no se puede deshacer.')">
+                <button type="submit" class="btn-adm-danger" style="padding:5px 10px;font-size:0.8rem;">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:32px;color:#aaa;">
+            No se encontraron productos.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="d-flex align-items-center justify-content-between mt-4 flex-wrap gap-2">
+    <span style="font-size:0.83rem;color:#888;">Página {{ page }} de {{ total_pages }}</span>
+    <div class="adm-pagination">
+      <a href="?page={{ page - 1 }}&q={{ q }}&pais={{ pais }}&sector={{ sector }}&estado={{ estado }}"
+         class="adm-pag-btn {% if page <= 1 %}disabled{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% for p_num in range(1, total_pages + 1) %}
+        {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) %}
+        <a href="?page={{ p_num }}&q={{ q }}&pais={{ pais }}&sector={{ sector }}&estado={{ estado }}"
+           class="adm-pag-btn {% if p_num == page %}active{% endif %}">
+          {{ p_num }}
+        </a>
+        {% endif %}
+      {% endfor %}
+      <a href="?page={{ page + 1 }}&q={{ q }}&pais={{ pais }}&sector={{ sector }}&estado={{ estado }}"
+         class="adm-pag-btn {% if page >= total_pages %}disabled{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function toggleProducto(id, checkbox) {
+  try {
+    const resp = await fetch(`/admin/productos/${id}/toggle`, { method: 'POST' });
+    const data = await resp.json();
+    if (data.ok) {
+      checkbox.checked = data.activo === 1;
+      showToast(data.activo ? 'Producto activado.' : 'Producto desactivado.', 'success');
+    } else {
+      checkbox.checked = !checkbox.checked;
+      showToast('Error al cambiar estado.', 'danger');
+    }
+  } catch (e) {
+    checkbox.checked = !checkbox.checked;
+    showToast('Error de red.', 'danger');
+  }
+}
+</script>
+{% endblock %}

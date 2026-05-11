@@ -63,15 +63,26 @@
     <div class="cgm-mini-footer-inner">
       <nav class="cgm-mini-footer-links">
         <a href="/{{ country_code }}/nosotros/">NOSOTROS</a>
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/nuestros-locales/">NUESTRAS SUCURSALES</a>
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/categoria-producto/alquiler/">ALQUILER</a>
         {% if country.show_usados %}
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/categoria-producto/usados/">USADOS</a>
         {% endif %}
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/capacita/">CAPACITA</a>
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/novedades/">BLOG</a>
+        <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/contacto/">CONTACTO</a>
       </nav>
+      <!-- Desktop: copyright dentro del flex junto a los links -->
+      <span class="cgm-mini-footer-copy cgm-copy-desktop">© CGM Rental | Todos los derechos reservados</span>
+    </div>
+    <!-- Mobile: copyright debajo del espacio reservado para los botones flotantes -->
+    <div class="cgm-mini-footer-copy-mobile">
       <span class="cgm-mini-footer-copy">© CGM Rental | Todos los derechos reservados</span>
     </div>
   </div>

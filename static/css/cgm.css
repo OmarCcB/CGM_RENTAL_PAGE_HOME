@@ -37,13 +37,16 @@
 /* ── Reset / Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   font-family: 'Estricta', sans-serif;
   font-size: 15px;
   color: var(--cgm-gris-txt);
   background: var(--cgm-blanco);
+  overflow-x: hidden; /* evita scroll horizontal en mobile */
   padding-top: var(--cgm-header-h);
 }
 
@@ -2335,7 +2338,8 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-mini-footer-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 24px;
+  justify-content: center;
+  gap: 4px 10px;
   align-items: center;
 }
 .cgm-mini-footer-links a {
@@ -2347,17 +2351,45 @@ select.cgm-contacto-input { cursor: pointer; }
   transition: color .2s;
 }
 .cgm-mini-footer-links a:hover { color: var(--cgm-lima); }
+
+/* Separador vertical entre links del footer */
+.cgm-fnav-sep {
+  color: rgba(255,255,255,.28);
+  font-weight: 300;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  flex-shrink: 0;
+}
+
 .cgm-mini-footer-copy {
   font-size: 12px;
   color: rgba(255,255,255,.45);
   white-space: nowrap;
 }
 
-@media (max-width: 768px) {
+/* Desktop: mostrar copyright inline, ocultar el bloque mobile */
+.cgm-copy-desktop      { display: inline; }
+.cgm-mini-footer-copy-mobile { display: none; }
+
+@media (max-width: 991px) {
   .cgm-mini-footer-inner { padding: 0 20px; }
   .cgm-mini-footer-btn-link img { height: 42px; }
-  .cgm-mini-footer-links { gap: 6px 14px; }
-  .cgm-mini-footer-copy { width: 100%; margin-top: 6px; }
+  .cgm-mini-footer-top { padding: 8px 0; }
+  .cgm-mini-footer-nav  { padding-top: 8px; }
+  .cgm-mini-footer-links { gap: 4px 10px; justify-content: center; }
+
+  /* Ocultar copyright de escritorio, mostrar el de mobile */
+  .cgm-copy-desktop { display: none; }
+  .cgm-mini-footer-copy-mobile {
+    display: block;
+    text-align: center;
+    padding: 10px 20px 2px;
+  }
+
+  /* Espacio entre los links y el copyright (justo para los botones flotantes) */
+  .cgm-mini-footer-nav .cgm-mini-footer-inner { padding-bottom: 34px; }
 }
 
 .cgm-whatsapp-btn {
@@ -2395,7 +2427,7 @@ select.cgm-contacto-input { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(2,83,76,.45);
+  box-shadow: 0 4px 16px rgba(2,83,76,.45), 0 0 14px rgba(255,255,255,.18);
   cursor: pointer;
   position: relative;
   transition: transform .2s;
@@ -2751,7 +2783,7 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-portal-form-wrap {
   width: 100%;
   max-width: 720px;
-  background-image: url('/static/images/banners/portal-bg.png');
+  background-image: url('/static/images/banners/otros/portal-bg.webp');
   background-size: cover;
   background-position: center;
   border-radius: 10px;
@@ -3462,6 +3494,55 @@ select.cgm-contacto-input { cursor: pointer; }
   .cgm-porque-num  { font-size: 34px; }
   .cgm-porque-text { font-size: 12px; }
   .cgm-porque-img  { flex: 0 0 28%; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CAPACITA — Tabla comparativa de programas
+   ══════════════════════════════════════════════════════════════ */
+.cgm-cap-table {
+  width: 100%;
+  min-width: 560px;        /* fuerza scroll en mobile si el viewport es < 560px */
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.cgm-cap-table thead tr {
+  background: var(--cgm-verde);
+  color: #fff;
+}
+.cgm-cap-table th {
+  padding: 14px 18px;
+  text-align: left;
+  font-family: 'Estricta', sans-serif;
+  font-size: 13px;
+  letter-spacing: .4px;
+  white-space: nowrap;
+}
+.cgm-cap-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid #eee;
+  color: var(--cgm-gris-txt);
+  vertical-align: middle;
+}
+.cgm-cap-table tbody tr:hover { background: #f7faf7; }
+
+/* Badges de modalidad */
+.cgm-cap-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  white-space: nowrap;
+}
+.cgm-cap-badge.presencial     { background: #e8f5e9; color: #2e7d32; }
+.cgm-cap-badge.semipresencial { background: #e3f2fd; color: #1565c0; }
+.cgm-cap-badge.virtual        { background: #f3e5f5; color: #6a1b9a; }
+
+/* Contenedor scroll con indicador visual en mobile */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
 }
 
 /* ══════════════════════════════════════════════════════════════

@@ -1,0 +1,651 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+/* ── KPI Cards ─────────────────────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 991px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+.kpi-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  border-left: 4px solid transparent;
+  transition: transform .18s, box-shadow .18s;
+  cursor: default;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,.10); }
+
+.kpi-card.green  { border-left-color: #02534C; }
+.kpi-card.lime   { border-left-color: #C5E86C; }
+.kpi-card.red    { border-left-color: #e74c3c; }
+.kpi-card.blue   { border-left-color: #1F3864; }
+.kpi-card.teal   { border-left-color: #17a2b8; }
+.kpi-card.orange { border-left-color: #e67e22; }
+.kpi-card.purple { border-left-color: #8e44ad; }
+.kpi-card.navy   { border-left-color: #2c3e50; }
+
+.kpi-icon {
+  width: 50px; height: 50px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.kpi-card.green  .kpi-icon { background: #e8f5f3; color: #02534C; }
+.kpi-card.lime   .kpi-icon { background: #f7fce8; color: #7a9a10; }
+.kpi-card.red    .kpi-icon { background: #fdecea; color: #e74c3c; }
+.kpi-card.blue   .kpi-icon { background: #eaeff8; color: #1F3864; }
+.kpi-card.teal   .kpi-icon { background: #e3f6fa; color: #17a2b8; }
+.kpi-card.orange .kpi-icon { background: #fdf0e3; color: #e67e22; }
+.kpi-card.purple .kpi-icon { background: #f5eafa; color: #8e44ad; }
+.kpi-card.navy   .kpi-icon { background: #e8eaf0; color: #2c3e50; }
+
+.kpi-body { flex: 1; min-width: 0; }
+.kpi-value {
+  font-size: 2rem; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a1a;
+}
+.kpi-label { font-size: 12px; color: #888; margin-top: 4px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; }
+.kpi-sub   { font-size: 11px; color: #bbb; margin-top: 2px; }
+
+/* ── Section header ──────────────────────────────────────────────────────── */
+.dash-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: #aaa;
+  margin: 24px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.dash-section-title::after {
+  content: ''; flex: 1; height: 1px; background: #eee;
+}
+
+/* ── Chart cards ─────────────────────────────────────────────────────────── */
+.chart-card {
+  background: #fff; border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  height: 100%;
+}
+.chart-card-title {
+  font-size: 13px; font-weight: 700; color: #02534C;
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 14px;
+}
+.chart-wrap { position: relative; height: 240px; }
+
+/* ── Toggle buttons ──────────────────────────────────────────────────────── */
+.chart-toggle { display: flex; gap: 6px; margin-left: auto; }
+.chart-toggle-btn {
+  padding: 3px 10px; border-radius: 20px; border: 1.5px solid #ddd;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  background: #fff; color: #888; transition: all .15s;
+}
+.chart-toggle-btn.active { background: #02534C; color: #fff; border-color: #02534C; }
+
+/* ── Activity table ──────────────────────────────────────────────────────── */
+.dash-log-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.badge-login    { background: #e8f5e9; color: #2e7d32; }
+.badge-crear    { background: #e3f2fd; color: #1565c0; }
+.badge-editar   { background: #fff8e1; color: #f57f17; }
+.badge-eliminar { background: #fdecea; color: #c62828; }
+.badge-default  { background: #f3f3f3; color: #666; }
+
+/* ── Doughnut center ─────────────────────────────────────────────────────── */
+.doughnut-wrap { position: relative; }
+.doughnut-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
+  text-align: center; pointer-events: none;
+}
+.doughnut-center-value { font-size: 26px; font-weight: 800; color: #02534C; line-height: 1; }
+.doughnut-center-label { font-size: 10px; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+
+/* ── Country filter ─────────────────────────────────────────────────────── */
+.country-filter-wrap { display: flex; align-items: center; gap: 6px; }
+.country-btn {
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ddd;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  background: #fff; color: #666; transition: all .18s;
+}
+.country-btn:hover { border-color: #02534C; color: #02534C; }
+.country-btn.active { background: #02534C; color: #fff; border-color: #02534C; box-shadow: 0 2px 8px rgba(2,83,76,.25); }
+
+/* ── KPI loading state ───────────────────────────────────────────────────── */
+.kpi-value.loading { opacity: .4; }
+
+/* ── Quick actions ───────────────────────────────────────────────────────── */
+.quick-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.quick-action-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  text-decoration: none; transition: all .15s; border: 1.5px solid #e8e8e8;
+  color: #333; background: #fafafa;
+}
+.quick-action-btn:hover { background: #02534C; color: #fff; border-color: #02534C; }
+.quick-action-btn i { font-size: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <div>
+    <h1 class="adm-page-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+    <p class="adm-page-sub">Bienvenido, <strong>{{ user.name }}</strong>. Resumen del panel de administración.</p>
+  </div>
+  <div class="d-flex align-items-center gap-3 flex-wrap">
+    <!-- Filtro de país -->
+    <div class="country-filter-wrap">
+      <span style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.8px;margin-right:6px;">Filtrar:</span>
+      <button class="country-btn active" data-country="all" onclick="setCountry('all', this)">
+        🌎 Todos
+      </button>
+      <button class="country-btn" data-country="pe" onclick="setCountry('pe', this)">
+        🇵🇪 Perú
+      </button>
+      <button class="country-btn" data-country="ar" onclick="setCountry('ar', this)">
+        🇦🇷 Argentina
+      </button>
+    </div>
+    <span style="font-size:11px;color:#bbb;" id="dash-updated"></span>
+  </div>
+</div>
+
+<!-- ── SECCIÓN: EQUIPOS ──────────────────────────────────────────────────── -->
+<div class="dash-section-title"><i class="bi bi-boxes"></i> Equipos</div>
+<div class="kpi-grid">
+  <div class="kpi-card green">
+    <div class="kpi-icon"><i class="bi bi-boxes"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-total" data-target="{{ total }}">0</div>
+      <div class="kpi-label">Total Equipos</div>
+      <div class="kpi-sub">en la plataforma</div>
+    </div>
+  </div>
+  <div class="kpi-card lime">
+    <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-activos" data-target="{{ activos }}">0</div>
+      <div class="kpi-label">Activos</div>
+      <div class="kpi-sub" id="sub-activos">{{ ((activos/total*100)|round(1)) if total else 0 }}% del total</div>
+    </div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-icon"><i class="bi bi-x-circle-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-inactivos" data-target="{{ inactivos }}">0</div>
+      <div class="kpi-label">Inactivos</div>
+      <div class="kpi-sub" id="sub-inactivos">{{ ((inactivos/total*100)|round(1)) if total else 0 }}% del total</div>
+    </div>
+  </div>
+  <div class="kpi-card blue">
+    <div class="kpi-icon"><i class="bi bi-image-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-con-imagen" data-target="{{ con_imagen }}">0</div>
+      <div class="kpi-label">Con Imagen (.webp)</div>
+      <div class="kpi-sub" id="sub-imagen">{{ ((con_imagen/total*100)|round(1)) if total else 0 }}% del total</div>
+    </div>
+  </div>
+</div>
+
+{% if activos_sin_imagen > 0 %}
+<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+  <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:20px;flex-shrink:0;"></i>
+  <div>
+    <strong style="color:#92400e;">{{ activos_sin_imagen }} equipo{{ 's' if activos_sin_imagen > 1 }} activo{{ 's' if activos_sin_imagen > 1 }} sin imagen</strong>
+    <span style="color:#78350f;font-size:13px;"> — Están visibles en la web pero sin foto. Sube una imagen o desactívalos.</span>
+    <a href="{{ url_for('admin.productos') }}?estado=activo&sin_imagen=1" style="margin-left:10px;font-size:12px;color:#d97706;font-weight:700;">Ver equipos →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── SECCIÓN: BLOG & SUCURSALES ───────────────────────────────────────── -->
+<div class="dash-section-title"><i class="bi bi-newspaper"></i> Blog & Sucursales</div>
+<div class="kpi-grid">
+  <div class="kpi-card teal">
+    <div class="kpi-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-total-posts" data-target="{{ total_posts }}">0</div>
+      <div class="kpi-label">Total Posts</div>
+      <div class="kpi-sub">artículos y entrevistas</div>
+    </div>
+  </div>
+  <div class="kpi-card lime">
+    <div class="kpi-icon"><i class="bi bi-eye-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-posts-activos" data-target="{{ posts_activos }}">0</div>
+      <div class="kpi-label">Posts Publicados</div>
+      <div class="kpi-sub">visibles en la web</div>
+    </div>
+  </div>
+  <div class="kpi-card orange">
+    <div class="kpi-icon"><i class="bi bi-geo-alt-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-suc-pe" data-target="{{ suc_pe }}">0</div>
+      <div class="kpi-label">Sucursales Perú</div>
+      <div class="kpi-sub">puntos de atención PE</div>
+    </div>
+  </div>
+  <div class="kpi-card navy">
+    <div class="kpi-icon"><i class="bi bi-geo-alt-fill"></i></div>
+    <div class="kpi-body">
+      <div class="kpi-value" id="kpi-suc-ar" data-target="{{ suc_ar }}">0</div>
+      <div class="kpi-label">Sucursales Argentina</div>
+      <div class="kpi-sub">puntos de atención AR</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── GRÁFICOS EQUIPOS ─────────────────────────────────────────────────── -->
+<div class="dash-section-title"><i class="bi bi-bar-chart-fill"></i> Gráficos de Equipos</div>
+<div class="row g-3 mb-3">
+
+  <!-- Equipos por Sector -->
+  <div class="col-lg-7">
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <i class="bi bi-bar-chart-fill"></i> Equipos por Sector
+        <div class="chart-toggle ms-auto">
+          <button class="chart-toggle-btn active" onclick="setSectorType('bar', this)">Barras</button>
+          <button class="chart-toggle-btn" onclick="setSectorType('horizontalBar', this)">Horizontal</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartSector"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Distribución por País -->
+  <div class="col-lg-5">
+    <div class="chart-card">
+      <div class="chart-card-title"><i class="bi bi-globe-americas"></i> Distribución por País</div>
+      <div class="chart-wrap doughnut-wrap">
+        <canvas id="chartPais"></canvas>
+        <div class="doughnut-center">
+          <div class="doughnut-center-value">{{ pe_count + ar_count }}</div>
+          <div class="doughnut-center-label">Activos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="row g-3 mb-3">
+
+  <!-- Tipo de operación -->
+  <div class="col-lg-5">
+    <div class="chart-card">
+      <div class="chart-card-title"><i class="bi bi-pie-chart-fill"></i> Tipo de Operación</div>
+      <div class="chart-wrap doughnut-wrap">
+        <canvas id="chartTipo"></canvas>
+        <div class="doughnut-center" id="tipoCenterText">
+          <div class="doughnut-center-value">{{ alquiler_c + venta_c + ambos_c }}</div>
+          <div class="doughnut-center-label">Equipos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog por categoría + publicaciones por mes -->
+  <div class="col-lg-7">
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <i class="bi bi-newspaper"></i> Posts del Blog
+        <div class="chart-toggle ms-auto">
+          <button class="chart-toggle-btn active" onclick="setBlogView('mes', this)">Por Mes</button>
+          <button class="chart-toggle-btn" onclick="setBlogView('cat', this)">Por Categoría</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartBlog"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── ACTIVIDAD RECIENTE ─────────────────────────────────────────────────── -->
+<div class="dash-section-title"><i class="bi bi-activity"></i> Actividad Reciente</div>
+<div class="chart-card mb-3">
+  <div class="chart-card-title d-flex w-100">
+    <i class="bi bi-journal-text"></i> Últimas Acciones
+    <a href="{{ url_for('admin.historial') }}" class="ms-auto btn-adm-ghost" style="padding:3px 12px;font-size:11px;">
+      Ver todo <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="adm-table" style="margin:0;">
+      <thead>
+        <tr>
+          <th style="width:150px;">Fecha</th>
+          <th>Usuario</th>
+          <th style="width:160px;">Acción</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in audit_rows %}
+        <tr>
+          <td style="font-size:0.81rem;color:#888;white-space:nowrap;">{{ row.fecha }}</td>
+          <td style="font-size:0.84rem;">{{ row.usuario or '—' }}</td>
+          <td>
+            {% set a = row.accion or '' %}
+            {% if 'login' in a %}
+              <span class="dash-log-badge badge-login"><i class="bi bi-box-arrow-in-right me-1"></i>{{ a }}</span>
+            {% elif 'crear' in a %}
+              <span class="dash-log-badge badge-crear"><i class="bi bi-plus-circle me-1"></i>{{ a }}</span>
+            {% elif 'editar' in a or 'actualizar' in a %}
+              <span class="dash-log-badge badge-editar"><i class="bi bi-pencil me-1"></i>{{ a }}</span>
+            {% elif 'eliminar' in a %}
+              <span class="dash-log-badge badge-eliminar"><i class="bi bi-trash me-1"></i>{{ a }}</span>
+            {% else %}
+              <span class="dash-log-badge badge-default">{{ a }}</span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.82rem;color:#555;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ row.detalle or '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;color:#aaa;padding:28px;">Sin actividad registrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── ACCIONES RÁPIDAS ──────────────────────────────────────────────────── -->
+<div class="dash-section-title"><i class="bi bi-lightning-fill"></i> Acciones Rápidas</div>
+<div class="quick-actions mb-4">
+  <a href="{{ url_for('admin.productos') }}" class="quick-action-btn">
+    <i class="bi bi-boxes"></i> Gestionar Equipos
+  </a>
+  <a href="{{ url_for('admin.blog_nuevo') }}" class="quick-action-btn">
+    <i class="bi bi-plus-circle"></i> Nuevo Post
+  </a>
+  <a href="{{ url_for('admin.banners') }}" class="quick-action-btn">
+    <i class="bi bi-images"></i> Editar Banners
+  </a>
+  <a href="{{ url_for('admin.contacto') }}" class="quick-action-btn">
+    <i class="bi bi-envelope-at"></i> Actualizar Contacto
+  </a>
+  <a href="{{ url_for('admin.sucursales') }}" class="quick-action-btn">
+    <i class="bi bi-geo-alt"></i> Ver Sucursales
+  </a>
+  <a href="{{ url_for('admin.historial') }}" class="quick-action-btn">
+    <i class="bi bi-journal-text"></i> Ver Historial
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const C = { green:'#02534C', lime:'#C5E86C', navy:'#1F3864', red:'#e74c3c',
+            teal:'#17a2b8', orange:'#e67e22', purple:'#8e44ad', gray:'#e0e0e0' };
+const PALETTE = [C.green, C.lime, C.navy, C.teal, C.orange, C.purple, C.red, '#4a90d9'];
+
+// ── Estado global ─────────────────────────────────────────────────────────
+let currentCountry = 'all';
+let blogView = 'mes';
+let sectorIndexAxis = 'x';
+let currentData = {};
+
+// ── Tooltip global ────────────────────────────────────────────────────────
+Chart.defaults.plugins.tooltip.backgroundColor = '#1a1a1a';
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.titleFont = { weight: '700', size: 12 };
+Chart.defaults.plugins.tooltip.bodyFont  = { size: 12 };
+Chart.defaults.animation.duration = 600;
+
+// ── Count-up animado ──────────────────────────────────────────────────────
+function countUp(el, target) {
+  el.classList.add('loading');
+  let start = 0;
+  const step = Math.max(1, target / 40);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.floor(start).toLocaleString('es-PE');
+    if (start >= target) { clearInterval(timer); el.classList.remove('loading'); }
+  }, 16);
+}
+
+// ── Inicializar KPIs con datos del servidor ───────────────────────────────
+document.querySelectorAll('.kpi-value[data-target]').forEach(el => {
+  countUp(el, parseInt(el.dataset.target, 10) || 0);
+});
+
+// ── Timestamp ─────────────────────────────────────────────────────────────
+function updateTimestamp() {
+  document.getElementById('dash-updated').textContent =
+    'Actualizado: ' + new Date().toLocaleString('es-PE',
+      {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short'});
+}
+updateTimestamp();
+
+// ── Gráficos ──────────────────────────────────────────────────────────────
+const sectorCtx = document.getElementById('chartSector').getContext('2d');
+let sectorChart = new Chart(sectorCtx, {
+  type: 'bar',
+  data: { labels: {{ sector_labels|safe }}, datasets: [
+    { label:'Activos', data:{{ sector_data|safe }},
+      backgroundColor: {{ sector_labels|safe }}.map((_,i) => PALETTE[i%PALETTE.length]),
+      borderRadius:6, borderSkipped:false },
+    { label:'Inactivos', data:{{ sector_inactive|safe }},
+      backgroundColor: {{ sector_labels|safe }}.map(()=>C.gray),
+      borderRadius:6, borderSkipped:false }
+  ]},
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: { legend:{ position:'top', labels:{ font:{size:12}, padding:12 } },
+      tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} equipo${ctx.parsed.y!==1?'s':''}` }} },
+    scales: { y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}, x:{grid:{display:false}} },
+    onClick(e, elements) {
+      if (!elements.length) return;
+      const label = sectorChart.data.labels[elements[0].index];
+      window.location = "{{ url_for('admin.productos') }}?sector=" + encodeURIComponent(label);
+    },
+    onHover(e, el) { e.native.target.style.cursor = el.length ? 'pointer' : 'default'; }
+  }
+});
+
+const paisCtx = document.getElementById('chartPais').getContext('2d');
+let paisChart = new Chart(paisCtx, {
+  type: 'doughnut',
+  data: { labels:['Perú 🇵🇪','Argentina 🇦🇷'],
+    datasets:[{ data:[{{ pe_count }},{{ ar_count }}],
+      backgroundColor:[C.green,C.lime], borderWidth:0, hoverOffset:8 }] },
+  options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
+    plugins:{ legend:{ position:'bottom', labels:{padding:16,font:{size:12}} },
+      tooltip:{ callbacks:{ label: ctx => {
+        const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
+        return ` ${ctx.label}: ${ctx.parsed} equipos (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
+      }}} }
+  }
+});
+
+const tipoCtx = document.getElementById('chartTipo').getContext('2d');
+let tipoChart = new Chart(tipoCtx, {
+  type: 'doughnut',
+  data: { labels:['Solo Alquiler','Solo Venta','Alquiler + Venta'],
+    datasets:[{ data:[{{ alquiler_c }},{{ venta_c }},{{ ambos_c }}],
+      backgroundColor:[C.green,C.navy,C.lime], borderWidth:0, hoverOffset:8 }] },
+  options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
+    plugins:{ legend:{ position:'bottom', labels:{padding:12,font:{size:11}} },
+      tooltip:{ callbacks:{ label: ctx => {
+        const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
+        return ` ${ctx.label}: ${ctx.parsed} (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
+      }}} }
+  }
+});
+
+const blogCtx = document.getElementById('chartBlog').getContext('2d');
+let blogChart = new Chart(blogCtx, {
+  type: 'line',
+  data: { labels:{{ posts_mes_labels|safe }}, datasets:[{
+    label:'Posts publicados', data:{{ posts_mes_data|safe }},
+    borderColor:C.teal, backgroundColor:'rgba(23,162,184,.12)',
+    borderWidth:2.5, tension:.4, fill:true,
+    pointBackgroundColor:C.teal, pointRadius:5, pointHoverRadius:7
+  }]},
+  options: { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false},
+      tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} post${ctx.parsed.y!==1?'s':''}` }} },
+    scales:{ y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}, x:{grid:{display:false}} }
+  }
+});
+
+// ── Actualizar KPIs con nueva data ────────────────────────────────────────
+const kpiMap = {
+  'kpi-total':        d => d.total,
+  'kpi-activos':      d => d.activos,
+  'kpi-inactivos':    d => d.inactivos,
+  'kpi-con-imagen':   d => d.con_imagen,
+  'kpi-total-posts':  d => d.total_posts,
+  'kpi-posts-activos':d => d.posts_activos,
+  'kpi-suc-pe':       d => d.suc_pe,
+  'kpi-suc-ar':       d => d.suc_ar,
+};
+
+function updateKPIs(d) {
+  Object.entries(kpiMap).forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) countUp(el, fn(d) || 0);
+  });
+  // sub-labels porcentaje
+  const setPct = (id, val, tot) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = (tot ? ((val/tot)*100).toFixed(1) : 0) + '% del total';
+  };
+  setPct('sub-activos',   d.activos,   d.total);
+  setPct('sub-inactivos', d.inactivos, d.total);
+  setPct('sub-imagen',    d.con_imagen, d.total);
+  // doughnut centro
+  const centro = document.querySelector('.doughnut-center-value');
+  if (centro) {
+    const totPais = d.pe_count + d.ar_count;
+    centro.textContent = currentCountry === 'all' ? totPais :
+      (currentCountry === 'pe' ? d.pe_count : d.ar_count);
+  }
+}
+
+function updateCharts(d) {
+  // Sector
+  const colors = d.sector_labels.map((_,i) => PALETTE[i%PALETTE.length]);
+  sectorChart.data.labels = d.sector_labels;
+  sectorChart.data.datasets[0].data = d.sector_active;
+  sectorChart.data.datasets[0].backgroundColor = colors;
+  sectorChart.data.datasets[1].data = d.sector_inactive;
+  sectorChart.data.datasets[1].backgroundColor = d.sector_labels.map(()=>C.gray);
+  sectorChart.update();
+
+  // País (solo visible en "todos")
+  const paisCard = document.getElementById('chartPais').closest('.col-lg-5');
+  if (currentCountry === 'all') {
+    paisCard.style.display = '';
+    paisChart.data.datasets[0].data = [d.pe_count, d.ar_count];
+    paisChart.update();
+  } else {
+    paisCard.style.display = 'none';
+  }
+
+  // Tipo
+  const totTipo = d.alquiler_c + d.venta_c + d.ambos_c;
+  tipoChart.data.datasets[0].data = [d.alquiler_c, d.venta_c, d.ambos_c];
+  tipoChart.update();
+  const tipoCentro = document.querySelector('#tipoCenterText .doughnut-center-value');
+  if (tipoCentro) tipoCentro.textContent = totTipo;
+
+  // Blog
+  applyBlogData(d);
+}
+
+function applyBlogData(d) {
+  if (blogView === 'mes') {
+    blogChart.config.type = 'line';
+    blogChart.data.labels = d.posts_mes_labels;
+    blogChart.data.datasets = [{
+      label:'Posts publicados', data:d.posts_mes_data,
+      borderColor:C.teal, backgroundColor:'rgba(23,162,184,.12)',
+      borderWidth:2.5, tension:.4, fill:true,
+      pointBackgroundColor:C.teal, pointRadius:5, pointHoverRadius:7
+    }];
+  } else {
+    blogChart.config.type = 'bar';
+    blogChart.data.labels = d.blog_cat_labels;
+    blogChart.data.datasets = [{
+      label:'Posts', data:d.blog_cat_data,
+      backgroundColor:[C.teal,C.orange,C.purple],
+      borderRadius:6, borderSkipped:false
+    }];
+  }
+  blogChart.options.scales = {
+    y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}},
+    x:{grid:{display:false}}
+  };
+  blogChart.update();
+}
+
+// ── Filtro de país ────────────────────────────────────────────────────────
+async function setCountry(country, btn) {
+  currentCountry = country;
+  document.querySelectorAll('.country-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Mostrar loading
+  document.querySelectorAll('.kpi-value').forEach(el => el.classList.add('loading'));
+
+  try {
+    const res = await fetch(`{{ url_for('admin.dashboard_data') }}?country=${country}`);
+    const d = await res.json();
+    currentData = d;
+    updateKPIs(d);
+    updateCharts(d);
+    updateTimestamp();
+  } catch(e) {
+    console.error('Error cargando datos:', e);
+  } finally {
+    document.querySelectorAll('.kpi-value').forEach(el => el.classList.remove('loading'));
+  }
+}
+
+// ── Toggle tipo de sector ─────────────────────────────────────────────────
+function setSectorType(type, btn) {
+  btn.closest('.chart-card').querySelectorAll('.chart-toggle-btn')
+     .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  sectorChart.options.indexAxis = type === 'horizontalBar' ? 'y' : 'x';
+  sectorChart.update();
+}
+
+// ── Toggle vista blog ─────────────────────────────────────────────────────
+function setBlogView(view, btn) {
+  blogView = view;
+  btn.closest('.chart-card').querySelectorAll('.chart-toggle-btn')
+     .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = Object.keys(currentData).length ? currentData : {
+    posts_mes_labels: {{ posts_mes_labels|safe }},
+    posts_mes_data:   {{ posts_mes_data|safe }},
+    blog_cat_labels:  {{ blog_cat_labels|safe }},
+    blog_cat_data:    {{ blog_cat_data|safe }},
+  };
+  applyBlogData(d);
+}
+</script>
+{% endblock %}
