@@ -101,10 +101,15 @@
           </td>
           <td style="font-size:0.88rem;">{{ p.marca or '—' }}</td>
           <td>
-            {% if p.show_arg %}
+            {% if p.show_pe and p.show_arg %}
+              <span class="adm-badge adm-badge-green" title="Perú">🇵🇪</span>
+              <span class="adm-badge adm-badge-lime" title="Argentina">🇦🇷</span>
+            {% elif p.show_pe %}
+              <span class="adm-badge adm-badge-green">🇵🇪 PE</span>
+            {% elif p.show_arg %}
               <span class="adm-badge adm-badge-lime">🇦🇷 AR</span>
             {% else %}
-              <span class="adm-badge adm-badge-green">🇵🇪 PE</span>
+              <span class="adm-badge" style="background:#fde8e8;color:#c0392b;" title="Sin país asignado">Sin país</span>
             {% endif %}
           </td>
           <td style="font-size:0.85rem;">{{ p.unidad or '—' }}</td>

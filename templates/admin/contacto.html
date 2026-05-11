@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% block title %}Contacto{% endblock %}
+{% block breadcrumb %}Contacto{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="adm-page-title"><i class="bi bi-envelope-at me-2"></i>Configuración de Contacto</h1>
+  <p class="adm-page-sub">Edita los datos de contacto y redes sociales por país.</p>
+</div>
+
+<!-- Tabs -->
+<div class="adm-tabs">
+  <button class="adm-tab-btn active" onclick="switchTab('pe', this)">🇵🇪 Perú</button>
+  <button class="adm-tab-btn" onclick="switchTab('ar', this)">🇦🇷 Argentina</button>
+</div>
+
+{% for pais_code, pais_label in [('pe', 'Perú'), ('ar', 'Argentina')] %}
+<div class="adm-tab-panel {% if pais_code == 'pe' %}active{% endif %}" id="tab-{{ pais_code }}">
+  <form method="post">
+    <input type="hidden" name="pais" value="{{ pais_code }}">
+    <div class="adm-card">
+      <h6 class="fw-bold mb-4" style="color:#02534C;">{{ pais_label }}</h6>
+      <div class="row g-3">
+
+        {% set fields = [
+          ('telefono',        'bi-telephone',    'Teléfono',                 'text',  '+51 943 567 445'),
+          ('whatsapp_link',   'bi-whatsapp',     'WhatsApp Link',            'url',   'https://wa.me/...'),
+          ('email',           'bi-envelope',     'Email',                    'email', 'contacto@cgmrental.com'),
+          ('facebook',        'bi-facebook',     'Facebook URL',             'url',   'https://facebook.com/...'),
+          ('instagram',       'bi-instagram',    'Instagram URL',            'url',   'https://instagram.com/...'),
+          ('linkedin',        'bi-linkedin',     'LinkedIn URL',             'url',   'https://linkedin.com/...'),
+          ('youtube',         'bi-youtube',      'YouTube Canal URL',        'url',   'https://youtube.com/...'),
+          ('direccion',       'bi-geo-alt',      'Dirección',                'text',  'Av. Principal 123'),
+          ('ciudad_principal','bi-building',     'Ciudad Principal',         'text',  'Lima'),
+          ('youtube_video',   'bi-play-circle',  'Video YouTube (URL o ID)', 'text',  'https://www.youtube.com/watch?v=Dz-E6I-nd48'),
+        ] %}
+
+        {% for key, icon, label, ftype, placeholder in fields %}
+        <div class="col-md-6 adm-form-group">
+          <label class="adm-form-label">
+            <i class="bi {{ icon }} me-1"></i>{{ label }}
+          </label>
+          <input type="{{ ftype }}" name="{{ pais_code }}_{{ key }}" class="adm-form-control"
+                 value="{{ config.get(pais_code, {}).get(key, '') }}"
+                 placeholder="{{ placeholder }}">
+          {% if key == 'youtube_video' %}
+          <small style="color:#888;">Pega el link de YouTube o solo el ID del video. Se extrae automáticamente.</small>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+      </div>
+
+      <div class="mt-4">
+        <button type="submit" class="btn-adm-primary">
+          <i class="bi bi-check-lg me-1"></i> Guardar {{ pais_label }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function switchTab(code, btn) {
+  document.querySelectorAll('.adm-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.adm-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + code).classList.add('active');
+}
+</script>
+{% endblock %}

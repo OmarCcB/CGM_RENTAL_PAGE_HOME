@@ -1,4 +1,4 @@
-"""
+﻿"""
 Admin panel routes for CGM Rental.
 Blueprint: 'admin', url_prefix='/admin'
 """
@@ -14,13 +14,9 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-from database import get_conn
+from database import get_conn, upsert_site_config
+import cache as _cache
 from admin.auth import admin_required, get_auth_url, get_token_from_code, get_user_info, azure_configured
-# banner_registry kept for backwards compatibility (migration only)
-try:
-    from admin.banner_registry import get_registry_by_group as _brg, get_registered_filenames as _brf, GROUP_ORDER as _BGO
-except ImportError:
-    _brg = _brf = _BGO = None
 from admin.products_sync import sync_upsert, sync_delete, sync_set_field, sync_full_rebuild_from_db
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -157,7 +153,7 @@ def dashboard():
         sector_inactive.append(n)
 
     # ── Equipos por país ──────────────────────────────────────────────────────
-    pe_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND (show_arg IS NULL OR show_arg=0)").fetchone()["c"]
+    pe_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_pe=1").fetchone()["c"]
     ar_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_arg=1").fetchone()["c"]
 
     # ── Equipos por tipo (tags) ───────────────────────────────────────────────
@@ -169,14 +165,14 @@ def dashboard():
     blog_cat = conn.execute(
         "SELECT categoria, COUNT(*) as c FROM blog_posts WHERE activo=1 GROUP BY categoria"
     ).fetchall()
-    blog_cat_labels = [r["categoria"].capitalize() for r in blog_cat]
+    blog_cat_labels = [(r["categoria"] or "sin categoría").capitalize() for r in blog_cat]
     blog_cat_data   = [r["c"] for r in blog_cat]
 
     # ── Blog posts por mes (últimos 6 meses) ──────────────────────────────────
     posts_mes = conn.execute(
-        """SELECT strftime('%Y-%m', fecha) as mes, COUNT(*) as c
+        """SELECT substr(fecha, 1, 7) AS mes, COUNT(*) AS c
            FROM blog_posts WHERE activo=1 AND fecha IS NOT NULL AND fecha != ''
-           GROUP BY mes ORDER BY mes DESC LIMIT 6"""
+           GROUP BY substr(fecha, 1, 7) ORDER BY mes DESC LIMIT 6"""
     ).fetchall()
     posts_mes_labels = [r["mes"] for r in reversed(posts_mes)]
     posts_mes_data   = [r["c"] for r in reversed(posts_mes)]
@@ -221,7 +217,7 @@ def dashboard_data():
 
     # ── Cláusula de filtro por país ───────────────────────────────────────
     if country == "pe":
-        pf = " AND (show_arg IS NULL OR show_arg=0)"
+        pf = " AND show_pe=1"
         bf = " AND show_pe=1"
     elif country == "ar":
         pf = " AND show_arg=1"
@@ -265,7 +261,7 @@ def dashboard_data():
         sector_inactive.append(n)
 
     # ── País distribution (solo para "all") ───────────────────────────────
-    pe_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND (show_arg IS NULL OR show_arg=0)").fetchone()["c"]
+    pe_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_pe=1").fetchone()["c"]
     ar_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_arg=1").fetchone()["c"]
 
     # ── Tipo de operación ─────────────────────────────────────────────────
@@ -280,9 +276,9 @@ def dashboard_data():
 
     # ── Blog por mes (últimos 6) ──────────────────────────────────────────
     posts_mes = conn.execute(
-        f"""SELECT strftime('%Y-%m', fecha) as mes, COUNT(*) as c
+        f"""SELECT substr(fecha, 1, 7) AS mes, COUNT(*) AS c
             FROM blog_posts WHERE activo=1 AND fecha IS NOT NULL AND fecha != ''{bf}
-            GROUP BY mes ORDER BY mes DESC LIMIT 6"""
+            GROUP BY substr(fecha, 1, 7) ORDER BY mes DESC LIMIT 6"""
     ).fetchall()
     conn.close()
 
@@ -298,7 +294,7 @@ def dashboard_data():
         "pe_count": pe_count, "ar_count": ar_count,
         "alquiler_c": alquiler_c, "venta_c": venta_c, "ambos_c": ambos_c,
         # charts blog
-        "blog_cat_labels": [r["categoria"].capitalize() for r in blog_cat],
+        "blog_cat_labels": [(r["categoria"] or "sin categoría").capitalize() for r in blog_cat],
         "blog_cat_data":   [r["c"] for r in blog_cat],
         "posts_mes_labels": [r["mes"] for r in reversed(posts_mes)],
         "posts_mes_data":   [r["c"] for r in reversed(posts_mes)],
@@ -326,7 +322,7 @@ def productos():
         clauses.append("(nombre LIKE ? OR marca LIKE ? OR slug LIKE ?)")
         params += [f"%{q}%", f"%{q}%", f"%{q}%"]
     if pais == "pe":
-        clauses.append("(show_arg IS NULL OR show_arg=0)")
+        clauses.append("show_pe=1")
     elif pais == "ar":
         clauses.append("show_arg=1")
     if sector:
@@ -350,22 +346,10 @@ def productos():
     ).fetchall()]
     conn.close()
 
-    # Build image URLs from slug
-    products_dir = os.path.join(current_app.root_path, "static", "products")
-    productos_list = []
-    for r in rows:
-        d = dict(r)
-        slug = d.get("slug") or ""
-        img_path = None
-        if slug:
-            folder = os.path.join(products_dir, slug)
-            if os.path.isdir(folder):
-                for ext in ("1.webp", "1.jpg", "1.jpeg", "1.png"):
-                    if os.path.isfile(os.path.join(folder, ext)):
-                        img_path = f"/static/products/{slug}/{ext}"
-                        break
-        d["imagen"] = img_path
-        productos_list.append(d)
+    # El template ya antepone /static/products/ al campo imagen.
+    # La BD almacena el valor correcto (ej. "excavadora-hidraulica-210glc/1.webp"),
+    # así que solo convertimos cada row a dict sin tocar el campo imagen.
+    productos_list = [dict(r) for r in rows]
 
     total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
     return render_template(
@@ -449,6 +433,7 @@ def _save_producto(pid):
     tipo = f.get("tipo", "").strip()
     unidad = f.get("unidad", "").strip()
     activo = 1 if f.get("activo") else 0
+    show_pe  = 1 if f.get("show_pe")  else 0
     show_arg = 1 if f.get("show_arg") else 0
     a_solicitud = 1 if f.get("a_solicitud") else 0
     tags_list = f.getlist("tags")
@@ -458,16 +443,19 @@ def _save_producto(pid):
         flash("El nombre es obligatorio.", "danger")
         return redirect(request.referrer or url_for("admin.productos"))
 
+    if not show_pe and not show_arg:
+        flash("Advertencia: el producto no tiene ningún país seleccionado y no será visible en ningún sitio.", "warning")
+
     conn = get_conn()
     if pid is None:
         conn.execute(
             """INSERT INTO products
-               (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_arg, a_solicitud)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_arg, a_solicitud),
+               (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud),
         )
         conn.commit()
-        pid = conn.execute("SELECT last_insert_rowid() as r").fetchone()["r"]
+        pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
         # Releer la fila completa para sincronizar con el JSON
         new_row = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
         conn.close()
@@ -499,8 +487,8 @@ def _save_producto(pid):
 
         conn.execute(
             """UPDATE products SET slug=?, nombre=?, marca=?, descripcion=?, descripcion_texto=?,
-               tags=?, tipo=?, unidad=?, activo=?, show_arg=?, a_solicitud=?, imagen=? WHERE id=?""",
-            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_arg, a_solicitud, nueva_imagen, pid),
+               tags=?, tipo=?, unidad=?, activo=?, show_pe=?, show_arg=?, a_solicitud=?, imagen=? WHERE id=?""",
+            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, nueva_imagen, pid),
         )
         conn.commit()
         updated_row = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
@@ -889,6 +877,7 @@ def banners_replace():
 
     log_action(current_user().get("email", "?"), "reemplazar_banner",
                f"{slot} [{country_code}] → {target}")
+    _cache.invalidate("banners:")  # el archivo cambió → forzar recarga en la web
     flash(f"Banner «{row['label']}» actualizado correctamente.", "success")
     return redirect(url_for("admin.banners"))
 
@@ -959,11 +948,11 @@ def banners_country_upload():
                 os.remove(tmp_path)
 
     if not existing:
-        # Crear nueva entrada en BD copiando metadatos del global
+        # Crear nueva entrada en BD copiando metadatos del global.
         base = dict(global_row)
         conn.execute(
             """INSERT OR IGNORE INTO banners_config
-               (slot, country_code, group_name, label, description, filename, orden, pages, activo)
+                   (slot, country_code, group_name, label, description, filename, orden, pages, activo)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)""",
             (slot, country_code, base["group_name"], base["label"],
              base["description"], target, base["orden"], base["pages"]),
@@ -974,6 +963,7 @@ def banners_country_upload():
     cc_label = "Perú" if country_code == "pe" else "Argentina"
     log_action(current_user().get("email", "?"), "subir_banner_pais",
                f"{slot} [{country_code}] → {target}")
+    _cache.invalidate("banners:")  # nuevo banner por país → forzar recarga en la web
     flash(f"Versión específica para {cc_label} del banner «{label}» guardada.", "success")
     return redirect(url_for("admin.banners"))
 
@@ -1013,6 +1003,7 @@ def banners_country_remove():
     cc_label = "Perú" if country_code == "pe" else "Argentina"
     log_action(current_user().get("email", "?"), "eliminar_banner_pais",
                f"{slot} [{country_code}]")
+    _cache.invalidate("banners:")  # banner eliminado → forzar recarga en la web
     flash(f"Versión para {cc_label} eliminada. Ahora se usa la imagen global.", "success")
     return redirect(url_for("admin.banners"))
 
@@ -1041,7 +1032,7 @@ def banners_delete_orphan():
 
 
 # ── Contacto / site_config ────────────────────────────────────────────────────
-CONFIG_KEYS = [
+keyS = [
     "telefono", "whatsapp_link", "email", "facebook",
     "instagram", "linkedin", "youtube", "direccion", "ciudad_principal",
     "youtube_video",
@@ -1084,15 +1075,11 @@ def contacto():
     conn = get_conn()
     if request.method == "POST":
         pais = request.form.get("pais", "pe")
-        for key in CONFIG_KEYS:
+        for key in keyS:
             value = request.form.get(f"{pais}_{key}", "")
             if key == "youtube_video":
                 value = _extract_youtube_id(value)
-            conn.execute(
-                "INSERT INTO site_config (country_code, key, value) VALUES (?, ?, ?) "
-                "ON CONFLICT(country_code, key) DO UPDATE SET value=excluded.value",
-                (pais, key, value),
-            )
+            upsert_site_config(conn, pais, key, value)
             # Si se actualiza la dirección, sincronizar con la sucursal principal
             if key == "direccion" and value:
                 conn.execute(
@@ -1101,6 +1088,7 @@ def contacto():
                 )
         conn.commit()
         conn.close()
+        _cache.invalidate("country:")  # site_config cambió → forzar recarga en la web
         log_action(current_user().get("email", "?"), "actualizar_contacto", f"pais={pais}")
         flash("Configuración guardada.", "success")
         return redirect(url_for("admin.contacto"))
@@ -1114,7 +1102,7 @@ def contacto():
         for r in rows:
             config[code][r["key"]] = r["value"]
     conn.close()
-    return render_template("admin/contacto.html", user=current_user(), config=config, config_keys=CONFIG_KEYS)
+    return render_template("admin/contacto.html", user=current_user(), config=config, keys=keyS)
 
 
 # ── Sucursales ────────────────────────────────────────────────────────────────
@@ -1164,13 +1152,10 @@ def sucursales_guardar():
         )
         # Si es la sucursal principal, sincronizar dirección en site_config
         if tipo == "principal" and direccion:
-            conn.execute(
-                "INSERT INTO site_config (country_code, key, value) VALUES (?, 'direccion', ?) "
-                "ON CONFLICT(country_code, key) DO UPDATE SET value=excluded.value",
-                (country_code, direccion),
-            )
+            upsert_site_config(conn, country_code, "direccion", direccion)
         conn.commit()
         conn.close()
+        _cache.invalidate("country:")  # sucursales cambiaron → forzar recarga en la web
         log_action(current_user().get("email", "?"), "editar_sucursal", f"ID={sid} nombre={nombre}")
     else:
         conn.execute(
@@ -1180,13 +1165,10 @@ def sucursales_guardar():
         )
         # Si es la sucursal principal, sincronizar dirección en site_config
         if tipo == "principal" and direccion:
-            conn.execute(
-                "INSERT INTO site_config (country_code, key, value) VALUES (?, 'direccion', ?) "
-                "ON CONFLICT(country_code, key) DO UPDATE SET value=excluded.value",
-                (country_code, direccion),
-            )
+            upsert_site_config(conn, country_code, "direccion", direccion)
         conn.commit()
         conn.close()
+        _cache.invalidate("country:")  # sucursales cambiaron → forzar recarga en la web
         log_action(current_user().get("email", "?"), "crear_sucursal", f"nombre={nombre} country={country_code}")
     flash("Sucursal guardada.", "success")
     return redirect(url_for("admin.sucursales"))
@@ -1199,6 +1181,7 @@ def sucursales_eliminar(sid):
     conn.execute("DELETE FROM sucursales_db WHERE id=?", (sid,))
     conn.commit()
     conn.close()
+    _cache.invalidate("country:")  # sucursal eliminada → forzar recarga en la web
     log_action(current_user().get("email", "?"), "eliminar_sucursal", f"ID={sid}")
     flash("Sucursal eliminada.", "success")
     return redirect(url_for("admin.sucursales"))
@@ -1292,9 +1275,9 @@ def _save_blog(pid):
             (slug, titulo, categoria, fecha, imagen, extracto, contenido, video_url, activo, show_pe, show_arg),
         )
         conn.commit()
+        pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
         log_action(current_user().get("email", "?"), "crear_blog", f"slug={slug}")
         flash("Post creado exitosamente.", "success")
-        pid = conn.execute("SELECT last_insert_rowid() as r").fetchone()["r"]
     else:
         conn.execute(
             """UPDATE blog_posts SET slug=?, titulo=?, categoria=?, fecha=?, imagen=?,
@@ -1368,3 +1351,4 @@ def historial():
         total_pages=total_pages,
         total=total,
     )
+

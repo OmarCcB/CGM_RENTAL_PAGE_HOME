@@ -1,0 +1,940 @@
+% ============================================================================
+%  CGM Rental — Manual del Panel de Administracion
+%  Guia de uso y funcionamiento del backoffice del sitio web
+%  Desarrollado por: Omar Antonio Ccencho Barazorda
+%  Cliente: CGM Rental
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ── Paquetes ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage[hidelinks,colorlinks=true,linkcolor=cgmgreen,urlcolor=cgmgreen]{hyperref}
+
+% ── Colores corporativos CGM ─────────────────────────────────────────────────
+\definecolor{cgmgreen}{HTML}{004D3D}
+\definecolor{cgmlime}{HTML}{C5E86C}
+\definecolor{cgmgray}{HTML}{4A4A4A}
+\definecolor{codebg}{HTML}{F5F5F5}
+
+% ── Estilos de titulos ──────────────────────────────────────────────────────
+\titleformat{\section}{\color{cgmgreen}\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{cgmgreen}\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\color{cgmgray}\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% ── Encabezado y pie de pagina ──────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{cgmgreen}\leaders\hrule height \headrulewidth\hfill}}
+\fancyhead[L]{\textcolor{cgmgreen}{\textbf{CGM Rental}}}
+\fancyhead[R]{\textcolor{cgmgray}{Manual Panel de Administracion}}
+\fancyfoot[C]{\thepage}
+
+% ── Listings para codigo ────────────────────────────────────────────────────
+\lstdefinestyle{cgmcode}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{cgmgreen}\bfseries,
+    stringstyle=\color{cgmgray},
+    commentstyle=\color{gray}\itshape,
+    breaklines=true,
+    showstringspaces=false,
+    frame=single,
+    rulecolor=\color{cgmlime},
+    framesep=4pt,
+    xleftmargin=8pt,
+    aboveskip=10pt,
+    belowskip=10pt,
+}
+\lstset{style=cgmcode}
+
+% ── Cajas tematicas ─────────────────────────────────────────────────────────
+\newtcolorbox{infobox}[1][]{
+    colback=cgmlime!15,
+    colframe=cgmgreen,
+    boxrule=0.6pt, arc=2pt,
+    left=8pt,right=8pt,top=6pt,bottom=6pt, #1
+}
+\newtcolorbox{warningbox}[1][]{
+    colback=red!5,
+    colframe=red!50,
+    boxrule=0.6pt, arc=2pt,
+    left=8pt,right=8pt,top=6pt,bottom=6pt, #1
+}
+\newtcolorbox{tipbox}[1][]{
+    colback=blue!5,
+    colframe=blue!40,
+    boxrule=0.6pt, arc=2pt,
+    left=8pt,right=8pt,top=6pt,bottom=6pt, #1
+}
+
+% ── Metadatos ───────────────────────────────────────────────────────────────
+\title{
+    \vspace{-2cm}
+    \begin{flushleft}
+    \textcolor{cgmgreen}{\rule{\linewidth}{2pt}}\\[0.4cm]
+    \textcolor{cgmgreen}{\Huge\bfseries Manual del Panel}\\[0.15cm]
+    \textcolor{cgmgreen}{\Huge\bfseries de Administracion}\\[0.25cm]
+    \textcolor{cgmgray}{\LARGE Backoffice del Sitio Web}\\[0.2cm]
+    \textcolor{cgmgreen}{\Large CGM Rental --- Guia de Uso}\\[0.2cm]
+    \textcolor{cgmlime!70!black}{\rule{\linewidth}{1pt}}
+    \end{flushleft}
+}
+
+\author{
+    \textbf{Desarrollado por:} Omar Antonio Ccencho Barazorda\\
+    \textbf{Cliente:} CGM Rental\\
+    \textbf{Modulo:} \texttt{admin/} (Flask Blueprint)
+}
+
+\date{\today}
+
+% ============================================================================
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{infobox}
+\textbf{Proposito del documento.} Esta guia explica el funcionamiento del
+panel de administracion del sitio web de CGM Rental: como iniciar sesion,
+que se puede hacer desde cada modulo (productos, banners, blog, sucursales,
+contacto), las limitaciones actuales y como activarlo / desactivarlo. Esta
+dirigida tanto al personal de CGM Rental que opera el panel como al
+desarrollador que herede el proyecto.
+\end{infobox}
+
+\vspace{0.4cm}
+\tableofcontents
+\newpage
+
+% ============================================================================
+\section{Estado Actual del Panel}
+% ============================================================================
+
+\begin{warningbox}
+\textbf{Importante.} En la version actual del repositorio (rama
+\texttt{main}, commit etiquetado como \texttt{v\_sin\_admin}) el panel de
+administracion \textbf{no esta activo}. El codigo del blueprint vive en
+\texttt{admin/routes.py} pero \textbf{no se registra} en \texttt{app.py},
+y algunas dependencias internas (\texttt{admin/auth.py},
+\texttt{admin/products\_sync.py}, \texttt{admin/banner\_registry.py}) no
+estan presentes en esta rama.
+\end{warningbox}
+
+\subsection{Por que se desactivo}
+
+El commit \texttt{1eaeea2} (\textit{``v\_sin\_admin --- Version estable sin
+panel de administracion''}) marca la decision de mantener una version de
+produccion sin backoffice, dejando el codigo del panel como referencia para
+futuras reactivaciones. Los motivos historicos fueron:
+
+\begin{itemize}[leftmargin=*]
+    \item Necesidad de simplificar el despliegue mientras CGM Rental define
+        roles de administradores autorizados.
+    \item Dependencia de un tenant de Azure AD para el login, que requiere
+        provisioning del lado del cliente.
+    \item Estabilizacion del catalogo: priorizar que la web publica funcione
+        sin interrupciones antes de habilitar edicion en vivo.
+\end{itemize}
+
+\subsection{Como se reactivaria}
+
+Para volver a activar el panel hace falta:
+
+\begin{enumerate}[leftmargin=*]
+    \item Recuperar los modulos faltantes desde el historial Git (
+        \texttt{admin/auth.py}, \texttt{admin/products\_sync.py},
+        \texttt{admin/banner\_registry.py}). Buscar en commits anteriores a
+        \texttt{1eaeea2}.
+    \item Anadir las tablas auxiliares al schema en \texttt{database.py}
+        (ver \S\ref{sec:tablas-admin}).
+    \item Registrar el blueprint en \texttt{app.py}:
+\begin{lstlisting}[language=Python]
+from admin.routes import admin_bp
+app.register_blueprint(admin_bp)
+\end{lstlisting}
+    \item Configurar las variables de entorno de Azure AD (\S\ref{sec:azure}).
+    \item Reiniciar el servicio.
+\end{enumerate}
+
+% ============================================================================
+\section{Vision General del Backoffice}
+% ============================================================================
+
+El panel administrativo es un \textbf{blueprint de Flask} montado en
+\texttt{/admin}. Esta pensado para que el equipo de CGM Rental pueda:
+
+\begin{itemize}[leftmargin=*]
+    \item Ver \textbf{indicadores clave (KPIs)} del catalogo y del blog.
+    \item Crear, editar, activar/desactivar y borrar \textbf{productos}.
+    \item Subir y reorganizar las \textbf{imagenes} de cada producto (con
+        conversion automatica a WebP).
+    \item Reemplazar \textbf{banners} del sitio (hero, home cards, banners de
+        seccion) con versiones por pais (PE / AR).
+    \item Editar la \textbf{informacion de contacto} (telefonos, redes,
+        direccion) por pais.
+    \item Gestionar las \textbf{sucursales} de cada pais.
+    \item Crear, editar, activar/desactivar y borrar \textbf{posts del
+        blog}.
+    \item Revisar el \textbf{historial de auditoria} (quien hizo que y cuando).
+\end{itemize}
+
+\subsection{Mapa de modulos}
+
+\begin{center}
+\begin{tabular}{l l}
+\toprule
+\textbf{Modulo} & \textbf{URL} \\
+\midrule
+Login                       & \texttt{/admin/login}     \\
+Dashboard / KPIs            & \texttt{/admin/dashboard} \\
+Productos                   & \texttt{/admin/productos} \\
+Banners                     & \texttt{/admin/banners}   \\
+Contacto y redes            & \texttt{/admin/contacto}  \\
+Sucursales                  & \texttt{/admin/sucursales} \\
+Blog / Novedades            & \texttt{/admin/blog}      \\
+Historial de actividad      & \texttt{/admin/historial} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================================
+\section{Autenticacion con Azure AD}
+\label{sec:azure}
+% ============================================================================
+
+El panel \textbf{no tiene login con usuario y contrasena}. Se autentica con la
+cuenta corporativa Microsoft 365 de CGM Rental via Azure Active Directory (OAuth
+2.0). Esto significa:
+
+\begin{itemize}[leftmargin=*]
+    \item No hay que crear ni gestionar usuarios en la base de datos.
+    \item Cualquier usuario de \texttt{cgmrental.com} podria autenticarse,
+        pero solo se le concede acceso si su correo esta en la
+        \textbf{whitelist}.
+    \item La sesion se mantiene en una cookie Flask firmada.
+\end{itemize}
+
+\subsection{Flujo de login}
+
+\begin{enumerate}[leftmargin=*]
+    \item El usuario entra a \texttt{/admin/login}.
+    \item Hace clic en ``Iniciar sesion con Microsoft''.
+    \item Azure AD lo redirige a la URL de Microsoft con un \texttt{code}.
+    \item Azure devuelve un token + datos del usuario.
+    \item El panel revisa que el email este en la whitelist
+        (\texttt{ADMIN\_ALLOWED\_EMAILS}).
+    \item Si esta autorizado, crea la sesion y redirige al \texttt{/dashboard}.
+    \item Si no, registra el intento fallido en \texttt{audit\_log} y muestra
+        un mensaje.
+\end{enumerate}
+
+\subsection{Variables de entorno requeridas}
+
+\begin{longtable}{p{5.5cm} p{9.5cm}}
+\toprule
+\textbf{Variable} & \textbf{Proposito} \\
+\midrule
+\endhead
+\texttt{AZURE\_CLIENT\_ID}            & Application (client) ID del registro en Azure AD. \\
+\texttt{AZURE\_CLIENT\_SECRET}        & Secret generado en Azure (rotacion periodica recomendada). \\
+\texttt{AZURE\_TENANT\_ID}            & Tenant ID de CGM Rental en Azure AD. \\
+\texttt{AZURE\_REDIRECT\_URI}         & URL de callback, p.\ej.\ \texttt{https://cgmrental.com/admin/auth/callback}. \\
+\texttt{ADMIN\_ALLOWED\_EMAILS}       & Lista de correos autorizados, separados por coma. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Whitelist de correos}
+
+La whitelist es obligatoria y se lee como un set:
+
+\begin{lstlisting}[language=Python]
+allowed_raw = os.getenv("ADMIN_ALLOWED_EMAILS", "")
+allowed = {e.strip().lower() for e in allowed_raw.split(",") if e.strip()}
+user_email = (user.get("email") or "").strip().lower()
+if allowed and user_email not in allowed:
+    log_action(user_email or "?", "login_denegado", ...)
+    flash("Tu correo no tiene permisos...")
+    return redirect(url_for("admin.login"))
+\end{lstlisting}
+
+\begin{tipbox}
+\textbf{Tip operativo.} Para anadir un nuevo administrador basta con editar
+la variable \texttt{ADMIN\_ALLOWED\_EMAILS} en el archivo \texttt{.env} del
+servidor y reiniciar el servicio. No requiere cambios en codigo ni en base
+de datos.
+\end{tipbox}
+
+% ============================================================================
+\section{Tablas Auxiliares del Panel}
+\label{sec:tablas-admin}
+% ============================================================================
+
+El panel necesita tablas que no estan creadas por \texttt{database.py} en la
+rama actual. Si se reactiva, hay que anadirlas al schema.
+
+\subsection{\texttt{audit\_log}}
+Registro de toda accion administrativa.
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{id}      & INTEGER PK & Autoincremental. \\
+\texttt{usuario} & TEXT       & Email del admin que ejecuto la accion. \\
+\texttt{accion}  & TEXT       & Codigo de la accion (\texttt{crear\_producto}, \texttt{login}, etc.). \\
+\texttt{detalle} & TEXT       & Detalle libre (ID afectado, slug, mensaje). \\
+\texttt{fecha}   & TEXT       & \texttt{datetime('now')}. \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{sucursales\_db}}
+Sucursales gestionadas desde el admin (reemplaza al array hardcodeado en
+\texttt{countries.py}).
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{id}            & INTEGER PK & Autoincremental. \\
+\texttt{country\_code} & TEXT       & \texttt{pe} o \texttt{ar}. \\
+\texttt{nombre}        & TEXT       & Nombre visible (ej.\ ``Lima'', ``Piura''). \\
+\texttt{tipo}          & TEXT       & \texttt{principal}, \texttt{sucursal}, \texttt{atencion}. \\
+\texttt{direccion}     & TEXT       & Direccion fisica. \\
+\texttt{lat, lng}      & REAL       & Coordenadas para Google Maps. \\
+\texttt{maps\_url}     & TEXT       & Link directo a la ubicacion en Google Maps. \\
+\texttt{telefono}      & TEXT       & Opcional. \\
+\texttt{orden}         & INTEGER    & Para ordenar manualmente. \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{site\_config}}
+Configuracion de contacto editable por pais (telefonos, redes, video YouTube).
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{country\_code} & TEXT       & PK compuesta con \texttt{key}. \\
+\texttt{key}           & TEXT       & \texttt{telefono}, \texttt{whatsapp\_link}, \texttt{email}, \texttt{facebook}, \texttt{instagram}, \texttt{linkedin}, \texttt{youtube}, \texttt{direccion}, \texttt{ciudad\_principal}, \texttt{youtube\_video}. \\
+\texttt{value}         & TEXT       & Valor del campo. \\
+\bottomrule
+\end{longtable}
+
+\subsection{\texttt{banners\_config}}
+Configuracion de los banners del sitio (estructura, slot, version por pais).
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{slot}          & TEXT       & Identificador unico del slot (ej.\ \texttt{hero-slide-1}). \\
+\texttt{country\_code} & TEXT       & \texttt{*} (global), \texttt{pe} o \texttt{ar}. \\
+\texttt{group\_name}   & TEXT       & Agrupacion visual (Hero, Home Cards, Categorias). \\
+\texttt{label}         & TEXT       & Nombre legible del banner. \\
+\texttt{description}   & TEXT       & Descripcion / contexto. \\
+\texttt{filename}      & TEXT       & Ruta relativa dentro de \texttt{static/images/banners/}. \\
+\texttt{orden}         & INTEGER    & Orden de presentacion. \\
+\texttt{pages}         & TEXT       & JSON con lista de paginas donde aparece. \\
+\texttt{activo}        & INTEGER    & 0 / 1. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Modificaciones a \texttt{blog\_posts}}
+El admin asume dos columnas adicionales en \texttt{blog\_posts}:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{show\_pe} INTEGER --- visible en vitrina Peru.
+    \item \texttt{show\_arg} INTEGER --- visible en vitrina Argentina.
+\end{itemize}
+
+% ============================================================================
+\section{Modulo: Dashboard}
+% ============================================================================
+
+\subsection{Que muestra}
+
+El dashboard (\texttt{/admin/dashboard}) presenta un resumen visual del estado
+del catalogo y del blog. Incluye:
+
+\paragraph{KPIs de equipos.}
+\begin{itemize}[leftmargin=*]
+    \item Total de productos.
+    \item Productos activos vs inactivos.
+    \item Productos con / sin imagen.
+\end{itemize}
+
+\paragraph{KPIs de blog.}
+\begin{itemize}[leftmargin=*]
+    \item Total de posts.
+    \item Posts activos.
+\end{itemize}
+
+\paragraph{KPIs de sucursales.}
+\begin{itemize}[leftmargin=*]
+    \item Cantidad de sucursales en Peru.
+    \item Cantidad de sucursales en Argentina.
+\end{itemize}
+
+\paragraph{Graficos.}
+\begin{itemize}[leftmargin=*]
+    \item Equipos activos / inactivos por sector (Construccion, Mineria,
+        Agricola, Energia).
+    \item Distribucion de equipos por pais (PE vs AR).
+    \item Distribucion por tipo de operacion (alquiler, venta, ambos).
+    \item Blog: posts por categoria y por mes (ultimos 6 meses).
+\end{itemize}
+
+\paragraph{Actividad reciente.} Tabla con las ultimas 12 entradas de
+\texttt{audit\_log}.
+
+\subsection{Filtro por pais}
+
+El dashboard tiene un selector \texttt{All / PE / AR}. Al cambiarlo se hace
+una llamada AJAX a \texttt{/admin/dashboard/data?country=...} que devuelve
+todos los KPIs filtrados, sin recargar la pagina.
+
+% ============================================================================
+\section{Modulo: Productos}
+% ============================================================================
+
+Es el modulo mas extenso. Permite el CRUD completo del catalogo.
+
+\subsection{Listado (\texttt{/admin/productos})}
+
+\subsubsection{Filtros disponibles}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Buscador} \texttt{q}: busca en \texttt{nombre}, \texttt{marca}
+        o \texttt{slug}.
+    \item \textbf{Pais}: PE (productos donde \texttt{show\_arg} es nulo/0) o
+        AR (\texttt{show\_arg=1}).
+    \item \textbf{Sector}: filtra por \texttt{unidad}.
+    \item \textbf{Estado}: Activo / Inactivo.
+\end{itemize}
+
+\subsubsection{Paginacion}
+20 productos por pagina, ordenados por \texttt{id DESC} (los mas nuevos
+primero).
+
+\subsubsection{Imagen miniatura}
+La miniatura no se lee del campo \texttt{imagen} de la BD sino directamente
+del filesystem. Se busca el primer archivo \texttt{1.webp},
+\texttt{1.jpg}, \texttt{1.jpeg} o \texttt{1.png} dentro de
+\texttt{static/products/<slug>/}.
+
+\subsection{Crear / editar producto}
+
+\subsubsection{Campos del formulario}
+
+\begin{longtable}{p{3.5cm} p{1.5cm} p{8cm}}
+\toprule
+\textbf{Campo} & \textbf{Tipo} & \textbf{Notas} \\
+\midrule
+\endhead
+Nombre              & texto    & Obligatorio. \\
+Slug                & texto    & Si se deja vacio se genera con \texttt{\_slugify(nombre)}. \\
+Marca               & texto    & Libre. \\
+Descripcion         & textarea & Lista de features separadas por pipe (\texttt{|}). \\
+Descripcion texto   & textarea & Texto largo descriptivo (parrafos). \\
+Tags                & checkbox & \texttt{alquiler}, \texttt{venta}. Se pueden marcar ambos. \\
+Tipo                & texto    & Ej.\ ``Excavadora'', ``Cargador Frontal''. \\
+Unidad              & texto    & Sector. Admite pipe para multi-sector. \\
+Activo              & checkbox & Visible en el sitio publico. \\
+Mostrar en Argentina & checkbox & Si esta tildado, aparece en vitrina AR. \\
+A solicitud         & checkbox & Marca el equipo como ``bajo solicitud''. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Renombrado de slug}
+
+Si al editar se cambia el slug:
+
+\begin{itemize}[leftmargin=*]
+    \item La \textbf{carpeta de imagenes} se renombra automaticamente
+        (\texttt{static/products/<slug-viejo>/} $\rightarrow$
+        \texttt{<slug-nuevo>/}) si la carpeta destino no existe.
+    \item El campo \texttt{imagen} en BD se actualiza reemplazando el prefijo
+        del slug viejo.
+    \item \texttt{products.json} se sincroniza: se borra la entrada vieja y se
+        inserta la nueva.
+\end{itemize}
+
+\subsubsection{Sincronizacion con \texttt{products.json}}
+
+Cada vez que se crea, edita o elimina un producto, el admin tambien actualiza
+el archivo \texttt{products.json} mediante:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{sync\_upsert(row)} --- inserta o actualiza el producto.
+    \item \texttt{sync\_delete(slug)} --- elimina del JSON.
+    \item \texttt{sync\_set\_field(slug, field, value)} --- patch puntual
+        (usado al hacer toggle de \texttt{activo}).
+\end{itemize}
+
+\begin{warningbox}
+\textbf{Por que existe esta doble fuente.} Cuando el servidor reinicia,
+\texttt{seed\_db()} repuebla la tabla \texttt{products} desde
+\texttt{products.json} si esta vacia. Si se edita la BD pero no el JSON, los
+cambios podrian perderse en algunos escenarios de despliegue. Por eso el
+panel mantiene los dos en sincronia.
+\end{warningbox}
+
+\subsubsection{Reconstruir \texttt{products.json}}
+
+Si el JSON se desincroniza (ediciones manuales, scripts auxiliares, dump
+fuera del admin), existe el boton \textbf{``Reconstruir products.json''}
+(\texttt{POST /admin/productos/sync-json}). Esto regenera el archivo desde el
+estado actual de la base de datos.
+
+\subsection{Gestion de imagenes}
+
+\subsubsection{Upload con conversion a WebP}
+
+Cuando se sube una imagen de producto:
+
+\begin{enumerate}[leftmargin=*]
+    \item Si la extension es \texttt{webp}, se guarda tal cual.
+    \item Si es \texttt{jpg/jpeg/png}, se convierte a WebP con Pillow,
+        calidad 88, manteniendo transparencia si la imagen es RGBA/LA/P.
+    \item Se renombra al siguiente numero disponible: \texttt{1.webp},
+        \texttt{2.webp}, \texttt{3.webp}\ldots
+\end{enumerate}
+
+\subsubsection{Limites}
+\begin{itemize}[leftmargin=*]
+    \item Tamano maximo por archivo: \textbf{10 MB}.
+    \item Formatos permitidos: \texttt{webp, jpg, jpeg, png}.
+    \item Tambien se aceptan PDFs dentro de la carpeta del producto (para
+        fichas tecnicas locales).
+\end{itemize}
+
+\subsubsection{Eliminar imagen}
+Desde la vista de edicion del producto se puede borrar cualquier imagen
+individualmente con \texttt{POST /admin/productos/<id>/imagen/eliminar}.
+
+\subsection{Toggle activo / inactivo}
+
+Con un endpoint AJAX (\texttt{POST /admin/productos/<id>/toggle}) se alterna
+\texttt{activo} sin recargar la pagina. Tambien sincroniza el JSON.
+
+\subsection{Eliminar producto}
+
+\texttt{POST /admin/productos/<id>/eliminar} borra el producto de la BD
+\textbf{y} lo elimina de \texttt{products.json} para que \texttt{seed\_db()}
+no lo recree al reiniciar.
+
+\begin{tipbox}
+\textbf{Buena practica.} En lugar de eliminar productos, conviene
+\textbf{desactivarlos} (toggle a inactivo). Asi se conserva el historico y se
+puede revertir facilmente. Eliminar es definitivo y elimina tambien las
+imagenes asociadas si se borra la carpeta manualmente.
+\end{tipbox}
+
+% ============================================================================
+\section{Modulo: Banners}
+% ============================================================================
+
+Permite reemplazar las imagenes del sitio organizadas por slots.
+
+\subsection{Concepto de \texttt{slot}}
+
+Un \textbf{slot} es una posicion fija en el diseno (por ejemplo, el primer
+slide del hero de la home). Cada slot tiene:
+
+\begin{itemize}[leftmargin=*]
+    \item Una \textbf{version global} (\texttt{country\_code = '*'}) que se
+        muestra en todos los paises por defecto.
+    \item Versiones \textbf{especificas por pais} (\texttt{country\_code = 'pe'}
+        o \texttt{'ar'}) que, si existen, sobrescriben a la global.
+\end{itemize}
+
+\subsection{Reemplazar un banner existente}
+
+\texttt{POST /admin/banners/replace} acepta:
+\begin{itemize}[leftmargin=*]
+    \item \texttt{slot}: identificador del slot.
+    \item \texttt{country\_code}: \texttt{*}, \texttt{pe} o \texttt{ar}.
+    \item \texttt{file}: la nueva imagen.
+\end{itemize}
+
+El nombre de archivo \textbf{nunca cambia} --- el admin reemplaza el contenido
+preservando el \texttt{filename} registrado en \texttt{banners\_config}. Si la
+imagen subida no es WebP se convierte automaticamente.
+
+\subsection{Crear una version pais-especifica}
+
+\texttt{POST /admin/banners/country-upload}: a partir de un slot que solo tiene
+version global, crea una version unicamente para Peru o Argentina. Hereda los
+metadatos (label, group, descripcion) de la entrada global.
+
+\subsection{Eliminar version pais}
+
+\texttt{POST /admin/banners/country-remove}: borra la version PE o AR y vuelve
+a usar la imagen global.
+
+\subsection{Tamanos recomendados}
+
+El admin sugiere dimensiones segun el prefijo del filename:
+
+\begin{center}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Prefijo} & \textbf{Dimension} & \textbf{Ratio} \\
+\midrule
+\texttt{hero/}                          & 2700 $\times$ 1000 px & panoramica 16:6 \\
+\texttt{categorias/}                    & 1600 $\times$ 600 px  & panoramica 8:3 \\
+\texttt{home-cards/leasing-operativo}   & 1400 $\times$ 580 px  & rectangular 8:3 \\
+\texttt{home-cards/}                    & 800 $\times$ 700 px   & casi cuadrada 1.15:1 \\
+\texttt{otros/contacto-banner}          & 2700 $\times$ 1000 px & panoramica 16:6 \\
+\texttt{otros/contacto-lateral}         & 1100 $\times$ 800 px  & rectangular 1.4:1 \\
+\texttt{otros/carrito}                  & 1400 $\times$ 580 px  & rectangular 8:3 \\
+\texttt{otros/portal-bg}                & 1100 $\times$ 800 px  & rectangular 1.4:1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Archivos huerfanos}
+
+El admin detecta automaticamente archivos que existen en
+\texttt{static/images/banners/} pero \textbf{no estan registrados} en
+\texttt{banners\_config}. Los lista en una seccion separada con opcion a
+borrarlos individualmente.
+
+\begin{warningbox}
+Solo se pueden eliminar archivos \textbf{huerfanos}. Los banners
+registrados se reemplazan pero nunca se borran, para no romper referencias
+desde el frontend.
+\end{warningbox}
+
+% ============================================================================
+\section{Modulo: Contacto y Redes}
+% ============================================================================
+
+URL: \texttt{/admin/contacto}. Permite editar la \textbf{informacion de
+contacto que aparece en el sitio publico}, separada por pais.
+
+\subsection{Campos editables}
+
+\begin{itemize}[leftmargin=*]
+    \item Telefono.
+    \item Link de WhatsApp (formato \texttt{https://wa.link/...} o
+        \texttt{wa.me/...}).
+    \item Email.
+    \item Facebook, Instagram, LinkedIn, YouTube.
+    \item Direccion principal.
+    \item Ciudad principal.
+    \item Video de YouTube (acepta cualquier formato y extrae el ID).
+\end{itemize}
+
+\subsection{Extraccion automatica del ID de YouTube}
+
+Cuando se pega un link de video, el admin acepta cualquiera de estos
+formatos y extrae el ID de 11 caracteres:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{https://www.youtube.com/watch?v=XXXX}
+    \item \texttt{https://youtu.be/XXXX}
+    \item \texttt{https://www.youtube.com/embed/XXXX}
+    \item Solo el ID: \texttt{XXXX}
+\end{itemize}
+
+\subsection{Sincronizacion con sucursales}
+
+Si se edita la direccion del pais, el admin actualiza tambien la direccion
+de la sucursal marcada como \texttt{principal} en \texttt{sucursales\_db}, para
+que ambos lados queden consistentes.
+
+% ============================================================================
+\section{Modulo: Sucursales}
+% ============================================================================
+
+URL: \texttt{/admin/sucursales}.
+
+\subsection{Que se puede hacer}
+
+\begin{itemize}[leftmargin=*]
+    \item Listar las sucursales de PE y AR en dos tablas separadas.
+    \item Crear una nueva sucursal.
+    \item Editar nombre, tipo, direccion, lat/lng, link de Google Maps,
+        telefono, orden de visualizacion.
+    \item Eliminar sucursales.
+\end{itemize}
+
+\subsection{Tipos de sucursal}
+
+\begin{description}[leftmargin=*]
+    \item[\texttt{principal}] Sede principal (1 por pais).
+    \item[\texttt{sucursal}] Sucursal con operacion completa.
+    \item[\texttt{atencion}] Punto de atencion sin operacion logistica.
+\end{description}
+
+\subsection{Coordenadas}
+
+Los campos \texttt{lat} y \texttt{lng} son obligatorios para que la sucursal
+aparezca correctamente en el mapa de la pagina \texttt{/nuestros-locales/}.
+Si se ingresan valores no numericos, el admin los convierte a \texttt{0.0}
+silenciosamente.
+
+\subsection{Sincronizacion automatica}
+
+Si se edita la direccion de la sucursal \texttt{principal}, se actualiza
+automaticamente la entrada \texttt{direccion} en \texttt{site\_config} para
+ese pais.
+
+% ============================================================================
+\section{Modulo: Blog}
+% ============================================================================
+
+URL: \texttt{/admin/blog}.
+
+\subsection{Listado}
+
+Tabla con todos los posts ordenados por \texttt{fecha DESC}.
+
+\subsection{Crear / editar post}
+
+\subsubsection{Campos}
+
+\begin{longtable}{p{3.2cm} p{1.5cm} p{9cm}}
+\toprule
+\textbf{Campo} & \textbf{Tipo} & \textbf{Notas} \\
+\midrule
+\endhead
+Titulo          & texto    & Obligatorio. \\
+Slug            & texto    & Auto-generado del titulo si se omite. \\
+Categoria       & texto    & Ej.\ \texttt{articulos}, \texttt{entrevistas}. \\
+Fecha           & texto    & Formato \texttt{YYYY-MM-DD}. \\
+Extracto        & textarea & Resumen para la card del listado. \\
+Contenido       & textarea & HTML completo. \\
+Video URL       & texto    & URL de YouTube opcional. \\
+Imagen          & file     & Se guarda en \texttt{static/images/blog/<slug>.webp}. \\
+Activo          & checkbox & Visible en el blog. \\
+Mostrar en PE   & checkbox & Aparece en vitrina Peru. \\
+Mostrar en AR   & checkbox & Aparece en vitrina Argentina. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Upload de imagen}
+
+La imagen se guarda con el nombre del slug del post. Si se sube en JPG/PNG
+se convierte a WebP con calidad 85.
+
+\subsubsection{Validacion de visibilidad}
+
+Si se guarda un post activo \textbf{sin} ninguno de los flags \texttt{show\_pe}
+o \texttt{show\_arg}, el admin muestra una \textbf{advertencia} (no es error
+bloqueante): el post se guarda pero no aparecera en ninguna vitrina.
+
+\subsection{Toggle y eliminar}
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{POST /admin/blog/<id>/toggle} cambia \texttt{activo} via AJAX.
+    \item \texttt{POST /admin/blog/<id>/eliminar} borra el post de la BD.
+\end{itemize}
+
+% ============================================================================
+\section{Modulo: Historial}
+% ============================================================================
+
+URL: \texttt{/admin/historial}.
+
+Lista paginada de todas las acciones registradas en \texttt{audit\_log}. Util
+para auditoria y para investigar incidencias.
+
+\subsection{Filtros}
+\begin{itemize}[leftmargin=*]
+    \item Por \textbf{usuario} (busca con \texttt{LIKE}).
+    \item Paginacion (20 entradas por pagina).
+\end{itemize}
+
+\subsection{Acciones registradas}
+
+\begin{longtable}{p{5.5cm} p{9cm}}
+\toprule
+\textbf{Codigo de accion} & \textbf{Significado} \\
+\midrule
+\endhead
+\texttt{login}                       & Inicio de sesion exitoso. \\
+\texttt{login\_denegado}             & Intento con email fuera de la whitelist. \\
+\texttt{logout}                      & Cierre de sesion. \\
+\texttt{crear\_producto}             & Producto creado. \\
+\texttt{editar\_producto}            & Producto modificado. \\
+\texttt{toggle\_producto}            & Cambio de estado activo/inactivo. \\
+\texttt{eliminar\_producto}          & Producto borrado. \\
+\texttt{eliminar\_imagen\_producto}  & Imagen individual borrada. \\
+\texttt{rebuild\_products\_json}     & Reconstruccion del JSON. \\
+\texttt{subir\_archivo}              & Upload generico. \\
+\texttt{reemplazar\_banner}          & Reemplazo de imagen de un banner. \\
+\texttt{subir\_banner\_pais}         & Subida de version pais-especifica. \\
+\texttt{eliminar\_banner\_pais}      & Eliminacion de version pais. \\
+\texttt{eliminar\_banner\_huerfano}  & Borrado de archivo huerfano. \\
+\texttt{actualizar\_contacto}        & Cambios en \texttt{site\_config}. \\
+\texttt{crear\_sucursal}             & Sucursal creada. \\
+\texttt{editar\_sucursal}            & Sucursal editada. \\
+\texttt{eliminar\_sucursal}          & Sucursal borrada. \\
+\texttt{crear\_blog}                 & Post creado. \\
+\texttt{editar\_blog}                & Post editado. \\
+\texttt{eliminar\_blog}              & Post borrado. \\
+\bottomrule
+\end{longtable}
+
+% ============================================================================
+\section{Limitaciones Actuales del Panel}
+% ============================================================================
+
+A continuacion el listado de cosas que el panel \textbf{no hace} hoy y que un
+sucesor podria querer implementar:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{No gestiona cotizaciones recibidas.} La tabla
+        \texttt{cotizaciones} se llena desde el sitio publico pero el admin
+        no tiene vista para listarlas / marcarlas como atendidas.
+    \item \textbf{No gestiona proveedores ni denuncias.} Igual que arriba:
+        las tablas se llenan pero no hay UI para revisarlas. Los emails son
+        la unica via de notificacion.
+    \item \textbf{No hay edicion masiva.} No se pueden marcar varios productos
+        a la vez para desactivar / cambiar sector.
+    \item \textbf{No hay roles.} Cualquier email en la whitelist tiene acceso
+        total. No existe rol ``solo blog'' o ``solo lectura''.
+    \item \textbf{No hay historial granular de cambios.} El audit log
+        registra que se modifico un producto, pero no \textit{que campos}
+        cambiaron.
+    \item \textbf{No hay papelera.} \texttt{Eliminar} es definitivo.
+    \item \textbf{No hay preview.} Para ver un producto antes de activarlo
+        hay que activarlo y navegar a su URL.
+    \item \textbf{No hay 2FA propia.} La segunda capa de seguridad depende
+        de las politicas del tenant de Azure AD de CGM Rental.
+\end{itemize}
+
+% ============================================================================
+\section{Guia Rapida de Uso (para personal CGM)}
+% ============================================================================
+
+\subsection{Acceso}
+\begin{enumerate}[leftmargin=*]
+    \item Abre tu navegador y entra a \texttt{https://cgmrental.com/admin/}.
+    \item Haz clic en ``Iniciar sesion con Microsoft''.
+    \item Elige tu cuenta corporativa \texttt{@cgmrental.com}.
+    \item Si tu correo esta autorizado, entraras al Dashboard.
+\end{enumerate}
+
+\subsection{Anadir un equipo nuevo al catalogo}
+\begin{enumerate}[leftmargin=*]
+    \item En el menu lateral, entra a \textbf{Productos}.
+    \item Clic en \textbf{Nuevo producto}.
+    \item Completa Nombre, Marca, Tipo y Unidad (sector).
+    \item En Descripcion, escribe las caracteristicas separadas por barra
+        vertical: \texttt{Motor 410 HP | Cabina ergonomica | Tanque 200L}.
+    \item Marca los tags (\texttt{alquiler} y/o \texttt{venta}).
+    \item Si el equipo se debe ver en Argentina, marca \textbf{Mostrar en
+        Argentina}.
+    \item Guarda. El sistema crea la carpeta de imagenes.
+    \item Vuelve a entrar al producto y sube las imagenes. La primera sera
+        la portada.
+\end{enumerate}
+
+\subsection{Cambiar el banner de la home}
+\begin{enumerate}[leftmargin=*]
+    \item Entra a \textbf{Banners}.
+    \item Busca el grupo \textbf{Hero} y el slot que quieras cambiar.
+    \item Clic en \textbf{Reemplazar imagen} y selecciona el archivo (se
+        recomienda 2700$\times$1000 px).
+    \item Si queres un banner diferente solo para Argentina, usa el boton
+        \textbf{``Subir version pais''} y elige \texttt{ar}.
+\end{enumerate}
+
+\subsection{Publicar una noticia}
+\begin{enumerate}[leftmargin=*]
+    \item Entra a \textbf{Blog} $\rightarrow$ \textbf{Nuevo post}.
+    \item Llena titulo, fecha (\texttt{YYYY-MM-DD}), categoria y extracto.
+    \item En el campo \textbf{Contenido} pega HTML formateado (titulos
+        \texttt{<h3>}, parrafos \texttt{<p>}).
+    \item Sube la imagen principal.
+    \item Marca \textbf{Activo} y los paises donde debe aparecer.
+    \item Guarda.
+\end{enumerate}
+
+\subsection{Cambiar el telefono de Peru}
+\begin{enumerate}[leftmargin=*]
+    \item Entra a \textbf{Contacto}.
+    \item Selecciona la pestana \textbf{Peru}.
+    \item Edita el campo \textbf{Telefono}.
+    \item Guarda. El cambio se ve en cuanto recargas la web publica.
+\end{enumerate}
+
+% ============================================================================
+\section{Resolucion de Problemas Comunes}
+% ============================================================================
+
+\subsection{``Tu correo no tiene permisos''}
+Causa: tu email no esta en \texttt{ADMIN\_ALLOWED\_EMAILS}.\\
+Solucion: pedir al administrador del servidor que anada tu correo a la
+variable de entorno y reinicie el servicio.
+
+\subsection{Sub\'i una imagen y no aparece en la web}
+Causa probable: el navegador cachea la imagen anterior.\\
+Solucion: forzar refresco con \texttt{Ctrl + F5} o limpiar cache del CDN
+(Cloudflare).
+
+\subsection{Cambie un producto y al reiniciar volvio al estado anterior}
+Causa: el \texttt{products.json} esta desincronizado y \texttt{seed\_db}
+revierte cambios.\\
+Solucion: en el listado de productos, hacer clic en
+\textbf{``Reconstruir products.json''}.
+
+\subsection{El video de YouTube no se ve en la home}
+Causa: el campo se guardo con el link completo en lugar del ID.\\
+Solucion: editar el campo \textbf{Video YouTube} en \textbf{Contacto}; el
+admin extraera el ID automaticamente al guardar.
+
+\subsection{No puedo eliminar un banner}
+Diseno intencional: los banners registrados solo se \textbf{reemplazan},
+nunca se borran, para no romper referencias en el HTML. Solo se pueden
+eliminar archivos huerfanos no registrados.
+
+% ============================================================================
+\section{Glosario}
+% ============================================================================
+
+\begin{description}[leftmargin=*]
+    \item[Blueprint] Modulo de rutas en Flask que se monta bajo un prefijo
+        (\texttt{/admin} en este caso).
+    \item[Whitelist] Lista de correos autorizados a iniciar sesion.
+    \item[Slot] Posicion fija del diseno donde va un banner. Identificada
+        por un nombre unico.
+    \item[Slug] Identificador URL-friendly. Ej.\ \texttt{excavadora-210g}.
+    \item[Huerfano] Archivo en \texttt{static/images/banners/} que no
+        corresponde a ninguna fila de \texttt{banners\_config}.
+    \item[Audit log] Tabla \texttt{audit\_log} que registra cada accion del
+        admin.
+    \item[Toggle] Cambio binario de un flag (activo $\leftrightarrow$ inactivo)
+        via AJAX.
+\end{description}
+
+\vspace{1cm}
+\begin{infobox}
+\textbf{Contacto del desarrollador.} Para dudas sobre el funcionamiento del
+panel, errores no documentados aqui o ampliaciones (nuevos modulos,
+permisos por rol, dashboards adicionales), contactar al desarrollador del
+proyecto: \textbf{Omar Antonio Ccencho Barazorda}.
+\end{infobox}
+
+\end{document}

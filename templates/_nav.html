@@ -6,7 +6,7 @@
         <!-- Izquierda: teléfono + email -->
         <div class="d-flex align-items-center gap-3">
           <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-topbar-link">
-            <i class="fa-brands fa-whatsapp me-1"></i>{{ country.telefono }}
+            <i class="bi bi-whatsapp me-1"></i>{{ country.telefono }}
           </a>
           <span class="cgm-topbar-sep d-none d-md-inline">|</span>
           <a href="mailto:{{ country.email }}" class="cgm-topbar-link d-none d-md-inline-flex">
@@ -27,16 +27,16 @@
         <!-- Derecha: redes sociales -->
         <div class="d-flex align-items-center gap-2">
           <a href="{{ country.facebook }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="Facebook">
-            <i class="fa-brands fa-facebook-f"></i>
+            <i class="bi bi-facebook"></i>
           </a>
           <a href="{{ country.instagram }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="Instagram">
-            <i class="fa-brands fa-instagram"></i>
+            <i class="bi bi-instagram"></i>
           </a>
           <a href="{{ country.linkedin }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="LinkedIn">
-            <i class="fa-brands fa-linkedin-in"></i>
+            <i class="bi bi-linkedin"></i>
           </a>
           <a href="{{ country.youtube }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="YouTube">
-            <i class="fa-brands fa-youtube"></i>
+            <i class="bi bi-youtube"></i>
           </a>
         </div>
       </div>

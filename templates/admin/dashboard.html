@@ -84,7 +84,23 @@
   display: flex; align-items: center; gap: 7px;
   margin-bottom: 14px;
 }
-.chart-wrap { position: relative; height: 240px; }
+
+/* ── Chart wrapper: altura adaptativa ───────────────────────────────────── */
+.chart-wrap {
+  position: relative;
+  height: 260px;          /* desktop */
+}
+@media (max-width: 1199px) { .chart-wrap { height: 240px; } }
+@media (max-width: 767px)  { .chart-wrap { height: 220px; } }
+@media (max-width: 575px)  { .chart-wrap { height: 200px; } }
+
+/* Doughnuts un poco más altos en desktop para que la leyenda no aplaste el gráfico */
+.chart-wrap.doughnut-wrap {
+  height: 280px;
+}
+@media (max-width: 1199px) { .chart-wrap.doughnut-wrap { height: 260px; } }
+@media (max-width: 767px)  { .chart-wrap.doughnut-wrap { height: 240px; } }
+@media (max-width: 575px)  { .chart-wrap.doughnut-wrap { height: 220px; } }
 
 /* ── Toggle buttons ──────────────────────────────────────────────────────── */
 .chart-toggle { display: flex; gap: 6px; margin-left: auto; }
@@ -108,12 +124,24 @@
 
 /* ── Doughnut center ─────────────────────────────────────────────────────── */
 .doughnut-wrap { position: relative; }
+/*  El canvas ocupa toda la altura del wrap.
+    La leyenda de Chart.js está en la parte inferior (~30% del espacio),
+    así que el área del donut ocupa los ~70% superiores.
+    Centramos el texto en ese espacio con inset + flexbox.          */
 .doughnut-center {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
-  text-align: center; pointer-events: none;
+  position: absolute;
+  /* cubre el área del donut, dejando fuera la leyenda (~50px aprox) */
+  top: 0; left: 0; right: 0; bottom: 50px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
 }
 .doughnut-center-value { font-size: 26px; font-weight: 800; color: #02534C; line-height: 1; }
-.doughnut-center-label { font-size: 10px; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+.doughnut-center-label { font-size: 10px; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-top: 4px; }
+@media (max-width: 575px) {
+  .doughnut-center-value { font-size: 22px; }
+  .doughnut-center-label { font-size: 9px; }
+}
 
 /* ── Country filter ─────────────────────────────────────────────────────── */
 .country-filter-wrap { display: flex; align-items: center; gap: 6px; }
@@ -405,6 +433,9 @@ let blogView = 'mes';
 let sectorIndexAxis = 'x';
 let currentData = {};
 
+// ── Responsive: detectar si es mobile ────────────────────────────────────
+const isMobile = () => window.innerWidth < 576;
+
 // ── Tooltip global ────────────────────────────────────────────────────────
 Chart.defaults.plugins.tooltip.backgroundColor = '#1a1a1a';
 Chart.defaults.plugins.tooltip.padding = 10;
@@ -412,6 +443,9 @@ Chart.defaults.plugins.tooltip.cornerRadius = 8;
 Chart.defaults.plugins.tooltip.titleFont = { weight: '700', size: 12 };
 Chart.defaults.plugins.tooltip.bodyFont  = { size: 12 };
 Chart.defaults.animation.duration = 600;
+
+// Reducir tamaño de letra global en leyendas en mobile
+function legendFont() { return { size: isMobile() ? 10 : 12 }; }
 
 // ── Count-up animado ──────────────────────────────────────────────────────
 function countUp(el, target) {
@@ -439,6 +473,12 @@ function updateTimestamp() {
 updateTimestamp();
 
 // ── Gráficos ──────────────────────────────────────────────────────────────
+// ── Opciones comunes para doughnuts ───────────────────────────────────────
+function doughnutLegend() {
+  return { position:'bottom', labels:{ padding: isMobile()?10:16, font:legendFont(),
+    boxWidth: isMobile()?10:14, usePointStyle:true } };
+}
+
 const sectorCtx = document.getElementById('chartSector').getContext('2d');
 let sectorChart = new Chart(sectorCtx, {
   type: 'bar',
@@ -452,9 +492,15 @@ let sectorChart = new Chart(sectorCtx, {
   ]},
   options: {
     responsive:true, maintainAspectRatio:false,
-    plugins: { legend:{ position:'top', labels:{ font:{size:12}, padding:12 } },
-      tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} equipo${ctx.parsed.y!==1?'s':''}` }} },
-    scales: { y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}, x:{grid:{display:false}} },
+    plugins: {
+      legend:{ position:'top', labels:{ font:legendFont(), padding:10,
+               usePointStyle:true, boxWidth:10 } },
+      tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} equipo${ctx.parsed.y!==1?'s':''}` }}
+    },
+    scales: {
+      y:{ beginAtZero:true, ticks:{ stepSize:1, font:{size:isMobile()?10:11} }, grid:{color:'#f0f0f0'} },
+      x:{ grid:{display:false}, ticks:{ font:{size:isMobile()?10:11} } }
+    },
     onClick(e, elements) {
       if (!elements.length) return;
       const label = sectorChart.data.labels[elements[0].index];
@@ -471,7 +517,7 @@ let paisChart = new Chart(paisCtx, {
     datasets:[{ data:[{{ pe_count }},{{ ar_count }}],
       backgroundColor:[C.green,C.lime], borderWidth:0, hoverOffset:8 }] },
   options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
-    plugins:{ legend:{ position:'bottom', labels:{padding:16,font:{size:12}} },
+    plugins:{ legend:doughnutLegend(),
       tooltip:{ callbacks:{ label: ctx => {
         const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
         return ` ${ctx.label}: ${ctx.parsed} equipos (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
@@ -486,7 +532,7 @@ let tipoChart = new Chart(tipoCtx, {
     datasets:[{ data:[{{ alquiler_c }},{{ venta_c }},{{ ambos_c }}],
       backgroundColor:[C.green,C.navy,C.lime], borderWidth:0, hoverOffset:8 }] },
   options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
-    plugins:{ legend:{ position:'bottom', labels:{padding:12,font:{size:11}} },
+    plugins:{ legend:doughnutLegend(),
       tooltip:{ callbacks:{ label: ctx => {
         const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
         return ` ${ctx.label}: ${ctx.parsed} (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
@@ -501,12 +547,16 @@ let blogChart = new Chart(blogCtx, {
     label:'Posts publicados', data:{{ posts_mes_data|safe }},
     borderColor:C.teal, backgroundColor:'rgba(23,162,184,.12)',
     borderWidth:2.5, tension:.4, fill:true,
-    pointBackgroundColor:C.teal, pointRadius:5, pointHoverRadius:7
+    pointBackgroundColor:C.teal,
+    pointRadius: isMobile()?3:5, pointHoverRadius: isMobile()?5:7
   }]},
   options: { responsive:true, maintainAspectRatio:false,
     plugins:{ legend:{display:false},
       tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} post${ctx.parsed.y!==1?'s':''}` }} },
-    scales:{ y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}}, x:{grid:{display:false}} }
+    scales:{
+      y:{ beginAtZero:true, ticks:{stepSize:1, font:{size:isMobile()?10:11}}, grid:{color:'#f0f0f0'} },
+      x:{ grid:{display:false}, ticks:{ font:{size:isMobile()?9:11}, maxRotation:isMobile()?45:0 } }
+    }
   }
 });
 
@@ -576,6 +626,7 @@ function updateCharts(d) {
 }
 
 function applyBlogData(d) {
+  const mb = isMobile();
   if (blogView === 'mes') {
     blogChart.config.type = 'line';
     blogChart.data.labels = d.posts_mes_labels;
@@ -583,7 +634,8 @@ function applyBlogData(d) {
       label:'Posts publicados', data:d.posts_mes_data,
       borderColor:C.teal, backgroundColor:'rgba(23,162,184,.12)',
       borderWidth:2.5, tension:.4, fill:true,
-      pointBackgroundColor:C.teal, pointRadius:5, pointHoverRadius:7
+      pointBackgroundColor:C.teal,
+      pointRadius:mb?3:5, pointHoverRadius:mb?5:7
     }];
   } else {
     blogChart.config.type = 'bar';
@@ -595,8 +647,8 @@ function applyBlogData(d) {
     }];
   }
   blogChart.options.scales = {
-    y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#f0f0f0'}},
-    x:{grid:{display:false}}
+    y:{ beginAtZero:true, ticks:{stepSize:1, font:{size:mb?10:11}}, grid:{color:'#f0f0f0'} },
+    x:{ grid:{display:false}, ticks:{ font:{size:mb?9:11}, maxRotation:mb?45:0 } }
   };
   blogChart.update();
 }
@@ -632,6 +684,38 @@ function setSectorType(type, btn) {
   sectorChart.options.indexAxis = type === 'horizontalBar' ? 'y' : 'x';
   sectorChart.update();
 }
+
+// ── Reconfigurar leyendas/fuentes al cambiar tamaño de ventana ───────────
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    // Sector
+    sectorChart.options.plugins.legend.labels.font = legendFont();
+    sectorChart.options.scales.x.ticks.font = { size: isMobile()?10:11 };
+    sectorChart.options.scales.y.ticks.font = { size: isMobile()?10:11 };
+    sectorChart.update('none');  // 'none' = sin animación
+
+    // Pais & Tipo (doughnuts)
+    [paisChart, tipoChart].forEach(ch => {
+      ch.options.plugins.legend.labels.font    = legendFont();
+      ch.options.plugins.legend.labels.padding = isMobile()?10:16;
+      ch.options.plugins.legend.labels.boxWidth = isMobile()?10:14;
+      ch.update('none');
+    });
+
+    // Blog
+    const mb = isMobile();
+    const ds = blogChart.data.datasets[0];
+    if (ds) { ds.pointRadius = mb?3:5; ds.pointHoverRadius = mb?5:7; }
+    if (blogChart.options.scales?.x?.ticks) {
+      blogChart.options.scales.x.ticks.font = { size: mb?9:11 };
+      blogChart.options.scales.x.ticks.maxRotation = mb?45:0;
+      blogChart.options.scales.y.ticks.font = { size: mb?10:11 };
+    }
+    blogChart.update('none');
+  }, 150);
+});
 
 // ── Toggle vista blog ─────────────────────────────────────────────────────
 function setBlogView(view, btn) {

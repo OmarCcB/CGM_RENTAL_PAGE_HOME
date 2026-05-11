@@ -8,7 +8,7 @@
 <!-- ══════════ BANNER ══════════ -->
 <section class="cgm-page-hero">
   <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/banners/cat-contacto.png') }}')"></div>
+       style="background-image:url('{{ burl('otros/contacto-banner') }}')"></div>
   <div class="cgm-page-hero-overlay" style="background:rgba(0,0,0,.40);"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
        alt=""
@@ -33,7 +33,7 @@
     <div class="cgm-contacto-section">
       <!-- Imagen de fondo -->
       <div class="cgm-contacto-bg"
-           style="background-image:url('{{ url_for('static', filename='images/banners/contacto.png') }}')"></div>
+           style="background-image:url('{{ burl('otros/contacto-lateral') }}')"></div>
       <div class="cgm-contacto-overlay"></div>
 
   <div class="container cgm-contacto-inner">
@@ -78,6 +78,8 @@
         <div class="cgm-contacto-card">
           <p class="cgm-contacto-card-title">Déjanos tus datos y pronto un asesor se contactará</p>
 
+          {% set _sf_debug = request.args.get('sfdebug') == '1' %}
+          {% set _sf_debug_email = request.args.get('email', '') %}
           <form id="sfContactForm"
                 action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D41000002lCbB"
                 method="POST">
@@ -85,6 +87,16 @@
             <input type="hidden" name="oid"       value="00D41000002lCbB">
             <input type="hidden" name="retURL"    value="https://cgmrental.com/{{ country_code }}/gracias/">
             <input type="hidden" name="last_name" value="Web Lead">
+
+            {# ── MODO DEBUG SALESFORCE — activar con ?sfdebug=1&email=tu@correo.com ── #}
+            {% if _sf_debug and _sf_debug_email %}
+            <input type="hidden" name="debug"      value="1">
+            <input type="hidden" name="debugEmail" value="{{ _sf_debug_email }}">
+            {% endif %}
+
+            {# Fallback de país: hidden que siempre envía el valor del país desde la URL.
+               Se usa como respaldo si el picklist visible no coincide con el valor de Salesforce. #}
+            <input type="hidden" name="country" value="{% if country_code == 'pe' %}Perú{% elif country_code == 'ar' %}Argentina{% endif %}">
 
             <!-- Tipo: Alquiler / Compra -->
             <div class="cgm-contacto-tipo mb-3">
@@ -122,22 +134,37 @@
                   <option value="Otro">Otro</option>
                 </select>
               </div>
-              <!-- RUC/DNI | Departamento -->
+              <!-- Identificación fiscal | División geográfica (adaptado por país) -->
               <div class="col-12 col-sm-6">
-                <label class="cgm-contacto-field-label">RUC/DNI:</label>
+                <label class="cgm-contacto-field-label">
+                  {% if country_code == 'ar' %}CUIT / CUIL:{% else %}RUC / DNI:{% endif %}
+                </label>
                 <input type="text" name="00N4100000TT12H" class="cgm-contacto-input"
-                       placeholder="RUC/DNI*" maxlength="11">
+                       placeholder="{% if country_code == 'ar' %}CUIT / CUIL{% else %}RUC / DNI{% endif %}"
+                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}">
               </div>
               <div class="col-12 col-sm-6">
-                <label class="cgm-contacto-field-label">Departamento:</label>
+                <label class="cgm-contacto-field-label">
+                  {% if country_code == 'ar' %}Provincia:{% else %}Departamento:{% endif %}
+                </label>
                 <select name="00NUU000001uSST" class="cgm-contacto-input">
                   <option value="">–Ninguno–</option>
-                  {% for d in ['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca',
-                               'Callao','Cusco','Huancavelica','Huánuco','Ica','Junín',
-                               'La Libertad','Lambayeque','Lima','Loreto','Madre de Dios',
-                               'Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'] %}
-                  <option value="{{ d }}">{{ d }}</option>
-                  {% endfor %}
+                  {% if country_code == 'ar' %}
+                    {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',
+                                 'Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa',
+                                 'La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta',
+                                 'San Juan','San Luis','Santa Cruz','Santa Fe',
+                                 'Santiago del Estero','Tierra del Fuego','Tucumán'] %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                  {% else %}
+                    {% for d in ['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca',
+                                 'Callao','Cusco','Huancavelica','Huánuco','Ica','Junín',
+                                 'La Libertad','Lambayeque','Lima','Loreto','Madre de Dios',
+                                 'Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'] %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                  {% endif %}
                 </select>
               </div>
               <!-- Email | Otro País -->

@@ -6,21 +6,20 @@
 {% block content %}
 
 <!-- ══════════ BANNER CATEGORÍA ══════════ -->
-<!-- Alto del banner: cambia este valor para ajustar la altura -->
 <section class="cgm-page-hero">
   {% if cat_path == 'alquiler' %}
-    {% set banner = 'cat-alquiler.webp' %}
+    {% set _cat_slot = 'categorias/alquiler/general' %}
   {% elif cat_path == 'usados' %}
-    {% set banner = 'cat-usados.webp' %}
+    {% set _cat_slot = 'categorias/usados/general' %}
   {% elif cat_path.startswith('usados/') %}
-    {% set banner = 'cat-usados-' + cat_path.split('/')[1] + '.webp' %}
+    {% set _cat_slot = 'categorias/usados/' + cat_path.split('/')[1] %}
   {% elif '/' in cat_path %}
-    {% set banner = 'cat-' + cat_path.split('/')[1] + '.webp' %}
+    {% set _cat_slot = 'categorias/alquiler/' + cat_path.split('/')[1] %}
   {% else %}
-    {% set banner = 'cat-' + cat_path + '.webp' %}
+    {% set _cat_slot = 'categorias/alquiler/' + cat_path %}
   {% endif %}
   <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/banners/' + banner) }}')"></div>
+       style="background-image:url('{{ burl(_cat_slot) }}')"></div>
   <div class="cgm-page-hero-content">
     <h1>{{ titulo }}</h1>
   </div>
@@ -256,20 +255,20 @@
     <div class="cgm-unidades-grid cgm-unidades-grid--row fade-up fade-up-delay-1">
 
       <a href="/{{ country_code }}/categoria-producto/alquiler/construccion/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/construccion.png') }}')">
+         style="background-image:url('{{ burl('home-cards/construccion') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">CONSTRUCCIÓN</span>
       </a>
 
       {% if country.show_mineria %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/mineria/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+         style="background-image:url('{{ burl('home-cards/mineria') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">MEDIANA MINERÍA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+           style="background-image:url('{{ burl('home-cards/mineria') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">MEDIANA MINERÍA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
@@ -278,13 +277,13 @@
 
       {% if country.show_agricola %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/agricola/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+         style="background-image:url('{{ burl('home-cards/agricola') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">AGRÍCOLA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+           style="background-image:url('{{ burl('home-cards/agricola') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">AGRÍCOLA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
@@ -293,13 +292,13 @@
 
       {% if country.show_energia %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/energia/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+         style="background-image:url('{{ burl('home-cards/energia') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">ENERGÍA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+           style="background-image:url('{{ burl('home-cards/energia') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">ENERGÍA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>

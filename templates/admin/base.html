@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Panel Admin{% endblock %} – CGM Rental</title>
+  <!-- Bootstrap 5 — servido localmente (sin latencia CDN) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <!-- Bootstrap Icons — servido localmente -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}">
+  <!-- Admin CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body">
+
+<!-- Sidebar overlay (mobile) -->
+<div class="adm-overlay" id="adm-overlay"></div>
+
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<aside class="adm-sidebar" id="adm-sidebar">
+  <div class="adm-sidebar-logo">
+    <span class="adm-brand"><i class="bi bi-gear-wide-connected me-2"></i>CGM Rental Admin</span>
+  </div>
+
+  <div class="adm-sidebar-label">Menú</div>
+
+  <ul class="adm-nav">
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.dashboard') }}"
+         class="adm-nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.productos') }}"
+         class="adm-nav-link {% if 'producto' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-boxes"></i> Productos
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.banners') }}"
+         class="adm-nav-link {% if 'banner' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-images"></i> Banners
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.contacto') }}"
+         class="adm-nav-link {% if request.endpoint == 'admin.contacto' %}active{% endif %}">
+        <i class="bi bi-envelope-at"></i> Contacto
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.sucursales') }}"
+         class="adm-nav-link {% if 'sucursal' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-geo-alt"></i> Sucursales
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.blog_list') }}"
+         class="adm-nav-link {% if 'blog' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-newspaper"></i> Blog
+      </a>
+    </li>
+    <li class="adm-nav-item">
+      <a href="{{ url_for('admin.historial') }}"
+         class="adm-nav-link {% if request.endpoint == 'admin.historial' %}active{% endif %}">
+        <i class="bi bi-journal-text"></i> Historial
+      </a>
+    </li>
+  </ul>
+
+  <div class="adm-sidebar-footer">
+    <a href="{{ url_for('admin.logout') }}" class="adm-logout-btn">
+      <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+    </a>
+  </div>
+</aside>
+
+<!-- ── Main ─────────────────────────────────────────────── -->
+<div class="adm-main" id="adm-main">
+
+  <!-- Top bar -->
+  <header class="adm-topbar">
+    <button class="adm-topbar-toggle" id="adm-toggle-btn" aria-label="Abrir menú">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <div class="adm-topbar-breadcrumb">
+      Panel de Administración &rsaquo;
+      <span class="current">{% block breadcrumb %}Dashboard{% endblock %}</span>
+    </div>
+
+    <div class="adm-topbar-user">
+      {% if user %}
+      <div class="avatar">{{ (user.name or 'A')[0]|upper }}</div>
+      <span class="uname d-none d-md-block">{{ user.name }}</span>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="adm-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- ── Toast container ──────────────────────────────────── -->
+<div class="adm-toast-container" id="adm-toasts"></div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+
+<script>
+// Sidebar toggle
+const sidebar  = document.getElementById('adm-sidebar');
+const overlay  = document.getElementById('adm-overlay');
+const toggleBtn = document.getElementById('adm-toggle-btn');
+
+toggleBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+});
+
+// Toast helper
+function showToast(msg, type) {
+  const icons = { success: 'bi-check-circle-fill', danger: 'bi-x-circle-fill',
+                  info: 'bi-info-circle-fill', warning: 'bi-exclamation-triangle-fill' };
+  const container = document.getElementById('adm-toasts');
+  const toast = document.createElement('div');
+  toast.className = `adm-toast ${type || 'info'}`;
+  toast.innerHTML = `<i class="bi ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+  toast.addEventListener('click', () => toast.remove());
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Flash messages from server
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+    showToast({{ msg|tojson }}, {{ cat|tojson }});
+  {% endfor %}
+{% endwith %}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{% extends "admin/base.html" %}
+{% block title %}Historial{% endblock %}
+{% block breadcrumb %}Historial de Auditoría{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="adm-page-title mb-0"><i class="bi bi-journal-text me-2"></i>Historial de Auditoría</h1>
+    <p class="adm-page-sub mb-0">{{ total }} registro{% if total != 1 %}s{% endif %} en total</p>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="adm-card mb-4">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-12 col-md-4 adm-form-group mb-0">
+      <label class="adm-form-label">Filtrar por usuario</label>
+      <input type="text" name="usuario" value="{{ usuario_filter }}" class="adm-form-control"
+             placeholder="Email o nombre...">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn-adm-primary">
+        <i class="bi bi-search"></i> Filtrar
+      </button>
+    </div>
+    {% if usuario_filter %}
+    <div class="col-auto">
+      <a href="{{ url_for('admin.historial') }}" class="btn-adm-ghost">Limpiar</a>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Table -->
+<div class="adm-card">
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Usuario</th>
+          <th>Acción</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td style="color:#aaa;font-size:0.8rem;">{{ r.id }}</td>
+          <td style="white-space:nowrap;font-size:0.83rem;color:#666;">{{ r.fecha }}</td>
+          <td style="font-size:0.88rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ r.usuario or '—' }}
+          </td>
+          <td><span class="adm-badge adm-badge-green">{{ r.accion }}</span></td>
+          <td style="font-size:0.84rem;color:#555;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="{{ r.detalle }}">
+            {{ r.detalle or '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:32px;color:#aaa;">
+            No hay registros de auditoría.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div class="d-flex align-items-center justify-content-between mt-4 flex-wrap gap-2">
+    <span style="font-size:0.83rem;color:#888;">Página {{ page }} de {{ total_pages }}</span>
+    <div class="adm-pagination">
+      <a href="?page={{ page - 1 }}&usuario={{ usuario_filter }}"
+         class="adm-pag-btn {% if page <= 1 %}disabled{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% for p_num in range(1, total_pages + 1) %}
+        {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) %}
+        <a href="?page={{ p_num }}&usuario={{ usuario_filter }}"
+           class="adm-pag-btn {% if p_num == page %}active{% endif %}">
+          {{ p_num }}
+        </a>
+        {% endif %}
+      {% endfor %}
+      <a href="?page={{ page + 1 }}&usuario={{ usuario_filter }}"
+         class="adm-pag-btn {% if page >= total_pages %}disabled{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

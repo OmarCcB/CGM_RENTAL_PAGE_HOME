@@ -9,33 +9,11 @@
 <section class="cgm-hero" aria-label="Hero principal">
   <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
-      {% if country.code == 'ar' %}
+      {% for i in range(1, 5) %}
       <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-1.png') }}')"></div>
+        <div class="cgm-hero-bg" style="background-image:url('{{ burl('hero/slide-' + i|string) }}')"></div>
       </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-2.png') }}')"></div>
-      </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-3.png') }}')"></div>
-      </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/arg/banner-ar-4.png') }}')"></div>
-      </div>
-      {% else %}
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/hero-principal.png') }}')"></div>
-      </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/BANNER-HOME_2.png') }}')"></div>
-      </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/BANNER-HOME_3.png') }}')"></div>
-      </div>
-      <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ url_for('static', filename='images/banners/BANNER-HOME_4.png') }}')"></div>
-      </div>
-      {% endif %}
+      {% endfor %}
     </div>
     <div class="swiper-pagination"></div>
     <div class="swiper-button-prev"></div>
@@ -85,7 +63,7 @@
 
       <!-- Construcción -->
       <a href="/{{ country_code }}/categoria-producto/alquiler/construccion/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/construccion.png') }}')">
+         style="background-image:url('{{ burl('home-cards/construccion') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">CONSTRUCCIÓN</span>
       </a>
@@ -93,13 +71,13 @@
       <!-- Minería -->
       {% if country.show_mineria %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/mineria/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+         style="background-image:url('{{ burl('home-cards/mineria') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">MINERÍA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/mineria.png') }}')">
+           style="background-image:url('{{ burl('home-cards/mineria') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">MINERÍA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
@@ -109,13 +87,13 @@
       <!-- Agrícola -->
       {% if country.show_agricola %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/agricola/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+         style="background-image:url('{{ burl('home-cards/agricola') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">AGRÍCOLA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/agricola.png') }}')">
+           style="background-image:url('{{ burl('home-cards/agricola') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">AGRÍCOLA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
@@ -125,13 +103,13 @@
       <!-- Energía -->
       {% if country.show_energia %}
       <a href="/{{ country_code }}/categoria-producto/alquiler/energia/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+         style="background-image:url('{{ burl('home-cards/energia') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">ENERGÍA</span>
       </a>
       {% else %}
       <div class="cgm-unidad-card cgm-unidad-disabled"
-           style="background-image:url('{{ url_for('static', filename='images/banners/energia.png') }}')">
+           style="background-image:url('{{ burl('home-cards/energia') }}')">
         <div class="cgm-unidad-overlay cgm-unidad-overlay-dark"></div>
         <span class="cgm-unidad-label">ENERGÍA</span>
         <span class="cgm-unidad-prox">PRÓXIMAMENTE</span>
@@ -141,33 +119,24 @@
       <!-- Usados -->
       {% if country.show_usados %}
       <a href="/{{ country_code }}/categoria-producto/usados/" class="cgm-unidad-card"
-         style="background-image:url('{{ url_for('static', filename='images/banners/usados.png') }}')">
+         style="background-image:url('{{ burl('home-cards/usados') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">USADOS</span>
       </a>
       {% endif %}
 
       <!-- Capacita -->
-      {% if country_code == 'ar' %}
       <a href="/{{ country_code }}/capacita/"
          class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
-         style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
+         style="background-image:url('{{ burl('home-cards/capacita') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">CAPACITA</span>
       </a>
-      {% else %}
-      <a href="/{{ country_code }}/capacita/"
-         class="cgm-unidad-card {% if not country.show_leasing %}cgm-unidad-full{% endif %}"
-         style="background-image:url('{{ url_for('static', filename='images/banners/capacita.png') }}')">
-        <div class="cgm-unidad-overlay"></div>
-        <span class="cgm-unidad-label">CAPACITA</span>
-      </a>
-      {% endif %}
 
       <!-- Leasing Operativo (ancho completo) -->
       {% if country.show_leasing %}
       <a href="/{{ country_code }}/leasing-operativo/" class="cgm-unidad-card cgm-unidad-full"
-         style="background-image:url('{{ url_for('static', filename='images/banners/leasing-operativo.jpg') }}')">
+         style="background-image:url('{{ burl('home-cards/leasing-operativo') }}')">
         <div class="cgm-unidad-overlay"></div>
         <span class="cgm-unidad-label">LEASING OPERATIVO</span>
       </a>
@@ -289,9 +258,11 @@
       <div class="col-12 col-md-4 fade-up fade-up-delay-{{ loop.index }}">
         <div class="cgm-blog-card h-100">
           <div class="cgm-blog-img-wrap">
+            {% if post.imagen %}
             <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
                  alt="{{ post.titulo }}" class="cgm-blog-img" loading="lazy"
                  onerror="this.src=''; this.style.background='#ddd'">
+            {% endif %}
             <span class="cgm-blog-date-badge">
               {{ post.fecha[8:10] }}<br><small>{{ post.fecha[5:7] }}/{{ post.fecha[:4] }}</small>
             </span>

@@ -5,14 +5,39 @@
 
 {% block content %}
 
+<style>
+/* ── Flechas decorativas en mobile: más pequeñas, difuminadas, semi-ocultas abajo ── */
+@media (max-width: 768px) {
+  .cgm-cap-hero .blog-hero-arrow {
+    height: 18% !important;
+    opacity: 0.35 !important;
+    filter: blur(2.5px);
+    top: auto !important;
+    bottom: -8% !important;
+    transform: none !important;
+  }
+  .cgm-cap-hero .blog-hero-arrow.blog-hero-arrow-right {
+    transform: scaleX(-1) !important;
+  }
+}
+@media (max-width: 480px) {
+  .cgm-cap-hero .blog-hero-arrow {
+    height: 14% !important;
+    opacity: 0.28 !important;
+    filter: blur(3px);
+    bottom: -6% !important;
+  }
+}
+</style>
+
 <!-- ══════════ HERO ══════════ -->
 <section class="cgm-cap-hero">
   <div class="cgm-cap-hero-overlay"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
-       alt=""
+       alt="" class="blog-hero-arrow"
        style="position:absolute;left:5%;top:50%;transform:translateY(-50%);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
-       alt=""
+       alt="" class="blog-hero-arrow blog-hero-arrow-right"
        style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
   <div class="cgm-cap-hero-content container">
     <h1 class="cgm-cap-hero-title fade-up">
@@ -51,9 +76,11 @@
         <a href="/{{ country_code }}/novedades/{{ post.slug }}/" class="d-block h-100 text-decoration-none">
           <div class="cgm-blog-card">
             <div class="cgm-blog-img-wrap">
+              {% if post.imagen %}
               <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
                    alt="{{ post.titulo }}" class="cgm-blog-img" loading="lazy"
                    onerror="this.style.background='#ddd'">
+              {% endif %}
             </div>
             <div class="cgm-blog-body">
               <span class="cgm-blog-cat cgm-cat-{{ post.categoria }}">

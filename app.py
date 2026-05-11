@@ -1,7 +1,6 @@
-import os
+﻿import os
 import json
 import smtplib
-import sqlite3
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -23,13 +22,18 @@ from flask_compress import Compress
 from dotenv import load_dotenv
 
 from countries import COUNTRIES, DEFAULT_COUNTRY
-from database import get_conn, init_db
+from database import get_conn, init_db, init_admin_tables
+import cache as _cache
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "cgm-dev-secret")
 Compress(app)
+
+# ── Admin blueprint ───────────────────────────────────────────────────────────
+from admin.routes import admin_bp
+app.register_blueprint(admin_bp)
 
 # ── Categorías de productos ────────────────────────────────────────────────────
 CATEGORIAS = {
@@ -79,7 +83,78 @@ UNIDAD_NAV = [
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def get_country(code):
-    return COUNTRIES.get(code, COUNTRIES[DEFAULT_COUNTRY])
+    """Devuelve datos del país mezclando countries.py con overrides de site_config (BD)
+    y sucursales dinámicas de sucursales_db.
+    El resultado se cachea 60s; el admin lo invalida explícitamente al guardar cambios."""
+    cache_key = f"country:{code}"
+    hit, cached = _cache.get(cache_key)
+    if hit:
+        return cached
+
+    base = dict(COUNTRIES.get(code, COUNTRIES[DEFAULT_COUNTRY]))
+    try:
+        conn = get_conn()
+        # Overrides simples (telefono, email, redes, youtube_video, etc.)
+        rows = conn.execute(
+            "SELECT key, value FROM site_config WHERE country_code=? AND value IS NOT NULL AND value != ''",
+            (code,)
+        ).fetchall()
+        for r in rows:
+            base[r["key"]] = r["value"]
+        # Sucursales dinámicas: si hay registros en sucursales_db, reemplazan las de countries.py
+        suc_rows = conn.execute(
+            "SELECT nombre, tipo, direccion, telefono, lat, lng, maps_url "
+            "FROM sucursales_db WHERE country_code=? ORDER BY orden",
+            (code,)
+        ).fetchall()
+        if suc_rows:
+            base["sucursales"] = [
+                {
+                    "nombre":    s["nombre"],
+                    "tipo":      s["tipo"],
+                    "direccion": s["direccion"],
+                    "telefono":  s["telefono"] or "",
+                    "lat":       s["lat"],
+                    "lng":       s["lng"],
+                    "maps_url":  s["maps_url"] or "",
+                }
+                for s in suc_rows
+            ]
+        conn.close()
+    except Exception:
+        pass
+
+    _cache.set(cache_key, base)
+    return base
+
+
+def get_banners(country_code):
+    """Devuelve {slot: filename} fusionando entradas globales ('*') con overrides por país.
+    Las entradas country_code=país sobreescriben las globales para el mismo slot.
+    El resultado se cachea 60s; el admin lo invalida explícitamente al guardar cambios."""
+    cache_key = f"banners:{country_code or '*'}"
+    hit, cached = _cache.get(cache_key)
+    if hit:
+        return cached
+
+    try:
+        conn = get_conn()
+        rows = conn.execute(
+            "SELECT slot, filename FROM banners_config WHERE country_code='*' AND activo=1"
+        ).fetchall()
+        result = {r["slot"]: r["filename"] for r in rows}
+        if country_code:
+            rows_cc = conn.execute(
+                "SELECT slot, filename FROM banners_config WHERE country_code=? AND activo=1",
+                (country_code,)
+            ).fetchall()
+            for r in rows_cc:
+                result[r["slot"]] = r["filename"]
+        conn.close()
+        _cache.set(cache_key, result)
+        return result
+    except Exception:
+        return {}
 
 
 def send_email(subject, body, to=None):
@@ -137,9 +212,9 @@ def get_products_for_cat(tags, unidad, tipo, extra_tipo=None, country=None, prox
         clauses.append("tipo = ?")
         params.append(extra_tipo)
     if country == 'ar' and not proximamente:
-        clauses.append("(show_arg = 1 OR show_arg IS NULL)")
+        clauses.append("show_arg = 1")
     elif country != 'ar':
-        clauses.append("(show_arg = 0 OR show_arg IS NULL)")
+        clauses.append("show_pe = 1")
     where = f"WHERE {' AND '.join(clauses)}"
     total = conn.execute(f"SELECT COUNT(*) FROM products {where}", params).fetchone()[0]
     offset = (page - 1) * PER_PAGE
@@ -162,28 +237,41 @@ def cart_count(country=None):
 
 # ── Inicializar BD al arrancar ────────────────────────────────────────────────
 def seed_db():
-    """Seed products and blog posts if tables are empty."""
+    """Siembra productos y posts SOLO si las tablas correspondientes están vacías.
+    La BD SQLite local es la fuente de verdad — nunca se sobreescriben filas existentes.
+
+    Si la BD ya tiene datos (caso normal en producción) esta función es un no-op.
+    Sirve únicamente como seed para entornos nuevos/vacíos.
+    """
     conn = get_conn()
-    # Products
-    products_file = os.path.join(os.path.dirname(__file__), "products.json")
-    if os.path.exists(products_file):
-        with open(products_file, encoding="utf-8") as f:
-            products = json.load(f)
-        for p in products:
-            try:
-                conn.execute(
-                    "INSERT OR IGNORE INTO products (slug,nombre,marca,descripcion,ficha_url,tags,tipo,unidad,imagen,activo,show_arg) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    (p["slug"], p["nombre"], p.get("marca",""), p.get("descripcion",""),
-                     p.get("ficha_url",""), p.get("tags",""), p.get("tipo",""),
-                     p.get("unidad",""), p.get("imagen",""), p.get("activo",1),
-                     p.get("show_arg", 0))
-                )
-                # Update show_arg in case the row already existed without it
-                if p.get("show_arg"):
-                    conn.execute("UPDATE products SET show_arg=1 WHERE slug=?", (p["slug"],))
-            except Exception:
-                pass
-        conn.commit()
+
+    # Products — solo sembrar si la tabla está vacía
+    try:
+        n_products = conn.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+    except Exception:
+        n_products = -1
+
+    if n_products == 0:
+        products_file = os.path.join(os.path.dirname(__file__), "products.json")
+        if os.path.exists(products_file):
+            with open(products_file, encoding="utf-8") as f:
+                products = json.load(f)
+            for p in products:
+                try:
+                    conn.execute(
+                        """INSERT INTO products
+                           (slug,nombre,marca,descripcion,descripcion_texto,
+                            ficha_url,tags,tipo,unidad,imagen,activo,show_arg)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        (p["slug"], p["nombre"], p.get("marca",""),
+                         p.get("descripcion",""), p.get("descripcion_texto",""),
+                         p.get("ficha_url",""), p.get("tags",""), p.get("tipo",""),
+                         p.get("unidad",""), p.get("imagen",""),
+                         p.get("activo", 1), p.get("show_arg", 0))
+                    )
+                except Exception:
+                    pass   # ignora duplicados o errores aislados
+            conn.commit()
 
     # Blog posts
     if conn.execute("SELECT COUNT(*) FROM blog_posts").fetchone()[0] == 0:
@@ -381,7 +469,7 @@ def seed_db():
         for p in posts:
             try:
                 conn.execute(
-                    "INSERT OR IGNORE INTO blog_posts (slug,titulo,categoria,fecha,imagen,extracto,contenido,video_url,activo) VALUES (?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO blog_posts (slug,titulo,categoria,fecha,imagen,extracto,contenido,video_url,activo) VALUES (?,?,?,?,?,?,?,?,?)",
                     (p["slug"], p["titulo"], p["categoria"], p["fecha"], p["imagen"],
                      p["extracto"], p["contenido"], p.get("video_url",""), p["activo"])
                 )
@@ -394,6 +482,36 @@ def seed_db():
 with app.app_context():
     init_db()
     seed_db()
+    _admin_conn = get_conn()
+    init_admin_tables(_admin_conn)
+    _admin_conn.close()
+
+# ── Conexión compartida por request (una sola por request vía g) ─────────────
+@app.teardown_appcontext
+def _close_db_conn(e=None):
+    """Cierra la conexión compartida al terminar cada request."""
+    conn = g.pop('_db_conn', None)
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+# ── Timing middleware (debug) ─────────────────────────────────────────────────
+import time as _time
+
+@app.before_request
+def _start_timer():
+    g._req_start = _time.perf_counter()
+
+@app.after_request
+def _log_timing(response):
+    if hasattr(g, '_req_start'):
+        elapsed = (_time.perf_counter() - g._req_start) * 1000
+        # Solo loguear rutas de página, no estáticos
+        if not request.path.startswith('/static'):
+            print(f"[TIMING] {request.method} {request.path}  →  {elapsed:.0f} ms", flush=True)
+    return response
 
 # ── Context Processor ──────────────────────────────────────────────────────────
 @app.context_processor
@@ -401,10 +519,22 @@ def inject_globals():
     # Detectar el país activo desde la URL (e.g. /pe/, /ar/)
     path_parts = request.path.strip('/').split('/')
     cc = path_parts[0] if path_parts and path_parts[0] in COUNTRIES else 'pe'
+    bans = get_banners(cc)
+
+    def burl(slot, fallback=None):
+        """Devuelve la URL estática completa del banner para el slot dado."""
+        from flask import url_for as _uf
+        if fallback is None:
+            fallback = slot + ".webp"
+        filename = bans.get(slot, fallback)
+        return _uf("static", filename="images/banners/" + filename)
+
     return {
         "cart_count": cart_count(cc),
         "COUNTRIES": COUNTRIES,
         "PARTNERS": PARTNERS,
+        "banners": bans,
+        "burl": burl,
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -427,15 +557,17 @@ def home(country):
     if country not in COUNTRIES:
         return redirect(f"/{DEFAULT_COUNTRY}/")
     conn = get_conn()
-    # 6 productos activos de alquiler aleatorios
-    show_arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == 'ar' else "AND (show_arg = 0 OR show_arg IS NULL)"
-    featured = conn.execute(
-        f"SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' {show_arg_filter} ORDER BY RANDOM() LIMIT 6"
+    # 6 productos activos de alquiler — aleatorios en Python (evita ORDER BY NEWID() que es lento)
+    show_country_filter = "AND show_arg=1" if country == 'ar' else "AND show_pe=1"
+    all_featured = conn.execute(
+        f"SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' {show_country_filter}"
     ).fetchall()
+    import random as _random
+    featured = _random.sample(all_featured, min(6, len(all_featured)))
     # Últimas 6 noticias
-    arg_filter = " AND show_arg=1" if country == 'ar' else ""
+    country_filter = " AND show_arg=1" if country == 'ar' else " AND show_pe=1"
     posts = conn.execute(
-        f"SELECT * FROM blog_posts WHERE activo=1{arg_filter} ORDER BY fecha DESC LIMIT 6"
+        f"SELECT * FROM blog_posts WHERE activo=1{country_filter} ORDER BY fecha DESC"
     ).fetchall()
     conn.close()
     return render_template("pages/home.html",
@@ -493,19 +625,19 @@ def blog_list(country, p=1):
     PER_PAGE = 6
     cat_filter = request.args.get("cat", "")
     conn = get_conn()
-    arg_filter = " AND show_arg=1" if country == 'ar' else ""
+    country_filter = " AND show_arg=1" if country == 'ar' else " AND show_pe=1"
     if cat_filter:
         total = conn.execute(
-            f"SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?{arg_filter}", (cat_filter,)
+            f"SELECT COUNT(*) FROM blog_posts WHERE activo=1 AND categoria=?{country_filter}", (cat_filter,)
         ).fetchone()[0]
         posts = conn.execute(
-            f"SELECT * FROM blog_posts WHERE activo=1 AND categoria=?{arg_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            f"SELECT * FROM blog_posts WHERE activo=1 AND categoria=?{country_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
             (cat_filter, PER_PAGE, (p - 1) * PER_PAGE)
         ).fetchall()
     else:
-        total = conn.execute(f"SELECT COUNT(*) FROM blog_posts WHERE activo=1{arg_filter}").fetchone()[0]
+        total = conn.execute(f"SELECT COUNT(*) FROM blog_posts WHERE activo=1{country_filter}").fetchone()[0]
         posts = conn.execute(
-            f"SELECT * FROM blog_posts WHERE activo=1{arg_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
+            f"SELECT * FROM blog_posts WHERE activo=1{country_filter} ORDER BY fecha DESC LIMIT ? OFFSET ?",
             (PER_PAGE, (p - 1) * PER_PAGE)
         ).fetchall()
     conn.close()
@@ -522,8 +654,9 @@ def blog_post(country, slug):
         return redirect(f"/{DEFAULT_COUNTRY}/novedades/{slug}/")
     c = get_country(country)
     conn = get_conn()
+    country_col = "show_arg" if country == 'ar' else "show_pe"
     post = conn.execute(
-        "SELECT * FROM blog_posts WHERE slug=? AND activo=1", (slug,)
+        f"SELECT * FROM blog_posts WHERE slug=? AND activo=1 AND {country_col}=1", (slug,)
     ).fetchone()
     conn.close()
     if not post:
@@ -551,7 +684,7 @@ def categoria(country=None, cat_path=""):
     total_pages = (total + PER_PAGE - 1) // PER_PAGE
 
     conn = get_conn()
-    arg_filter = " AND (show_arg=1 OR show_arg IS NULL)" if country == 'ar' else " AND (show_arg=0 OR show_arg IS NULL)"
+    arg_filter = " AND show_arg=1" if country == 'ar' else " AND show_pe=1"
 
     # ── Conteo por unidad (misma etiqueta) ──
     unidad_counts = {}
@@ -641,35 +774,36 @@ def producto(slug, country=None):
     # ficha_url puede venir como ficha_tecnica en importaciones antiguas
     prod["ficha_url"] = prod.get("ficha_url") or prod.get("ficha_tecnica") or ""
     # ── Productos relacionados con sistema de prioridades ──────────────────
-    arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country == 'ar' else "AND (show_arg = 0 OR show_arg IS NULL)"
+    arg_filter = "AND show_arg = 1" if country == 'ar' else "AND show_pe = 1"
     p_tipo   = prod.get("tipo", "")
     p_unidad = prod.get("unidad", "")
     p_tags   = prod.get("tags", "")
     # Usar la primera unidad para matching de relacionados (soporta multi-unidad pipe-sep)
     p_unidad_main = p_unidad.split("|")[0].strip() if p_unidad else ""
 
-    # Prioridad 1: mismo tipo + misma unidad + mismo tag
+    # Prioridad 1: mismo tipo + misma unidad + mismo tag (aleatorio en Python)
     ucl_r1, upr_r1 = _unidad_clause(p_unidad_main)
-    nivel1 = conn.execute(f"""
+    cands1 = conn.execute(f"""
         SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
         FROM products
         WHERE activo=1 AND slug != ?
           AND tipo = ? AND {ucl_r1} AND tags LIKE ? {arg_filter}
-        ORDER BY RANDOM() LIMIT 3
     """, [slug, p_tipo] + upr_r1 + [f"%{p_tags}%"]).fetchall()
+    import random as _random
+    nivel1 = _random.sample(cands1, min(3, len(cands1)))
 
     slugs_vistos = {slug} | {r["slug"] for r in nivel1}
 
-    # Prioridad 2: mismo tag + misma unidad, distinto tipo
+    # Prioridad 2: mismo tag + misma unidad, distinto tipo (aleatorio en Python)
     limite_n2 = 6 - len(nivel1)
     ucl_r2, upr_r2 = _unidad_clause(p_unidad_main)
-    nivel2 = conn.execute(f"""
+    cands2 = conn.execute(f"""
         SELECT slug, nombre, marca, imagen, descripcion, tipo, unidad
         FROM products
         WHERE activo=1 AND slug NOT IN ({','.join('?'*len(slugs_vistos))})
           AND tags LIKE ? AND {ucl_r2} AND tipo != ? {arg_filter}
-        ORDER BY RANDOM() LIMIT {limite_n2}
     """, [*slugs_vistos, f"%{p_tags}%"] + upr_r2 + [p_tipo]).fetchall()
+    nivel2 = _random.sample(cands2, min(limite_n2, len(cands2)))
 
     slugs_vistos |= {r["slug"] for r in nivel2}
 
@@ -812,7 +946,7 @@ def sitemap():
 
         # Categorías de productos activos
         conn = get_conn()
-        arg_filter = "AND (show_arg = 1 OR show_arg IS NULL)" if country_code == "ar" else "AND (show_arg = 0 OR show_arg IS NULL)"
+        arg_filter = "AND show_arg = 1" if country_code == "ar" else "AND show_pe = 1"
         categorias = conn.execute(
             f"SELECT DISTINCT tags FROM products WHERE activo=1 AND tags != '' {arg_filter}"
         ).fetchall()
@@ -1098,4 +1232,7 @@ def api_proveedor():
 
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv("FLASK_DEBUG", "True") == "True", port=5000)
+    # Por defecto debug=False (producción). Para activarlo en local: FLASK_DEBUG=True en .env
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
+    app.run(debug=debug_mode, port=5000)
+

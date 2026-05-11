@@ -400,7 +400,7 @@
 
     <div class="text-center fade-up">
       <h2 class="cgm-section-title">
-        Conoce las ventajas del
+        {% if country_code == 'ar' %}Conocé{% else %}Conoce{% endif %} las ventajas del
         <span style="color:var(--cgm-lima)">Leasing Operativo</span>
       </h2>
       <div class="cgm-title-line mx-auto"></div>
@@ -524,7 +524,7 @@
       <div class="text-center mt-4 fade-up">
         <a href="/{{ country_code }}/contacto/?tipo=Leasing"
            class="cgm-btn cgm-btn-lima cgm-btn-lg">
-          SOLICITA TU COTIZACIÓN
+          {% if country_code == 'ar' %}SOLICITÁ TU COTIZACIÓN{% else %}SOLICITA TU COTIZACIÓN{% endif %}
         </a>
       </div>
     </div>

@@ -12,14 +12,14 @@
        alt="" class="cgm-cotiz-hero-arrow cgm-cotiz-hero-arrow--right">
   <div class="cgm-cotiz-hero-content">
     <h1>Mi Cotización</h1>
-    <p>Completa tus datos y te contactaremos a la brevedad</p>
+    <p>{% if country_code == 'ar' %}Completá tus datos y te contactaremos a la brevedad{% else %}Completa tus datos y te contactaremos a la brevedad{% endif %}</p>
   </div>
 </section>
 
 <!-- ── Hero con pasos (con equipos) — oculto por defecto ── -->
 <section id="heroFull" class="cgm-page-hero cgm-carrito-hero" style="display:none;">
   <div class="cgm-page-hero-bg"
-       style="background-image:url('{{ url_for('static', filename='images/banners/cat-carrito.jpg') }}');
+       style="background-image:url('{{ burl('otros/carrito') }}');
               background-color:#555;"
        onerror="this.style.backgroundImage='none'"></div>
   <div class="cgm-page-hero-overlay" style="background:rgba(0,0,0,.45);"></div>
@@ -52,7 +52,7 @@
       <i class="bi bi-cart-x" style="font-size:80px;color:#ddd;"></i>
       <h3 style="font-size:22px;color:#999;margin-top:20px;">Tu carrito está vacío</h3>
       <p style="color:#bbb;font-size:14px;margin-bottom:24px;">
-        Agrega equipos desde el catálogo para solicitar una cotización
+        {% if country_code == 'ar' %}Agregá equipos desde el catálogo para solicitar una cotización{% else %}Agrega equipos desde el catálogo para solicitar una cotización{% endif %}
       </p>
       <a href="/{{ country_code }}/categoria-producto/alquiler/" class="cgm-btn cgm-btn-verde">
         <i class="bi bi-search me-2"></i>VER CATÁLOGO
@@ -128,10 +128,10 @@
       <div class="col-12 col-lg-6">
         <div style="background:#fff;border-radius:10px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
           <h2 class="cgm-section-title" style="font-size:20px;margin-bottom:4px;">
-            Solicita tu <span style="color:var(--cgm-lima);">Cotización</span>
+            {% if country_code == 'ar' %}Solicitá{% else %}Solicita{% endif %} tu <span style="color:var(--cgm-lima);">Cotización</span>
           </h2>
           <p style="font-size:12px;color:var(--cgm-gris-txt);margin-bottom:20px;">
-            Completa tus datos y te contactaremos a la brevedad.
+            {% if country_code == 'ar' %}Completá tus datos y te contactaremos a la brevedad.{% else %}Completa tus datos y te contactaremos a la brevedad.{% endif %}
           </p>
 
           <form id="sfCartForm"
@@ -179,9 +179,12 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfRuc">RUC / DNI</label>
+                <label class="cgm-form-label" for="sfRuc">
+                  {% if country_code == 'ar' %}CUIT / CUIL{% else %}RUC / DNI{% endif %}
+                </label>
                 <input type="text" id="sfRuc" name="00N4100000TT12H" class="cgm-form-control"
-                       placeholder="20123456789" maxlength="11">
+                       placeholder="{% if country_code == 'ar' %}20-12345678-9{% else %}20123456789{% endif %}"
+                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}">
               </div>
 
               <div class="col-12 col-sm-6">
@@ -206,15 +209,27 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfDepto">Departamento</label>
+                <label class="cgm-form-label" for="sfDepto">
+                  {% if country_code == 'ar' %}Provincia{% else %}Departamento{% endif %}
+                </label>
                 <select id="sfDepto" name="00NUU000001uSST" class="cgm-form-control">
                   <option value="">Selecciona...</option>
-                  {% for d in ['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca',
-                               'Callao','Cusco','Huancavelica','Huánuco','Ica','Junín',
-                               'La Libertad','Lambayeque','Lima','Loreto','Madre de Dios',
-                               'Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'] %}
-                  <option value="{{ d }}">{{ d }}</option>
-                  {% endfor %}
+                  {% if country_code == 'ar' %}
+                    {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',
+                                 'Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa',
+                                 'La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta',
+                                 'San Juan','San Luis','Santa Cruz','Santa Fe',
+                                 'Santiago del Estero','Tierra del Fuego','Tucumán'] %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                  {% else %}
+                    {% for d in ['Amazonas','Áncash','Apurímac','Arequipa','Ayacucho','Cajamarca',
+                                 'Callao','Cusco','Huancavelica','Huánuco','Ica','Junín',
+                                 'La Libertad','Lambayeque','Lima','Loreto','Madre de Dios',
+                                 'Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'] %}
+                    <option value="{{ d }}">{{ d }}</option>
+                    {% endfor %}
+                  {% endif %}
                 </select>
               </div>
 

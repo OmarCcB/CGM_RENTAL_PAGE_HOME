@@ -1,0 +1,96 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog{% endblock %}
+{% block breadcrumb %}Blog / Noticias{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="adm-page-title"><i class="bi bi-newspaper me-2"></i>Blog / Noticias</h1>
+    <p class="adm-page-sub">{{ posts|length }} posts en total</p>
+  </div>
+  <a href="{{ url_for('admin.blog_nuevo') }}" class="btn-adm-primary">
+    <i class="bi bi-plus-lg me-1"></i> Nuevo post
+  </a>
+</div>
+
+<div class="adm-card p-0">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th style="width:80px">IMG</th>
+        <th>TÍTULO</th>
+        <th>CATEGORÍA</th>
+        <th>FECHA</th>
+        <th>PAÍS</th>
+        <th>ESTADO</th>
+        <th>ACCIONES</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in posts %}
+      <tr>
+        <td>
+          {% if p.imagen %}
+          <img src="{{ url_for('static', filename='images/' + p.imagen) }}" style="width:60px;height:45px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'">
+          {% else %}
+          <div style="width:60px;height:45px;background:#eee;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-image text-muted"></i>
+          </div>
+          {% endif %}
+        </td>
+        <td>
+          <strong>{{ p.titulo }}</strong>
+          <div style="font-size:12px;color:#888;">{{ p.slug }}</div>
+        </td>
+        <td>
+          <span style="background:{% if p.categoria=='entrevistas' %}#e8f5e9{% else %}#e3f2fd{% endif %};
+                       color:{% if p.categoria=='entrevistas' %}#2e7d32{% else %}#1565c0{% endif %};
+                       padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">
+            {{ p.categoria | capitalize }}
+          </span>
+        </td>
+        <td style="white-space:nowrap">{{ p.fecha }}</td>
+        <td>
+          {% if p.show_pe %}<span class="adm-badge-pe">PE</span>{% endif %}
+          {% if p.show_arg %}<span class="adm-badge-ar">AR</span>{% endif %}
+        </td>
+        <td>
+          <div class="adm-toggle-wrap">
+            <input type="checkbox" class="adm-toggle-input blog-toggle"
+                   id="tog-{{ p.id }}" data-id="{{ p.id }}"
+                   {% if p.activo %}checked{% endif %}>
+            <label class="adm-toggle-label" for="tog-{{ p.id }}"></label>
+          </div>
+        </td>
+        <td>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.blog_editar', pid=p.id) }}" class="adm-btn-icon" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{{ url_for('admin.blog_eliminar', pid=p.id) }}"
+                  onsubmit="return confirm('¿Eliminar este post?')">
+              <button type="submit" class="adm-btn-icon adm-btn-danger" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="text-align:center;padding:40px;color:#888;">No hay posts todavía.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.querySelectorAll('.blog-toggle').forEach(cb => {
+  cb.addEventListener('change', function() {
+    fetch(`/admin/blog/${this.dataset.id}/toggle`, {method:'POST'})
+      .then(r => r.json()).then(d => { if(!d.ok) this.checked = !this.checked; });
+  });
+});
+</script>
+{% endblock %}

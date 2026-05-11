@@ -214,6 +214,31 @@
 }
 .cgm-locales-section::-webkit-scrollbar { width: 4px; }
 .cgm-locales-section::-webkit-scrollbar-thumb { background: #c5e86c; border-radius: 4px; }
+
+/* ── Flechas decorativas en mobile: más pequeñas, difuminadas, parte inferior ── */
+@media (max-width: 768px) {
+  .cgm-cap-hero .fade-left,
+  .cgm-cap-hero .fade-right {
+    height: 18% !important;
+    opacity: 0.35 !important;
+    filter: blur(1px);
+    top: auto !important;
+    bottom: 12% !important;
+    transform: none !important;
+  }
+  .cgm-cap-hero .fade-right {
+    transform: scaleX(-1) !important;
+  }
+}
+@media (max-width: 480px) {
+  .cgm-cap-hero .fade-left,
+  .cgm-cap-hero .fade-right {
+    height: 14% !important;
+    opacity: 0.28 !important;
+    filter: blur(1.5px);
+    bottom: 10% !important;
+  }
+}
 </style>
 {% endblock %}
 

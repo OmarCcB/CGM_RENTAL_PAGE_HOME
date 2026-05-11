@@ -1,0 +1,190 @@
+{% extends "admin/base.html" %}
+{% block title %}Sucursales{% endblock %}
+{% block breadcrumb %}Sucursales{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="adm-page-title"><i class="bi bi-geo-alt me-2"></i>Sucursales</h1>
+  <p class="adm-page-sub">Administra las oficinas y puntos de atención por país.</p>
+</div>
+
+<!-- Tabs -->
+<div class="adm-tabs">
+  <button class="adm-tab-btn active" onclick="switchTab('pe', this)">🇵🇪 Perú</button>
+  <button class="adm-tab-btn" onclick="switchTab('ar', this)">🇦🇷 Argentina</button>
+</div>
+
+{% for tab_code, tab_label, suc_list in [('pe','Perú',suc_pe), ('ar','Argentina',suc_ar)] %}
+<div class="adm-tab-panel {% if tab_code == 'pe' %}active{% endif %}" id="tab-{{ tab_code }}">
+
+  <!-- List of existing sucursales -->
+  {% if suc_list %}
+  <div class="adm-card mb-3">
+    <h6 class="fw-bold mb-3" style="color:#02534C;">Sucursales registradas – {{ tab_label }}</h6>
+    <div class="adm-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Coordenadas</th>
+            <th>Orden</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suc_list %}
+          <tr id="suc-row-{{ s.id }}">
+            <td><strong>{{ s.nombre }}</strong></td>
+            <td>
+              <span class="adm-badge
+                {% if s.tipo == 'principal' %}adm-badge-green
+                {% elif s.tipo == 'sucursal' %}adm-badge-lime
+                {% else %}adm-badge-orange{% endif %}">
+                {{ s.tipo or '—' }}
+              </span>
+            </td>
+            <td style="font-size:0.83rem;max-width:220px;">{{ s.direccion or '—' }}</td>
+            <td style="font-size:0.83rem;">{{ s.telefono or '—' }}</td>
+            <td style="font-size:0.78rem;color:#888;">
+              {% if s.lat %}{{ "%.4f"|format(s.lat) }}, {{ "%.4f"|format(s.lng) }}{% else %}—{% endif %}
+            </td>
+            <td>{{ s.orden }}</td>
+            <td>
+              <div class="d-flex gap-2">
+                <button class="btn-adm-ghost" style="padding:4px 10px;font-size:0.78rem;"
+                        onclick='editSucursal({{ s.id }}, {{ s|tojson }})'>
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <form method="post" action="{{ url_for('admin.sucursales_eliminar', sid=s.id) }}"
+                      onsubmit="return confirm('¿Eliminar la sucursal {{ s.nombre }}?')">
+                  <button type="submit" class="btn-adm-danger" style="padding:4px 10px;font-size:0.78rem;">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Add / Edit form -->
+  <div class="adm-card">
+    <h6 class="fw-bold mb-3" style="color:#02534C;" id="form-title-{{ tab_code }}">
+      <i class="bi bi-plus-circle me-2"></i>Agregar Sucursal – {{ tab_label }}
+    </h6>
+    <form method="post" action="{{ url_for('admin.sucursales_guardar') }}" id="suc-form-{{ tab_code }}">
+      <input type="hidden" name="id" id="suc-id-{{ tab_code }}" value="">
+      <input type="hidden" name="country_code" value="{{ tab_code }}">
+      <div class="row g-3">
+        <div class="col-md-5 adm-form-group">
+          <label class="adm-form-label">Nombre <span style="color:red">*</span></label>
+          <input type="text" name="nombre" id="suc-nombre-{{ tab_code }}" class="adm-form-control" required placeholder="Ej: Lima">
+        </div>
+        <div class="col-md-3 adm-form-group">
+          <label class="adm-form-label">Tipo</label>
+          <select name="tipo" id="suc-tipo-{{ tab_code }}" class="adm-form-control">
+            <option value="sucursal">Sucursal</option>
+            <option value="principal">Principal</option>
+            <option value="atencion">Punto de Atención</option>
+          </select>
+        </div>
+        <div class="col-md-2 adm-form-group">
+          <label class="adm-form-label">Orden</label>
+          <input type="number" name="orden" id="suc-orden-{{ tab_code }}" class="adm-form-control" value="0" min="0">
+        </div>
+        <div class="col-md-2 adm-form-group">
+          <label class="adm-form-label">Teléfono</label>
+          <input type="text" name="telefono" id="suc-telefono-{{ tab_code }}" class="adm-form-control" placeholder="+51 ...">
+        </div>
+        <div class="col-12 adm-form-group">
+          <label class="adm-form-label">Dirección</label>
+          <input type="text" name="direccion" id="suc-direccion-{{ tab_code }}" class="adm-form-control" placeholder="Dirección completa">
+        </div>
+        <div class="col-md-4 adm-form-group">
+          <label class="adm-form-label">Latitud</label>
+          <input type="number" name="lat" id="suc-lat-{{ tab_code }}" class="adm-form-control" step="any" placeholder="-12.2773">
+        </div>
+        <div class="col-md-4 adm-form-group">
+          <label class="adm-form-label">Longitud</label>
+          <input type="number" name="lng" id="suc-lng-{{ tab_code }}" class="adm-form-control" step="any" placeholder="-76.8864">
+        </div>
+        <div class="col-md-4 adm-form-group">
+          <label class="adm-form-label">URL Google Maps</label>
+          <input type="url" name="maps_url" id="suc-maps-{{ tab_code }}" class="adm-form-control" placeholder="https://maps.app.goo.gl/...">
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn-adm-primary">
+          <i class="bi bi-check-lg me-1"></i> Guardar
+        </button>
+        <button type="button" class="btn-adm-ghost" onclick="resetSucForm('{{ tab_code }}')">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function switchTab(code, btn) {
+  document.querySelectorAll('.adm-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.adm-tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + code).classList.add('active');
+}
+
+function editSucursal(id, data) {
+  // Determine tab
+  const code = data.country_code;
+  // Switch to correct tab
+  document.querySelectorAll('.adm-tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && code === 'pe') || (i === 1 && code === 'ar'));
+  });
+  document.querySelectorAll('.adm-tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + code);
+  });
+
+  const fields = {
+    id: id,
+    nombre: data.nombre || '',
+    tipo: data.tipo || 'sucursal',
+    orden: data.orden || 0,
+    telefono: data.telefono || '',
+    direccion: data.direccion || '',
+    lat: data.lat || '',
+    lng: data.lng || '',
+    maps_url: data.maps_url || '',
+  };
+  for (const [field, val] of Object.entries(fields)) {
+    const el = document.getElementById(`suc-${field}-${code}`);
+    if (el) {
+      if (el.tagName === 'SELECT') el.value = val;
+      else el.value = val;
+    }
+  }
+  document.getElementById(`suc-id-${code}`).value = id;
+  document.getElementById(`form-title-${code}`).innerHTML =
+    `<i class="bi bi-pencil me-2"></i>Editar Sucursal #${id}`;
+  document.getElementById(`suc-form-${code}`).scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetSucForm(code) {
+  const form = document.getElementById(`suc-form-${code}`);
+  form.reset();
+  document.getElementById(`suc-id-${code}`).value = '';
+  document.getElementById(`form-title-${code}`).innerHTML =
+    `<i class="bi bi-plus-circle me-2"></i>Agregar Sucursal`;
+}
+</script>
+{% endblock %}

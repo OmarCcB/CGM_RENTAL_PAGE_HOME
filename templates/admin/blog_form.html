@@ -1,0 +1,149 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Editar Post' if post else 'Nuevo Post' }}{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('admin.blog_list') }}">Blog</a> &rsaquo;
+  {{ 'Editar Post' if post else 'Nuevo Post' }}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="adm-page-title">
+    <i class="bi bi-{{ 'pencil-square' if post else 'plus-circle' }} me-2"></i>
+    {{ 'Editar Post' if post else 'Nuevo Post' }}
+  </h1>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% if post %}<input type="hidden" name="imagen_actual" value="{{ post.imagen or '' }}">{% endif %}
+
+  <div class="row g-4">
+    <!-- Columna principal -->
+    <div class="col-lg-8">
+
+      <div class="adm-card mb-4">
+        <h6 class="fw-bold mb-3" style="color:#02534C;">Información general</h6>
+
+        <div class="adm-form-group mb-3">
+          <label class="adm-form-label">Título *</label>
+          <input type="text" name="titulo" class="adm-form-control" required
+                 value="{{ post.titulo if post else '' }}"
+                 oninput="autoSlug(this.value)">
+        </div>
+
+        <div class="adm-form-group mb-3">
+          <label class="adm-form-label">Slug (URL)</label>
+          <input type="text" name="slug" id="slug-field" class="adm-form-control"
+                 value="{{ post.slug if post else '' }}"
+                 placeholder="se-genera-automaticamente">
+          <small style="color:#888">Solo letras, números y guiones.</small>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6 adm-form-group">
+            <label class="adm-form-label">Categoría</label>
+            <select name="categoria" class="adm-form-control">
+              <option value="articulos" {% if post and post.categoria=='articulos' %}selected{% endif %}>Artículos</option>
+              <option value="entrevistas" {% if post and post.categoria=='entrevistas' %}selected{% endif %}>Entrevistas</option>
+            </select>
+          </div>
+          <div class="col-md-6 adm-form-group">
+            <label class="adm-form-label">Fecha de publicación</label>
+            <input type="date" name="fecha" class="adm-form-control"
+                   value="{{ post.fecha if post else '' }}">
+          </div>
+        </div>
+
+        <div class="adm-form-group mb-3">
+          <label class="adm-form-label">Extracto (resumen corto)</label>
+          <textarea name="extracto" class="adm-form-control" rows="2">{{ post.extracto if post else '' }}</textarea>
+        </div>
+
+        <div class="adm-form-group mb-3">
+          <label class="adm-form-label">Contenido (HTML permitido)</label>
+          <textarea name="contenido" class="adm-form-control" rows="10"
+                    style="font-family:monospace;font-size:13px;">{{ post.contenido if post else '' }}</textarea>
+        </div>
+
+        <div class="adm-form-group">
+          <label class="adm-form-label"><i class="bi bi-youtube me-1"></i>URL de Video (opcional)</label>
+          <input type="url" name="video_url" class="adm-form-control"
+                 value="{{ post.video_url if post else '' }}"
+                 placeholder="https://www.youtube.com/watch?v=...">
+        </div>
+      </div>
+
+      <!-- Imagen -->
+      <div class="adm-card">
+        <h6 class="fw-bold mb-3" style="color:#02534C;">Imagen de portada</h6>
+        {% if post and post.imagen %}
+        <div class="mb-3">
+          <img src="{{ url_for('static', filename='images/' + post.imagen) }}"
+               style="max-width:100%;max-height:200px;border-radius:8px;object-fit:cover;">
+          <div style="font-size:12px;color:#888;margin-top:4px;">{{ post.imagen }}</div>
+        </div>
+        {% endif %}
+        <div class="adm-form-group">
+          <label class="adm-form-label">{{ 'Reemplazar imagen' if (post and post.imagen) else 'Subir imagen' }}</label>
+          <input type="file" name="imagen_file" class="adm-form-control" accept="image/*">
+          <small style="color:#888">JPG, PNG o WebP. Se convierte a WebP automáticamente.</small>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna lateral -->
+    <div class="col-lg-4">
+      <div class="adm-card mb-4">
+        <h6 class="fw-bold mb-3" style="color:#02534C;">País</h6>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px;">
+          <input type="checkbox" name="show_pe" {% if not post or post.show_pe %}checked{% endif %}>
+          <span>🇵🇪 Mostrar en Perú</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" name="show_arg" {% if post and post.show_arg %}checked{% endif %}>
+          <span>🇦🇷 Mostrar en Argentina</span>
+        </label>
+        <small style="color:#888;display:block;margin-top:6px;">Puedes activar uno o ambos países.</small>
+      </div>
+
+      <div class="adm-card">
+        <h6 class="fw-bold mb-3" style="color:#02534C;">Estado</h6>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" name="activo" {% if not post or post.activo %}checked{% endif %}>
+          <span>Activo (visible en la web)</span>
+        </label>
+        <small style="color:#888;display:block;margin-top:6px;">
+          Si está desactivado, el post no aparecerá aunque tenga país asignado (modo borrador).
+        </small>
+        <div class="mt-4 d-flex flex-column gap-2">
+          <button type="submit" class="btn-adm-primary w-100">
+            <i class="bi bi-check-lg me-1"></i> Guardar
+          </button>
+          <a href="{{ url_for('admin.blog_list') }}" class="btn-adm-secondary w-100" style="text-align:center;">
+            Cancelar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function slugify(text) {
+  return text.toLowerCase().trim()
+    .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e')
+    .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+    .replace(/[ùúûü]/g,'u').replace(/[ñ]/g,'n')
+    .replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+}
+function autoSlug(val) {
+  const slugField = document.getElementById('slug-field');
+  if (!slugField.dataset.manual) slugField.value = slugify(val);
+}
+document.getElementById('slug-field').addEventListener('input', function() {
+  this.dataset.manual = '1';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión – CGM Rental Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin-body">
+
+<div class="adm-login-wrap">
+  <div class="adm-login-card">
+
+    <!-- Logo -->
+    <div class="mb-3">
+      <i class="bi bi-gear-wide-connected" style="font-size:2.8rem;color:#02534C;"></i>
+    </div>
+
+    <h1 class="adm-login-title">Panel de Administración</h1>
+    <p class="adm-login-sub">CGM Rental &mdash; Acceso restringido a usuarios autorizados</p>
+
+    {% if configured and auth_url %}
+      <a href="{{ auth_url }}" class="btn-ms">
+        <!-- Microsoft icon SVG -->
+        <svg width="20" height="20" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="10" height="10" fill="#f25022"/>
+          <rect x="11" y="0" width="10" height="10" fill="#7fba00"/>
+          <rect x="0" y="11" width="10" height="10" fill="#00a4ef"/>
+          <rect x="11" y="11" width="10" height="10" fill="#ffb900"/>
+        </svg>
+        Ingresar con Microsoft
+      </a>
+    {% elif not configured %}
+      <div style="background:#f0f9f6;border-radius:8px;padding:16px;text-align:left;border:2px solid #C5E86C;">
+        <p style="color:#02534C;font-weight:700;margin-bottom:8px;">
+          <i class="bi bi-exclamation-triangle me-1"></i> Azure AD no configurado
+        </p>
+        <p style="font-size:0.85rem;color:#555;margin-bottom:0;">
+          Para habilitar el inicio de sesión, configura las siguientes variables de entorno:
+        </p>
+      </div>
+      <div class="adm-config-warning mt-3">
+        <code>AZURE_CLIENT_ID</code><br>
+        <code>AZURE_CLIENT_SECRET</code><br>
+        <code>AZURE_TENANT_ID</code><br>
+        <code>AZURE_REDIRECT_URI</code>
+        <p class="mt-2 mb-0" style="font-size:0.8rem;">
+          Registra una aplicación en <strong>Azure Active Directory</strong> y agrega estas variables en tu archivo <code>.env</code>.
+        </p>
+      </div>
+    {% else %}
+      <div class="adm-config-warning">
+        <i class="bi bi-x-circle me-1"></i>
+        No se pudo generar la URL de autenticación. Verifica tu configuración de Azure AD.
+      </div>
+    {% endif %}
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="mt-3 p-2 rounded" style="
+          background: {% if cat == 'danger' %}#fdecea{% elif cat == 'success' %}#e8f8f4{% else %}#fff8e1{% endif %};
+          border-left: 4px solid {% if cat == 'danger' %}#c0392b{% elif cat == 'success' %}#02534C{% else %}#f39c12{% endif %};
+          font-size: 0.87rem;
+          color: {% if cat == 'danger' %}#c0392b{% elif cat == 'success' %}#02534C{% else %}#7d5a00{% endif %};
+        ">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <p class="mt-4" style="font-size:0.78rem;color:#aaa;">
+      &copy; 2025 CGM Rental &mdash; Uso interno
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,370 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Nuevo Producto' if modo == 'nuevo' else 'Editar: ' ~ producto.nombre }}{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('admin.productos') }}" style="color:inherit;text-decoration:none;">Productos</a> &rsaquo;
+  {{ 'Nuevo' if modo == 'nuevo' else producto.nombre }}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="adm-page-title">
+    <i class="bi bi-{{ 'plus-circle' if modo == 'nuevo' else 'pencil-square' }} me-2"></i>
+    {{ 'Nuevo Producto' if modo == 'nuevo' else 'Editar Producto' }}
+  </h1>
+</div>
+
+<form method="post" id="prod-form">
+<div class="row g-3">
+
+  <!-- Left column -->
+  <div class="col-lg-8">
+
+    <!-- Basic info -->
+    <div class="adm-card mb-3">
+      <h6 class="fw-bold mb-3" style="color:#02534C;">Información general</h6>
+
+      <div class="adm-form-group">
+        <label class="adm-form-label">Nombre <span style="color:red">*</span></label>
+        <input type="text" name="nombre" id="inp-nombre" class="adm-form-control"
+               value="{{ producto.nombre if producto else '' }}" required
+               oninput="autoSlug(this.value)">
+      </div>
+
+      <div class="adm-form-group">
+        <label class="adm-form-label">Slug (URL)</label>
+        <input type="text" name="slug" id="inp-slug" class="adm-form-control"
+               value="{{ producto.slug if producto else '' }}"
+               placeholder="se-genera-automaticamente">
+        <small style="color:#888;">Se usa en la URL del producto. Solo letras, números y guiones.</small>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-md-6 adm-form-group">
+          <label class="adm-form-label">Marca</label>
+          <input type="text" name="marca" class="adm-form-control"
+                 value="{{ producto.marca if producto else '' }}">
+        </div>
+        <div class="col-md-6 adm-form-group">
+          <label class="adm-form-label">Tipo</label>
+          <input type="text" name="tipo" class="adm-form-control"
+                 value="{{ producto.tipo if producto else '' }}"
+                 placeholder="Ej: Excavadora">
+        </div>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-md-6 adm-form-group">
+          <label class="adm-form-label">Sector (Unidad)</label>
+          <select name="unidad" class="adm-form-control">
+            <option value="">-- Sin sector --</option>
+            {% set sectores = ['Construcción', 'Mediana Minería', 'Agrícola', 'Energía'] %}
+            {% for s in sectores %}
+            <option value="{{ s }}" {{ 'selected' if producto and producto.unidad == s }}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6 adm-form-group">
+          <label class="adm-form-label">Sector adicional</label>
+          <select name="sector" class="adm-form-control">
+            <option value="">-- Ninguno --</option>
+            {% for s in sectores %}
+            <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="adm-form-group">
+        <label class="adm-form-label">Descripción (HTML)</label>
+        <textarea name="descripcion" class="adm-form-control" rows="4"
+                  placeholder="Descripción completa con HTML...">{{ producto.descripcion if producto else '' }}</textarea>
+      </div>
+
+      <div class="adm-form-group">
+        <label class="adm-form-label">Descripción (texto plano)</label>
+        <textarea name="descripcion_texto" class="adm-form-control" rows="2"
+                  placeholder="Versión sin HTML para SEO...">{{ producto.descripcion_texto if producto else '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Images section -->
+    <div class="adm-card mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0" style="color:#02534C;">Imágenes</h6>
+        {% if imagenes %}
+        <span class="adm-badge adm-badge-lime">{{ imagenes|length }} {{ 'imagen' if imagenes|length == 1 else 'imágenes' }}</span>
+        {% endif %}
+      </div>
+
+      {% if imagenes %}
+      <div class="row g-2 mb-3" id="img-grid">
+        {% for img in imagenes %}
+        <div class="col-6 col-sm-4 col-md-3">
+          <div style="border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;background:#f8f8f8;position:relative;">
+            <img src="{{ img.url }}?v={{ range(99999)|random }}" alt="{{ img.filename }}"
+                 style="width:100%;height:110px;object-fit:cover;display:block;">
+            <div style="padding:6px 8px;">
+              <p style="font-size:0.74rem;color:#666;margin:0 0 4px 0;font-family:monospace;text-align:center;" title="{{ img.filename }}">
+                {{ img.filename }}
+              </p>
+              <form method="post" action="{{ url_for('admin.producto_imagen_eliminar', pid=producto.id) }}"
+                    onsubmit="return confirm('¿Eliminar la imagen {{ img.filename }}? Esta acción no se puede deshacer.')">
+                <input type="hidden" name="filename" value="{{ img.filename }}">
+                <button type="submit" class="btn-adm-danger w-100"
+                        style="justify-content:center;font-size:0.72rem;padding:3px 6px;">
+                  <i class="bi bi-trash"></i> Borrar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% elif producto %}
+      <p style="font-size:0.85rem;color:#888;margin-bottom:14px;">
+        <i class="bi bi-info-circle"></i> Este producto aún no tiene imágenes. Sube algunas debajo.
+      </p>
+      {% endif %}
+
+      {% if producto %}
+      <div style="font-size:0.78rem;color:#02534C;background:#e8f5f3;border:1px dashed #b6d4cf;border-radius:6px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <i class="bi bi-aspect-ratio" style="font-size:1.1rem;"></i>
+        <div>
+          <strong>Tamaño recomendado:</strong> 1080 × 1080 px (cuadrada 1:1) ·
+          <span style="color:#666;">también funcionan 800×800 o superiores. Evita imágenes muy rectangulares — se recortan en las tarjetas.</span>
+        </div>
+      </div>
+      <div class="adm-dropzone" id="img-drop">
+        <i class="bi bi-cloud-upload"></i>
+        <p>Arrastra imágenes aquí o <strong>haz clic</strong> para seleccionar</p>
+        <p style="font-size:0.78rem;">Formatos: webp, jpg, jpeg, png &mdash; Máx 10 MB · Se convierten a WebP automáticamente y se numeran (1.webp, 2.webp, …)</p>
+        <input type="file" id="img-file-input" accept=".webp,.jpg,.jpeg,.png" multiple
+               style="display:none;" onchange="handleImgUpload(this.files)">
+      </div>
+      <div id="img-upload-list" class="mt-2"></div>
+      {% else %}
+      <p style="font-size:0.85rem;color:#888;">
+        <i class="bi bi-info-circle"></i> Guarda primero el producto. Luego podrás subir imágenes desde la edición.
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- PDF Ficha técnica -->
+    <div class="adm-card mb-3">
+      <h6 class="fw-bold mb-3" style="color:#02534C;">Ficha Técnica (PDF)</h6>
+
+      {% if producto and producto.ficha_url %}
+      <div class="mb-2" style="font-size:0.88rem;">
+        Ficha actual:
+        <a href="{{ producto.ficha_url }}" target="_blank" style="color:#02534C;">
+          <i class="bi bi-file-pdf me-1"></i>{{ producto.ficha_url.split('/')[-1] }}
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="adm-dropzone" id="pdf-drop">
+        <i class="bi bi-file-earmark-pdf" style="color:#c0392b;"></i>
+        <p>Arrastra el PDF aquí o <strong>haz clic</strong> para seleccionar</p>
+        <p style="font-size:0.78rem;">Solo PDF &mdash; Máx 10 MB</p>
+        <input type="file" id="pdf-file-input" accept=".pdf"
+               style="display:none;" onchange="handlePdfUpload(this.files)">
+      </div>
+      <div id="pdf-upload-status" class="mt-2"></div>
+    </div>
+
+  </div>
+
+  <!-- Right column -->
+  <div class="col-lg-4">
+
+    <!-- Tags / category -->
+    <div class="adm-card mb-3">
+      <h6 class="fw-bold mb-3" style="color:#02534C;">Categorías / Tags</h6>
+
+      <div class="adm-form-group">
+        <label class="adm-form-label">Tags</label>
+        {% set current_tags = (producto.tags if producto and producto.tags else '') %}
+        <div class="d-flex flex-column gap-2">
+          {% for tag in ['alquiler', 'usados', 'nuevo', 'destacado'] %}
+          <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+            <input type="checkbox" name="tags" value="{{ tag }}"
+                   {% if tag in current_tags %}checked{% endif %}
+                   style="accent-color:#02534C;width:16px;height:16px;">
+            {{ tag|capitalize }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Country -->
+    <div class="adm-card mb-3">
+      <h6 class="fw-bold mb-3" style="color:#02534C;">País</h6>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;margin-bottom:10px;">
+        <input type="checkbox" name="show_pe" value="1"
+               {% if not producto or producto.show_pe != 0 %}checked{% endif %}
+               style="accent-color:#02534C;width:16px;height:16px;">
+        🇵🇪 Mostrar en Perú
+      </label>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;margin-bottom:12px;">
+        <input type="checkbox" name="show_arg" value="1"
+               {% if producto and producto.show_arg %}checked{% endif %}
+               style="accent-color:#02534C;width:16px;height:16px;">
+        🇦🇷 Mostrar en Argentina
+      </label>
+
+      <small style="color:#888;font-size:0.78rem;">
+        <i class="bi bi-info-circle me-1"></i>
+        Marca uno o ambos países. Si ninguno está marcado, el producto no será visible en la web.
+      </small>
+    </div>
+
+    <!-- State toggles -->
+    <div class="adm-card mb-3">
+      <h6 class="fw-bold mb-3" style="color:#02534C;">Estado</h6>
+
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span style="font-size:0.9rem;">Activo (visible en la web)</span>
+        <label class="adm-toggle">
+          <input type="checkbox" name="activo" value="1"
+                 {% if not producto or producto.activo %}checked{% endif %}>
+          <span class="adm-toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between">
+        <span style="font-size:0.9rem;">A Solicitud</span>
+        <label class="adm-toggle">
+          <input type="checkbox" name="a_solicitud" value="1"
+                 {% if producto and producto.a_solicitud %}checked{% endif %}>
+          <span class="adm-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="adm-card">
+      <button type="submit" class="btn-adm-primary w-100" style="justify-content:center;padding:12px;">
+        <i class="bi bi-check-lg me-1"></i>
+        {{ 'Crear Producto' if modo == 'nuevo' else 'Guardar Cambios' }}
+      </button>
+      <a href="{{ url_for('admin.productos') }}" class="btn-adm-ghost w-100 mt-2" style="justify-content:center;">
+        Cancelar
+      </a>
+    </div>
+
+  </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Auto-slug generation
+function autoSlug(val) {
+  const slugInput = document.getElementById('inp-slug');
+  if (slugInput._manual) return;
+  let s = val.toLowerCase()
+    .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e')
+    .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+    .replace(/[ùúûü]/g,'u').replace(/ñ/g,'n')
+    .replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  slugInput.value = s;
+}
+document.getElementById('inp-slug').addEventListener('input', function() {
+  this._manual = true;
+});
+
+// Image drop zone
+const imgDrop = document.getElementById('img-drop');
+const imgInput = document.getElementById('img-file-input');
+imgDrop.addEventListener('click', () => imgInput.click());
+imgDrop.addEventListener('dragover', e => { e.preventDefault(); imgDrop.classList.add('dragover'); });
+imgDrop.addEventListener('dragleave', () => imgDrop.classList.remove('dragover'));
+imgDrop.addEventListener('drop', e => {
+  e.preventDefault();
+  imgDrop.classList.remove('dragover');
+  handleImgUpload(e.dataTransfer.files);
+});
+
+async function handleImgUpload(files) {
+  const slug = document.getElementById('inp-slug').value || 'general';
+  const list = document.getElementById('img-upload-list');
+  let anyOk = false;
+  for (const file of files) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('slug', slug);
+    fd.append('type', 'product');
+    const msg = document.createElement('div');
+    msg.style.cssText = 'font-size:.83rem;padding:4px 0;color:#555;';
+    msg.textContent = `Subiendo ${file.name}...`;
+    list.appendChild(msg);
+    try {
+      const r = await fetch('/admin/upload', { method: 'POST', body: fd });
+      const d = await r.json();
+      if (d.ok) {
+        msg.innerHTML = `<span style="color:#02534C;"><i class="bi bi-check-circle me-1"></i>${file.name} → guardado como <strong>${d.filename}</strong></span>`;
+        showToast(`${file.name} subido correctamente.`, 'success');
+        anyOk = true;
+      } else {
+        msg.innerHTML = `<span style="color:red;"><i class="bi bi-x-circle me-1"></i>${file.name}: ${d.error}</span>`;
+      }
+    } catch(e) {
+      msg.innerHTML = `<span style="color:red;">Error de red subiendo ${file.name}.</span>`;
+    }
+  }
+  // Si al menos una imagen se subio bien, recargar para mostrarla en la galeria
+  if (anyOk) {
+    setTimeout(() => location.reload(), 800);
+  }
+}
+
+// PDF drop zone
+const pdfDrop = document.getElementById('pdf-drop');
+const pdfInput = document.getElementById('pdf-file-input');
+pdfDrop.addEventListener('click', () => pdfInput.click());
+pdfDrop.addEventListener('dragover', e => { e.preventDefault(); pdfDrop.classList.add('dragover'); });
+pdfDrop.addEventListener('dragleave', () => pdfDrop.classList.remove('dragover'));
+pdfDrop.addEventListener('drop', e => {
+  e.preventDefault();
+  pdfDrop.classList.remove('dragover');
+  handlePdfUpload(e.dataTransfer.files);
+});
+
+async function handlePdfUpload(files) {
+  if (!files.length) return;
+  const file = files[0];
+  const slug = document.getElementById('inp-slug').value || 'general';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('slug', slug);
+  fd.append('type', 'product');
+  const status = document.getElementById('pdf-upload-status');
+  status.innerHTML = `<span style="color:#555;font-size:.83rem;">Subiendo ${file.name}...</span>`;
+  try {
+    const r = await fetch('/admin/upload', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (d.ok) {
+      status.innerHTML = `<span style="color:#02534C;font-size:.83rem;"><i class="bi bi-check-circle me-1"></i>Subido: <a href="${d.url}" target="_blank">${d.url}</a></span>`;
+      showToast('PDF subido correctamente.', 'success');
+    } else {
+      status.innerHTML = `<span style="color:red;font-size:.83rem;">${d.error}</span>`;
+    }
+  } catch(e) {
+    status.innerHTML = `<span style="color:red;font-size:.83rem;">Error de red.</span>`;
+  }
+}
+
+// Validate
+document.getElementById('prod-form').addEventListener('submit', function(e) {
+  const nombre = document.getElementById('inp-nombre').value.trim();
+  if (!nombre) {
+    e.preventDefault();
+    showToast('El nombre del producto es obligatorio.', 'danger');
+  }
+});
+</script>
+{% endblock %}
