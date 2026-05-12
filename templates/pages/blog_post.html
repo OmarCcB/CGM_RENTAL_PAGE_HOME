@@ -111,12 +111,13 @@
           {% set _raw_id = post.video_url.split('v=')[-1].split('&')[0] if 'v=' in post.video_url else post.video_url.split('/')[-1] %}
           {% set video_id = _raw_id.split('?')[0].split('&')[0] %}
           <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
-            <iframe src="https://www.youtube.com/embed/{{ video_id }}"
+            <iframe src="https://www.youtube.com/embed/{{ video_id }}?feature=oembed"
                     style="position:absolute;top:0;left:0;width:100%;height:100%;"
+                    title="{{ post.titulo }}"
                     frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen
-                    title="{{ post.titulo }}"></iframe>
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen loading="lazy"></iframe>
           </div>
         </div>
         {% endif %}
