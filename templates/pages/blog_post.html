@@ -8,14 +8,14 @@
 {% block content %}
 
 <style>
-/* ── Flechas decorativas en mobile: más pequeñas, difuminadas, semi-ocultas abajo ── */
+/* ── Flechas decorativas en mobile: en parte inferior, sin difuminado (estilo Mi Cotización) ── */
 @media (max-width: 768px) {
   .cgm-cap-hero .blog-hero-arrow {
-    height: 18% !important;
-    opacity: 0.35 !important;
-    filter: blur(2.5px);
+    height: 22% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
     top: auto !important;
-    bottom: -8% !important;
+    bottom: 12% !important;
     transform: none !important;
   }
   .cgm-cap-hero .blog-hero-arrow.blog-hero-arrow-right {
@@ -24,10 +24,10 @@
 }
 @media (max-width: 480px) {
   .cgm-cap-hero .blog-hero-arrow {
-    height: 14% !important;
-    opacity: 0.28 !important;
-    filter: blur(3px);
-    bottom: -6% !important;
+    height: 17% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
+    bottom: 10% !important;
   }
 }
 </style>
@@ -108,7 +108,8 @@
                      color:var(--cgm-verde);font-size:20px;margin-bottom:16px;">
             <i class="bi bi-play-circle-fill me-2"></i>Video relacionado
           </h3>
-          {% set video_id = post.video_url.split('v=')[-1].split('&')[0] if 'v=' in post.video_url else post.video_url.split('/')[-1] %}
+          {% set _raw_id = post.video_url.split('v=')[-1].split('&')[0] if 'v=' in post.video_url else post.video_url.split('/')[-1] %}
+          {% set video_id = _raw_id.split('?')[0].split('&')[0] %}
           <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
             <iframe src="https://www.youtube.com/embed/{{ video_id }}"
                     style="position:absolute;top:0;left:0;width:100%;height:100%;"

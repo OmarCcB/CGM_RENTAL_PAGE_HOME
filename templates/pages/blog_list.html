@@ -6,14 +6,14 @@
 {% block content %}
 
 <style>
-/* ── Flechas decorativas en mobile: más pequeñas, difuminadas, semi-ocultas abajo ── */
+/* ── Flechas decorativas en mobile: en parte inferior, sin difuminado (estilo Mi Cotización) ── */
 @media (max-width: 768px) {
   .cgm-cap-hero .blog-hero-arrow {
-    height: 18% !important;
-    opacity: 0.35 !important;
-    filter: blur(2.5px);
+    height: 22% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
     top: auto !important;
-    bottom: -8% !important;
+    bottom: 12% !important;
     transform: none !important;
   }
   .cgm-cap-hero .blog-hero-arrow.blog-hero-arrow-right {
@@ -22,10 +22,10 @@
 }
 @media (max-width: 480px) {
   .cgm-cap-hero .blog-hero-arrow {
-    height: 14% !important;
-    opacity: 0.28 !important;
-    filter: blur(3px);
-    bottom: -6% !important;
+    height: 17% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
+    bottom: 10% !important;
   }
 }
 </style>
@@ -41,7 +41,7 @@
        style="position:absolute;right:5%;top:50%;transform:translateY(-50%) scaleX(-1);height:30%;width:auto;pointer-events:none;z-index:1;opacity:.85;">
   <div class="cgm-cap-hero-content container">
     <h1 class="cgm-cap-hero-title fade-up">
-      BLOG <span>&amp; NOVEDADES</span>
+      BLOG <span>Y NOVEDADES</span>
     </h1>
     <p class="cgm-cap-hero-sub fade-up fade-up-delay-1">
       NOTICIAS · ARTÍCULOS · ENTREVISTAS
