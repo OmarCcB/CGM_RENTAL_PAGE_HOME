@@ -123,12 +123,12 @@
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Razón Social:</label>
                 <input type="text" name="00NUU000001uW6H" class="cgm-contacto-input"
-                       placeholder="Razón Social">
+                       placeholder="Razón Social*" required>
               </div>
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">País:</label>
-                <select name="00NUU000001uSU5" class="cgm-contacto-input">
-                  <option value="">–Ninguno–</option>
+                <select id="sfcPais" name="00NUU000001uSU5" class="cgm-contacto-input" required>
+                  <option value="">Selecciona un país*</option>
                   <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
                   <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
                   <option value="Otro">Otro</option>
@@ -140,15 +140,15 @@
                   {% if country_code == 'ar' %}CUIT / CUIL:{% else %}RUC / DNI:{% endif %}
                 </label>
                 <input type="text" name="00N4100000TT12H" class="cgm-contacto-input"
-                       placeholder="{% if country_code == 'ar' %}CUIT / CUIL{% else %}RUC / DNI{% endif %}"
-                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}">
+                       placeholder="{% if country_code == 'ar' %}CUIT / CUIL*{% else %}RUC / DNI*{% endif %}"
+                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}" required>
               </div>
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">
                   {% if country_code == 'ar' %}Provincia:{% else %}Departamento:{% endif %}
                 </label>
-                <select name="00NUU000001uSST" class="cgm-contacto-input">
-                  <option value="">–Ninguno–</option>
+                <select name="00NUU000001uSST" class="cgm-contacto-input" required>
+                  <option value="">Selecciona {% if country_code == 'ar' %}una provincia{% else %}un departamento{% endif %}*</option>
                   {% if country_code == 'ar' %}
                     {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',
                                  'Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa',
@@ -175,20 +175,20 @@
               </div>
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Otro País:</label>
-                <input type="text" name="00NUU000001uS97" class="cgm-contacto-input"
-                       placeholder="Otro País">
+                <input type="text" id="sfcOtroPais" name="00NUU000001uS97" class="cgm-contacto-input"
+                       placeholder="Especifica si elegiste «Otro»">
               </div>
               <!-- Celular -->
               <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
                 <input type="tel" name="00NUU000001NBtR" class="cgm-contacto-input"
-                       placeholder="Celular" maxlength="15">
+                       placeholder="Celular*" maxlength="15" required>
               </div>
               <!-- Equipo requerido -->
               <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
                 <input type="text" name="00NUU000001HmSf" class="cgm-contacto-input"
-                       placeholder="Equipo requerido">
+                       placeholder="Equipo requerido*" required>
               </div>
               <!-- Política -->
               <div class="col-12">
@@ -218,11 +218,47 @@
 
 {% block extra_scripts %}
 <script>
-document.getElementById('sfContactForm').addEventListener('submit', function(e) {
-  if (!document.getElementById('sfcPolitica').checked) {
-    e.preventDefault();
-    alert('Debes aceptar la política de privacidad.');
+(function(){
+  var form        = document.getElementById('sfContactForm');
+  var chkAlq      = document.getElementById('tipoAlquiler');
+  var chkCom      = document.getElementById('tipoCompra');
+  var selPais     = document.getElementById('sfcPais');
+  var inpOtroPais = document.getElementById('sfcOtroPais');
+
+  // "Otro País" se hace obligatorio solo si País = "Otro"
+  function syncOtroPais() {
+    if (!selPais || !inpOtroPais) return;
+    if (selPais.value === 'Otro') {
+      inpOtroPais.required = true;
+      inpOtroPais.placeholder = 'Especifica el país*';
+    } else {
+      inpOtroPais.required = false;
+      inpOtroPais.value = '';
+      inpOtroPais.placeholder = 'Especifica si elegiste «Otro»';
+    }
   }
-});
+  if (selPais) {
+    selPais.addEventListener('change', syncOtroPais);
+    syncOtroPais();
+  }
+
+  form.addEventListener('submit', function(e) {
+    // 1) Política de privacidad
+    if (!document.getElementById('sfcPolitica').checked) {
+      e.preventDefault();
+      alert('Debes aceptar la política de privacidad.');
+      return;
+    }
+    // 2) Al menos un tipo de operación (Alquiler o Compra) seleccionado
+    var alquiler = chkAlq && chkAlq.checked;
+    var compra   = chkCom && chkCom.checked;
+    if (!alquiler && !compra) {
+      e.preventDefault();
+      alert('Selecciona al menos un tipo de operación: Alquiler o Compra.');
+      if (chkAlq) chkAlq.focus();
+      return;
+    }
+  });
+})();
 </script>
 {% endblock %}

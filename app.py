@@ -994,8 +994,26 @@ def api_contacto():
     pais     = data.get("pais", DEFAULT_COUNTRY)
     productos = data.get("productos", "")
 
-    if not nombre or not email or not mensaje:
-        return jsonify({"ok": False, "error": "Campos requeridos incompletos"}), 400
+    # Validación: todos los campos visibles deben llegar completos.
+    # Una solicitud de cotización sin estos datos no es accionable para Ventas.
+    required_fields = {
+        "nombre":   nombre,
+        "empresa":  empresa,
+        "email":    email,
+        "telefono": telefono,
+        "tipo":     tipo,
+        "mensaje":  mensaje,
+        "pais":     pais,
+    }
+    faltantes = [k for k, v in required_fields.items() if not v]
+    if faltantes:
+        return jsonify({
+            "ok": False,
+            "error": "Campos requeridos incompletos",
+            "campos_faltantes": faltantes,
+        }), 400
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return jsonify({"ok": False, "error": "Email inválido"}), 400
 
     conn = get_conn()
     conn.execute(

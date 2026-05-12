@@ -173,18 +173,18 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfRazon">Razón Social</label>
+                <label class="cgm-form-label" for="sfRazon">Razón Social *</label>
                 <input type="text" id="sfRazon" name="00NUU000001uW6H" class="cgm-form-control"
-                       placeholder="Mi Empresa S.A.C.">
+                       placeholder="Mi Empresa S.A.C." required>
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfRuc">
-                  {% if country_code == 'ar' %}CUIT / CUIL{% else %}RUC / DNI{% endif %}
+                  {% if country_code == 'ar' %}CUIT / CUIL *{% else %}RUC / DNI *{% endif %}
                 </label>
                 <input type="text" id="sfRuc" name="00N4100000TT12H" class="cgm-form-control"
                        placeholder="{% if country_code == 'ar' %}20-12345678-9{% else %}20123456789{% endif %}"
-                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}">
+                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}" required>
               </div>
 
               <div class="col-12 col-sm-6">
@@ -194,14 +194,14 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfCelular">Celular</label>
+                <label class="cgm-form-label" for="sfCelular">Celular *</label>
                 <input type="tel" id="sfCelular" name="00NUU000001NBtR" class="cgm-form-control"
-                       placeholder="999 999 999" maxlength="9">
+                       placeholder="999 999 999" maxlength="9" required>
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfPais">País</label>
-                <select id="sfPais" name="00NUU000001uSU5" class="cgm-form-control">
+                <label class="cgm-form-label" for="sfPais">País *</label>
+                <select id="sfPais" name="00NUU000001uSU5" class="cgm-form-control" required>
                   <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
                   <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
                   <option value="Otro">Otro</option>
@@ -210,9 +210,9 @@
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfDepto">
-                  {% if country_code == 'ar' %}Provincia{% else %}Departamento{% endif %}
+                  {% if country_code == 'ar' %}Provincia *{% else %}Departamento *{% endif %}
                 </label>
-                <select id="sfDepto" name="00NUU000001uSST" class="cgm-form-control">
+                <select id="sfDepto" name="00NUU000001uSST" class="cgm-form-control" required>
                   <option value="">Selecciona...</option>
                   {% if country_code == 'ar' %}
                     {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',
@@ -280,6 +280,26 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
   if (!document.getElementById('sfPolitica').checked) {
     e.preventDefault();
     alert('Debes aceptar la política de privacidad.');
+    return;
+  }
+
+  // Validar al menos un tipo de operación (Alquiler o Compra)
+  var chkAlq = document.getElementById('chkAlquiler');
+  var chkCom = document.getElementById('chkCompra');
+  var alquiler = chkAlq && chkAlq.checked;
+  var compra   = chkCom && chkCom.checked;
+  if (!alquiler && !compra) {
+    e.preventDefault();
+    alert('Selecciona al menos un tipo de operación: Alquiler o Compra.');
+    if (chkAlq) chkAlq.focus();
+    return;
+  }
+
+  // Validar que el carrito no esté vacío
+  var rowsCheck = document.querySelectorAll('#cartTable tbody tr');
+  if (rowsCheck.length === 0) {
+    e.preventDefault();
+    alert('Tu carrito está vacío. Agrega al menos un equipo antes de cotizar.');
     return;
   }
 

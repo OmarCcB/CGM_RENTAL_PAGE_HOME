@@ -442,7 +442,12 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   line-height: 1;
 }
 
-/* País selector */
+/* País selector — dos botones (PE / AR) lado a lado */
+.cgm-country-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .cgm-country-btn {
   background: transparent;
   border: 1px solid rgba(2,83,76,.3);
@@ -455,55 +460,32 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   align-items: center;
   gap: 2px;
   cursor: pointer;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
   white-space: nowrap;
   line-height: 1;
-}
-.cgm-country-flag { width: 28px; height: 20px; border-radius: 2px; display: block; }
-.cgm-country-label { display: flex; align-items: center; gap: 3px; font-size: 11px; }
-.cgm-country-code { font-size: 11px; font-weight: 700; }
-.cgm-country-chevron { font-size: 9px; transition: transform var(--transition); }
-
-
-.cgm-country-btn:hover { border-color: var(--cgm-lima); color: var(--cgm-verde); }
-.cgm-country-btn::after { display: none; }
-.cgm-country-sel.show .cgm-country-btn .cgm-country-chevron { transform: rotate(180deg); }
-
-/* Dropdown país — estilo tarjetas */
-.cgm-country-drop {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  left: auto;
-  min-width: 160px;
-  padding: 6px;
-  border-radius: 10px;
-  border: 1px solid #eee;
-  background: #fff;
-  box-shadow: 0 6px 20px rgba(0,0,0,.12);
-  z-index: 9999;
-  list-style: none;
-  margin: 0;
-}
-.cgm-country-drop.open { display: block; }
-.cgm-country-drop-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 7px;
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--cgm-negro);
-  transition: background .18s;
 }
-.cgm-country-drop-item:hover { background: #f4f4f4; color: var(--cgm-negro); }
-.cgm-country-drop-item.active {
-  background: rgba(2,83,76,.08);
-  border: 1px solid rgba(2,83,76,.2);
+.cgm-country-flag { width: 28px; height: 20px; border-radius: 2px; display: block; object-fit: cover; }
+.cgm-country-label { display: flex; align-items: center; gap: 3px; font-size: 11px; }
+
+.cgm-country-btn:hover {
+  border-color: var(--cgm-lima);
   color: var(--cgm-verde);
+  background: rgba(197,232,108,.12);
+}
+.cgm-country-btn.active {
+  border-color: var(--cgm-verde);
+  background: rgba(2,83,76,.08);
+  color: var(--cgm-verde);
+}
+.cgm-country-btn::after { display: none; }
+
+/* Móvil / tablet — mantiene los dos botones lado a lado pero más compactos */
+@media (max-width: 575px) {
+  .cgm-country-switch { gap: 4px; }
+  .cgm-country-btn { padding: 4px 6px; }
+  .cgm-country-flag { width: 22px; height: 16px; }
+  .cgm-country-label { font-size: 10px; gap: 2px; }
 }
 
 /* ── Mobile menu — Acordeón ─────────────────── */

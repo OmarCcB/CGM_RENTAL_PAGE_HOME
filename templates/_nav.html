@@ -199,32 +199,21 @@
           <i class="bi bi-cart3"></i>
           <span class="cgm-cart-badge" id="cartBadge">{{ cart_count }}</span>
         </a>
-        <div class="cgm-country-sel" style="position:relative;">
-          <button class="cgm-country-btn" type="button" aria-expanded="false">
-            <img src="{{ url_for('static', filename='flags/' + country.bandera_svg) }}"
-                 alt="{{ country.nombre }}" class="cgm-country-flag"
+        <div class="cgm-country-switch">
+          {% for code, c in COUNTRIES.items() %}
+          <a href="/{{ code }}/"
+             class="cgm-country-btn {% if code == country_code %}active{% endif %}"
+             aria-label="Portal {{ c.nombre }}"
+             title="Portal {{ c.nombre }}">
+            <img src="{{ url_for('static', filename='flags/' + c.bandera_svg) }}"
+                 alt="{{ c.nombre }}" class="cgm-country-flag"
                  onerror="this.style.display='none'">
-            <!-- Siempre: Portal + código + flecha -->
             <span class="cgm-country-label">
               <span style="font-weight:400;">Portal</span>
-              <span style="font-weight:700;">{{ country_code|upper }}</span>
-              <i class="bi bi-chevron-down cgm-country-chevron"></i>
+              <span style="font-weight:700;">{{ code|upper }}</span>
             </span>
-          </button>
-          <ul class="cgm-country-drop">
-            {% for code, c in COUNTRIES.items() %}
-            <li>
-              <a class="cgm-country-drop-item {% if code == country_code %}active{% endif %}"
-                 href="/{{ code }}/">
-                <img src="{{ url_for('static', filename='flags/' + c.bandera_svg) }}"
-                     alt="{{ c.nombre }}" width="36" height="26"
-                     style="border-radius:3px;flex-shrink:0;"
-                     onerror="this.style.display='none'">
-                <span>{{ c.nombre }}</span>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
+          </a>
+          {% endfor %}
         </div>
       </div>
 
@@ -232,22 +221,7 @@
   </nav>
 <script>
 (function(){
-  /* ── Country selector ───────────────────── */
-  var btn = document.querySelector('.cgm-country-btn');
-  var drop = document.querySelector('.cgm-country-drop');
-  if (btn && drop) {
-    btn.addEventListener('click', function(e){
-      e.stopPropagation();
-      drop.classList.toggle('open');
-      var chevron = btn.querySelector('.cgm-country-chevron');
-      if (chevron) chevron.style.transform = drop.classList.contains('open') ? 'rotate(180deg)' : '';
-    });
-    document.addEventListener('click', function(){
-      drop.classList.remove('open');
-      var chevron = btn.querySelector('.cgm-country-chevron');
-      if (chevron) chevron.style.transform = '';
-    });
-  }
+  /* Country switch: ahora son dos botones directos (PE / AR) — sin dropdown. */
 
   /* ─────────────────────────────────────────────────────────────
      Rangos de pantalla

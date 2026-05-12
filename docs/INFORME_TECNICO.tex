@@ -109,9 +109,9 @@
 \begin{infobox}
 \textbf{Proposito del documento.} Esta documentacion describe la arquitectura,
 tecnologias, modelo de datos, rutas y funcionamiento general del sitio web
-corporativo de CGM Rental. Esta pensada para que cualquier desarrollador o equipo
-tecnico que herede el proyecto pueda comprender, mantener y extender la
-plataforma sin depender del autor original.
+corporativo de CGM Rental. Esta pensada para que cualquier desarrollador o
+equipo tecnico que herede el proyecto pueda comprender, mantener y extender
+la plataforma sin depender del autor original.
 \end{infobox}
 
 \vspace{0.4cm}
@@ -122,10 +122,10 @@ plataforma sin depender del autor original.
 \section{Resumen Ejecutivo}
 % ============================================================================
 
-El sitio web de \textbf{CGM Rental} es una aplicacion web monolitica desarrollada
-en Python con el framework \textbf{Flask}, que sirve como vitrina corporativa y
-catalogo de productos de la empresa para sus operaciones en \textbf{Peru} y
-\textbf{Argentina}.
+El sitio web de \textbf{CGM Rental} es una aplicacion web monolitica
+desarrollada en Python con el framework \textbf{Flask}, que sirve como vitrina
+corporativa, catalogo de productos y backoffice de administracion para las
+operaciones de la empresa en \textbf{Peru} y \textbf{Argentina}.
 
 \subsection{Objetivos del producto}
 \begin{itemize}[leftmargin=*]
@@ -133,13 +133,17 @@ catalogo de productos de la empresa para sus operaciones en \textbf{Peru} y
         de CGM Rental en sus dos paises de operacion.
     \item Permitir al usuario navegar el catalogo por sector (Construccion,
         Mineria, Agricola, Energia) y por tipo de equipo.
-    \item Generar \textbf{leads comerciales} mediante un cotizador con carrito
-        de equipos y formulario de contacto.
-    \item Centralizar canales corporativos: \textbf{blog/novedades}, \textbf{portal
-        de proveedores}, \textbf{canal de denuncias}, \textbf{certificaciones ISO},
-        seccion \textbf{Capacita} y \textbf{Leasing Operativo}.
+    \item Generar \textbf{leads comerciales} a traves de Salesforce
+        Web-to-Lead, con un formulario de contacto y un carrito-cotizador.
+    \item Centralizar canales corporativos: \textbf{blog/novedades},
+        \textbf{portal de proveedores}, \textbf{canal de denuncias},
+        \textbf{certificaciones ISO}, seccion \textbf{Capacita} y
+        \textbf{Leasing Operativo}.
     \item Adaptar la experiencia a cada pais (banderas, telefonos, redes,
-        sucursales, productos disponibles) de manera transparente.
+        sucursales, productos visibles) de manera transparente.
+    \item Proporcionar un \textbf{panel de administracion} para que el
+        equipo de CGM Rental pueda gestionar productos, banners, blog,
+        sucursales y datos de contacto sin intervencion de desarrollo.
 \end{itemize}
 
 \subsection{Cifras del proyecto}
@@ -149,14 +153,15 @@ catalogo de productos de la empresa para sus operaciones en \textbf{Peru} y
 \toprule
 \textbf{Indicador} & \textbf{Valor} \\
 \midrule
-Lineas de codigo Python (\texttt{app.py})           & $\sim$1\,100 \\
-Lineas de codigo Python (\texttt{admin/routes.py})  & $\sim$1\,370 \\
-Plantillas Jinja2 (\texttt{templates/pages/})       & 16 \\
-Productos en el catalogo (carpetas de imagenes)     & 123 \\
-Paises soportados                                   & 2 (PE, AR) \\
-Tablas SQLite principales                            & 5 \\
-Lineas CSS personalizado (\texttt{cgm.css})         & $\sim$4\,000 \\
-Dependencias Python                                  & 4 \\
+Lineas de codigo Python (\texttt{app.py})              & $\sim$1\,160 \\
+Lineas de codigo Python (\texttt{admin/routes.py})     & $\sim$1\,370 \\
+Plantillas Jinja2 publicas (\texttt{templates/pages/}) & 13 \\
+Plantillas Jinja2 del admin (\texttt{templates/admin/}) & 11 \\
+Productos en el catalogo (carpetas de imagenes)        & $\sim$125 \\
+Paises soportados                                       & 2 (PE, AR) \\
+Tablas SQLite principales                               & 5 \\
+Tablas SQLite del panel admin                           & 4 \\
+Lineas CSS personalizado (\texttt{cgm.css})            & $\sim$4\,000 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -173,11 +178,13 @@ Dependencias Python                                  & 4 \\
 \midrule
 Python              & 3.x       & Lenguaje principal del backend. \\
 Flask               & 3.1.0     & Framework web (rutas, sesiones, templating). \\
-Werkzeug            & 3.1.3     & Servidor WSGI / utilidades HTTP (dep.\ de Flask). \\
-flask-compress      & 1.15      & Compresion gzip/brotli automatica de respuestas. \\
+Werkzeug            & 3.1.3     & Servidor WSGI / utilidades HTTP. \\
+flask-compress      & 1.15      & Compresion gzip/brotli automatica. \\
 python-dotenv       & 1.0.1     & Carga de variables de entorno desde \texttt{.env}. \\
-requests            & 2.32.3    & Cliente HTTP (auxiliar). \\
-SQLite              & 3.x       & Base de datos embebida, fichero \texttt{cgm.db}. \\
+requests            & 2.32.3    & Cliente HTTP. \\
+SQLite              & 3.x (WAL) & Base de datos en \texttt{data/cgm.db}. \\
+Pillow              & ---       & Conversion automatica de imagenes a WebP. \\
+msal                & ---       & Autenticacion Microsoft / Azure AD. \\
 smtplib (stdlib)    & ---       & Envio de correos transaccionales. \\
 \bottomrule
 \end{longtable}
@@ -188,27 +195,46 @@ smtplib (stdlib)    & ---       & Envio de correos transaccionales. \\
 \toprule
 \textbf{Recurso} & \textbf{Origen} & \textbf{Uso} \\
 \midrule
-Bootstrap          & 5.3.3 CDN     & Grilla, componentes UI base, modales, navbar. \\
-Bootstrap Icons    & 1.11.3 CDN    & Iconografia general. \\
-Font Awesome Brands & 6.5.1 CDN     & Iconos de redes sociales. \\
-Swiper             & 11 CDN        & Carruseles (hero, productos relacionados). \\
-Fuentes propias    & local         & \texttt{Estricta.otf}, \texttt{Estricta\_Black.otf}. \\
-JavaScript         & vanilla       & Sin frameworks; logica en \texttt{main.js},
-                                     \texttt{cart.js}, \texttt{cotizador.js}. \\
+Bootstrap           & 5.3 (local)  & Grilla, modales, navbar, formularios. \\
+Bootstrap Icons     & 1.11 (local) & Iconografia general. \\
+Swiper              & 11 (local)   & Carruseles (hero, productos relacionados). \\
+Font Awesome Brands & 6.5.1 CDN    & Iconos de redes sociales. \\
+Fuentes propias     & local        & \texttt{Estricta.otf}, \texttt{Estricta\_Black.otf}. \\
+JavaScript          & vanilla      & \texttt{main.js}, \texttt{cart.js}, \texttt{cotizador.js}. \\
 \bottomrule
 \end{longtable}
+
+\begin{infobox}
+\textbf{Activos locales vs CDN.} Bootstrap, Bootstrap Icons y Swiper se
+sirven desde \texttt{static/css/}, \texttt{static/js/} y \texttt{static/fonts/}
+en lugar de CDN externos. Esto reduce dependencias externas, mejora la
+estabilidad y permite trabajar en local sin conexion.
+\end{infobox}
+
+\subsection{Servicios integrados}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Salesforce Web-to-Lead.} Los formularios de cotizacion
+        publicos envian datos directamente al CRM via
+        \texttt{webto.salesforce.com/servlet/servlet.WebToLead}.
+    \item \textbf{Azure Active Directory.} Autenticacion del panel admin
+        usando MSAL.
+    \item \textbf{Cloudflare.} CDN, proteccion DDoS y proveedor del header
+        \texttt{CF-IPCountry} para deteccion automatica de pais.
+    \item \textbf{Google Maps.} Embeds para sucursales.
+    \item \textbf{YouTube.} Embeds de videos institucionales y entrevistas
+        del blog.
+\end{itemize}
 
 \subsection{Infraestructura}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Servidor:} VPS en Azure con Nginx como reverse proxy +
-        Gunicorn como servidor WSGI (proceso \texttt{cgmrental.service}).
-    \item \textbf{CDN / proteccion:} Cloudflare delante de Nginx, que ademas
-        provee el header \texttt{CF-IPCountry} usado para la deteccion de
-        pais.
+    \item \textbf{Servidor:} VPS en Azure con Nginx (reverse proxy) +
+        Gunicorn (\texttt{cgmrental.service}).
+    \item \textbf{CDN / WAF:} Cloudflare delante de Nginx.
     \item \textbf{Dominio:} \texttt{cgmrental.com}.
-    \item \textbf{Despliegue:} actualmente manual via SSH + \texttt{git pull}
-        + \texttt{systemctl restart cgmrental}.
+    \item \textbf{Despliegue:} manual via SSH + \texttt{git pull} +
+        \texttt{systemctl restart cgmrental}.
 \end{itemize}
 
 % ============================================================================
@@ -217,48 +243,90 @@ JavaScript         & vanilla       & Sin frameworks; logica en \texttt{main.js},
 
 \begin{lstlisting}[language=bash]
 CGM_RENTAL_PAGE_HOME/
-|-- app.py                    # Aplicacion Flask principal (~1100 lineas)
-|-- database.py               # Schema SQLite y migraciones idempotentes
-|-- countries.py              # Configuracion de Peru y Argentina
+|-- app.py                    # Aplicacion Flask principal (~1160 lineas)
+|-- database.py               # Conexion SQLite + schema + migraciones
+|-- cache.py                  # Cache en memoria con TTL e invalidacion
+|-- countries.py              # Defaults de Peru y Argentina (fallback)
+|-- products.json             # Seed inicial del catalogo (~98 KB)
 |-- requirements.txt          # Dependencias Python
-|-- cgm.db                    # Base de datos SQLite de produccion
-|-- products.json             # Seed de productos (~98 KB)
 |-- GEOIP_SETUP.md            # Documentacion de redireccion por pais
+|-- .gitignore
 |
-|-- admin/                    # Panel de administracion (ver Manual Admin)
-|   `-- routes.py             # Blueprint admin (1370 lineas)
+|-- data/
+|   `-- cgm.db                # Base de datos SQLite de produccion
+|
+|-- admin/                    # Panel de administracion (blueprint Flask)
+|   |-- __init__.py
+|   |-- auth.py               # Login con Azure AD (MSAL)
+|   |-- products_sync.py      # Sincroniza BD <-> products.json
+|   `-- routes.py             # Rutas y logica del panel (1370 lineas)
 |
 |-- templates/
-|   |-- base.html             # Layout maestro (head, nav, footer, scripts)
-|   |-- _nav.html             # Barra de navegacion superior
+|   |-- base.html             # Layout maestro
+|   |-- _nav.html             # Nav superior + selector de pais (2 botones)
 |   |-- _footer.html          # Footer completo (solo en /contacto/)
 |   |-- _mini_footer.html     # Footer reducido para el resto del sitio
-|   |-- pages/                # 16 plantillas publicas
+|   |
+|   |-- pages/                # Plantillas publicas (13)
 |   |   |-- home.html
-|   |   |-- categoria.html    # Listado paginado por categoria
-|   |   |-- producto.html     # Ficha de producto + relacionados
+|   |   |-- categoria.html
+|   |   |-- producto.html
 |   |   |-- ficha_tecnica.html
 |   |   |-- carrito.html
-|   |   |-- blog_list.html / blog_post.html
-|   |   |-- contacto.html / gracias.html
-|   |   |-- nosotros.html / nuestros_locales.html
-|   |   |-- leasing.html / capacita.html
-|   |   |-- canal_denuncias.html / portal_proveedores.html
-|   |   `-- certificacion_iso.html / politica_integrada.html
-|   `-- admin/                # Templates del panel admin
+|   |   |-- blog_list.html
+|   |   |-- blog_post.html
+|   |   |-- contacto.html
+|   |   |-- gracias.html
+|   |   |-- nosotros.html
+|   |   |-- nuestros_locales.html
+|   |   |-- leasing.html
+|   |   |-- capacita.html
+|   |   `-- canal_denuncias.html
+|   |
+|   `-- admin/                # Plantillas del panel admin (11)
+|       |-- base.html
+|       |-- login.html
+|       |-- dashboard.html
+|       |-- productos.html
+|       |-- producto_form.html
+|       |-- banners.html
+|       |-- contacto.html
+|       |-- sucursales.html
+|       |-- blog_list.html
+|       |-- blog_form.html
+|       `-- historial.html
 |
 |-- static/
 |   |-- css/
-|   |   |-- cgm.css           # Estilos principales (~4000 lineas)
-|   |   `-- capacita.css      # Estilos especificos de la pagina Capacita
+|   |   |-- cgm.css                  # Estilos principales (~4000 lineas)
+|   |   |-- capacita.css             # Estilos de la pagina Capacita
+|   |   |-- admin.css                # Estilos del panel admin
+|   |   |-- bootstrap.min.css        # Bootstrap 5.3 local
+|   |   |-- bootstrap-icons.min.css  # Bootstrap Icons local
+|   |   `-- swiper-bundle.min.css    # Swiper 11 local
+|   |
 |   |-- js/
-|   |   |-- main.js           # Bootstrap del sitio, animaciones, nav
-|   |   |-- cart.js           # Logica del carrito y cotizador flotante
-|   |   `-- cotizador.js      # Helpers del formulario de cotizacion
-|   |-- products/             # 123 carpetas (una por producto) con
-|   |                         # imagenes numeradas 1.webp, 2.webp...
+|   |   |-- main.js                  # Animaciones, nav, lazyload
+|   |   |-- cart.js                  # Carrito y cotizador flotante
+|   |   |-- cotizador.js             # Helpers del form de cotizacion
+|   |   |-- bootstrap.bundle.min.js  # Bootstrap JS local
+|   |   `-- swiper-bundle.min.js     # Swiper JS local
+|   |
+|   |-- fonts/
+|   |   |-- Estricta.otf
+|   |   |-- Estricta_Black.otf
+|   |   |-- bootstrap-icons.woff
+|   |   `-- bootstrap-icons.woff2
+|   |
+|   |-- products/             # 125 carpetas (una por producto):
+|   |                         # 1.webp, 2.webp, 3.webp...
+|   |
 |   |-- images/
-|   |   |-- banners/          # Banners del sitio (hero, categorias)
+|   |   |-- banners/          # Banners organizados por subcarpetas:
+|   |   |   |-- hero/         #   - Hero principal del home
+|   |   |   |-- categorias/   #   - Cabeceras de pagina de categoria
+|   |   |   |-- home-cards/   #   - Tarjetas del home (PE / AR)
+|   |   |   `-- otros/        #   - Contacto, carrito, portal, etc.
 |   |   |-- blog/             # Imagenes de posts
 |   |   |-- logo/             # Logos en distintas resoluciones
 |   |   |-- partners/         # Logos de clientes/partners (SVG)
@@ -266,37 +334,51 @@ CGM_RENTAL_PAGE_HOME/
 |   |   |-- fotos-capacita/   # Galeria de la seccion Capacita
 |   |   |-- sig/              # Badges ISO
 |   |   `-- contacto/         # Imagenes de la pagina de contacto
-|   |-- docs/                 # PDFs: certificaciones ISO, brochures
+|   |
+|   |-- docs/                 # PDFs: certificaciones ISO + brochures
 |   |   `-- fichas/           # Fichas tecnicas de productos
-|   |-- flags/                # SVGs de banderas para selector de pais
-|   `-- fonts/                # Fuentes corporativas (Estricta)
+|   |
+|   `-- flags/                # SVGs de banderas para selector de pais
 |
-`-- Scripts utilitarios (raiz, no necesarios en produccion):
-    |-- apply_db_fixes.py     # Parches puntuales a cgm.db
-    |-- dup_arg.py            # Duplica productos para mostrar en AR
-    |-- fix_routing.py
-    |-- gen_brochure_excel.py # Genera el Excel del brochure
-    `-- gen_excel.py          # Exporta productos a Excel
+|-- docs/                     # Documentacion LaTeX del proyecto
+|   |-- INFORME_TECNICO.tex
+|   `-- MANUAL_PANEL_ADMIN.tex
+|
+|-- _no_usado/                # IGNORADO por git. Archivos viejos
+|
+`-- _archive/                 # IGNORADO por git. Backups historicos
 \end{lstlisting}
 
 % ============================================================================
 \section{Modelo de Datos}
 % ============================================================================
 
-La base de datos es un fichero SQLite (\texttt{cgm.db}) ubicado en la raiz del
-proyecto. El esquema se crea de forma idempotente al arrancar la aplicacion
-mediante la funcion \texttt{init\_db()} de \texttt{database.py}, y se completa
-con datos iniciales mediante \texttt{seed\_db()} en \texttt{app.py}.
+La base de datos es un fichero SQLite ubicado en \texttt{data/cgm.db}. Se abre
+con tres pragmas optimizadas:
+
+\begin{lstlisting}[language=Python]
+conn.execute("PRAGMA journal_mode=WAL")    # mejor concurrencia
+conn.execute("PRAGMA synchronous=NORMAL")  # mas rapido que FULL
+conn.execute("PRAGMA foreign_keys=ON")
+\end{lstlisting}
 
 \begin{infobox}
-\textbf{Importante.} Las migraciones de columnas se hacen con
-\texttt{ALTER TABLE} envuelto en \texttt{try/except}: si la columna ya existe
-se ignora silenciosamente. No existe un sistema formal de migraciones tipo
-Alembic.
+\textbf{Pooling por request.} \texttt{database.py} mantiene una unica
+conexion por request HTTP usando \texttt{flask.g}. Las llamadas dentro de
+un request reciben un proxy (\texttt{\_ReqConn}) cuyo \texttt{close()} es
+no-op. La conexion real se cierra en \texttt{teardown\_appcontext},
+evitando el coste de abrir y cerrar SQLite varias veces por peticion.
 \end{infobox}
 
-\subsection{Tabla \texttt{products}}
+\subsection{Migraciones}
 
+No hay un sistema formal de migraciones (Alembic). \texttt{init\_db()} crea
+las tablas si no existen y aplica \texttt{ALTER TABLE} envueltos en
+\texttt{try/except} para agregar columnas a bases ya creadas.
+
+\subsection{Tablas publicas (\texttt{init\_db})}
+
+\subsubsection{\texttt{products}}
 Catalogo principal de equipos.
 
 \begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
@@ -304,48 +386,49 @@ Catalogo principal de equipos.
 \textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
 \midrule
 \endhead
-\texttt{id}                & INTEGER PK & Autoincremental. \\
-\texttt{slug}              & TEXT UNIQUE & Identificador URL-friendly. \\
-\texttt{nombre}            & TEXT       & Nombre comercial del equipo. \\
-\texttt{marca}             & TEXT       & Marca del fabricante (John Deere, HAMM, etc.). \\
-\texttt{descripcion}       & TEXT       & Features separadas por pipe (\texttt{|}). \\
-\texttt{descripcion\_texto} & TEXT      & Texto largo descriptivo. \\
-\texttt{ficha\_url}        & TEXT       & PDF local en \texttt{static/docs/fichas/} o URL externa. \\
-\texttt{tags}              & TEXT       & \texttt{alquiler}, \texttt{venta} o ambas separadas por coma. \\
-\texttt{tipo}              & TEXT       & Tipo de maquinaria (Excavadora, Cargador Frontal\ldots). \\
-\texttt{unidad}            & TEXT       & Sector. Acepta multivalor con pipe: \texttt{Construccion|Mineria}. \\
-\texttt{imagen}            & TEXT       & Ruta principal de imagen (legacy --- hoy se lee del filesystem). \\
-\texttt{activo}            & INTEGER    & 1 visible, 0 oculto. \\
-\texttt{show\_arg}         & INTEGER    & 1 = mostrar en Argentina; 0 / NULL = solo Peru. \\
-\texttt{a\_solicitud}      & INTEGER    & 1 = equipo disponible bajo solicitud (no en stock). \\
+\texttt{id}                 & INTEGER PK  & Autoincremental. \\
+\texttt{slug}               & TEXT UNIQUE & Identificador URL-friendly. \\
+\texttt{nombre}             & TEXT        & Nombre comercial del equipo. \\
+\texttt{marca}              & TEXT        & Marca del fabricante. \\
+\texttt{descripcion}        & TEXT        & Features separadas por pipe (\texttt{|}). \\
+\texttt{descripcion\_texto} & TEXT        & Texto largo descriptivo. \\
+\texttt{ficha\_url}         & TEXT        & PDF local o URL externa. \\
+\texttt{tags}               & TEXT        & \texttt{alquiler}, \texttt{venta} o ambas. \\
+\texttt{tipo}               & TEXT        & Tipo de maquinaria. \\
+\texttt{unidad}             & TEXT        & Sector. Acepta multivalor con pipe. \\
+\texttt{imagen}             & TEXT        & Ruta principal (legacy). \\
+\texttt{activo}             & INTEGER     & 1 visible, 0 oculto. \\
+\texttt{show\_pe}           & INTEGER     & 1 visible en Peru. Default 1. \\
+\texttt{show\_arg}          & INTEGER     & 1 visible en Argentina. Default 0. \\
+\texttt{a\_solicitud}       & INTEGER     & 1 = equipo bajo solicitud. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Tabla \texttt{blog\_posts}}
+\subsubsection{\texttt{blog\_posts}}
+Articulos y entrevistas del blog.
 
-Articulos y entrevistas publicadas en \texttt{/novedades/}.
-
-\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\begin{longtable}{p{3.2cm} p{2cm} p{8cm}}
 \toprule
 \textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
 \midrule
 \endhead
-\texttt{id}        & INTEGER PK   & Autoincremental. \\
-\texttt{slug}      & TEXT UNIQUE  & Identificador URL-friendly. \\
-\texttt{titulo}    & TEXT         & Titulo del post. \\
-\texttt{categoria} & TEXT         & \texttt{articulos}, \texttt{entrevistas}, \ldots \\
-\texttt{fecha}     & TEXT         & Fecha en formato \texttt{YYYY-MM-DD}. \\
-\texttt{imagen}    & TEXT         & Ruta relativa dentro de \texttt{static/images/}. \\
-\texttt{extracto}  & TEXT         & Resumen para la card. \\
-\texttt{contenido} & TEXT         & HTML completo del articulo. \\
-\texttt{video\_url} & TEXT        & URL de YouTube opcional. \\
-\texttt{activo}    & INTEGER      & 1 visible, 0 oculto. \\
+\texttt{id}        & INTEGER PK  & Autoincremental. \\
+\texttt{slug}      & TEXT UNIQUE & Identificador URL-friendly. \\
+\texttt{titulo}    & TEXT        & Titulo del post. \\
+\texttt{categoria} & TEXT        & \texttt{articulos}, \texttt{entrevistas}, etc. \\
+\texttt{fecha}     & TEXT        & Formato \texttt{YYYY-MM-DD}. \\
+\texttt{imagen}    & TEXT        & Ruta relativa en \texttt{static/images/}. \\
+\texttt{extracto}  & TEXT        & Resumen para la card. \\
+\texttt{contenido} & TEXT        & HTML completo del articulo. \\
+\texttt{video\_url} & TEXT       & URL de YouTube opcional. \\
+\texttt{activo}    & INTEGER     & 1 visible, 0 oculto. \\
+\texttt{show\_pe}  & INTEGER     & 1 visible en Peru. Default 1. \\
+\texttt{show\_arg} & INTEGER     & 1 visible en Argentina. Default 0. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Tabla \texttt{cotizaciones}}
-
-Leads generados por el formulario de contacto y carrito.
+\subsubsection{\texttt{cotizaciones}}
+Leads enviados al endpoint \texttt{/api/contacto}.
 
 \begin{longtable}{p{3cm} p{2cm} p{9cm}}
 \toprule
@@ -355,58 +438,121 @@ Leads generados por el formulario de contacto y carrito.
 \texttt{id}        & INTEGER PK & Autoincremental. \\
 \texttt{nombre}    & TEXT       & Nombre del solicitante. \\
 \texttt{empresa}   & TEXT       & Razon social. \\
-\texttt{email}     & TEXT       & Correo del lead. \\
+\texttt{email}     & TEXT       & Correo. \\
 \texttt{telefono}  & TEXT       & Telefono / WhatsApp. \\
-\texttt{tipo}      & TEXT       & Tipo de consulta (alquiler / venta / informacion). \\
+\texttt{tipo}      & TEXT       & Tipo de consulta. \\
 \texttt{mensaje}   & TEXT       & Mensaje libre. \\
 \texttt{pais}      & TEXT       & \texttt{pe} o \texttt{ar}. \\
-\texttt{productos} & TEXT       & Lista serializada de productos del carrito. \\
-\texttt{fecha}     & TEXT       & \texttt{datetime('now')} por defecto. \\
+\texttt{productos} & TEXT       & Lista serializada del carrito. \\
+\texttt{fecha}     & TEXT       & \texttt{datetime('now')}. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Tabla \texttt{proveedores}}
-
-Registros enviados desde el Portal de Proveedores.
+\subsubsection{\texttt{proveedores}}
+Registros del Portal de Proveedores.
 
 \begin{longtable}{p{3cm} p{2cm} p{9cm}}
 \toprule
 \textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
 \midrule
 \endhead
-\texttt{id}          & INTEGER PK & Autoincremental. \\
-\texttt{empresa}     & TEXT       & Razon social. \\
-\texttt{ruc}         & TEXT       & RUC / identificador fiscal. \\
-\texttt{contacto}    & TEXT       & Persona de contacto. \\
-\texttt{email}       & TEXT       & Correo de contacto. \\
-\texttt{telefono}    & TEXT       & Telefono / celular. \\
-\texttt{rubro}       & TEXT       & Categorias del proveedor (CSV). \\
-\texttt{descripcion} & TEXT       & Descripcion de servicios/productos. \\
-\texttt{fecha}       & TEXT       & \texttt{datetime('now')} por defecto. \\
+\texttt{id}, \texttt{empresa}, \texttt{ruc}, \texttt{contacto}, \texttt{email}, \texttt{telefono}, \texttt{rubro}, \texttt{descripcion} & INT/TEXT & Datos del proveedor. \\
+\texttt{fecha} & TEXT & \texttt{datetime('now')}. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Tabla \texttt{denuncias}}
-
-Reportes recibidos por el Canal de Denuncias.
+\subsubsection{\texttt{denuncias}}
+Reportes del Canal de Denuncias.
 
 \begin{longtable}{p{3cm} p{2cm} p{9cm}}
 \toprule
 \textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
 \midrule
 \endhead
-\texttt{id}          & INTEGER PK & Autoincremental. \\
-\texttt{tipo}        & TEXT       & Categoria de la denuncia. \\
-\texttt{descripcion} & TEXT       & Descripcion libre del denunciante. \\
-\texttt{fecha}       & TEXT       & \texttt{datetime('now')} por defecto. \\
+\texttt{id}, \texttt{tipo}, \texttt{descripcion} & INT/TEXT & Categoria + descripcion. \\
+\texttt{fecha} & TEXT & \texttt{datetime('now')}. \\
 \bottomrule
 \end{longtable}
 
 \begin{infobox}
-\textbf{Privacidad.} Por diseno, la tabla \texttt{denuncias} \textit{no
-almacena} datos personales del denunciante. Estos datos viajan unicamente en
-el correo HTML enviado al area de cumplimiento (ver \S\ref{sec:email}).
+\textbf{Confidencialidad.} La tabla \texttt{denuncias} \textit{no almacena}
+datos personales del denunciante. Estos datos viajan unicamente en el correo
+HTML enviado al area de cumplimiento.
 \end{infobox}
+
+\subsection{Tablas del panel admin (\texttt{init\_admin\_tables})}
+
+\subsubsection{\texttt{site\_config}}
+Configuracion editable por pais.
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{id}            & INTEGER PK & Autoincremental. \\
+\texttt{country\_code} & TEXT       & \texttt{pe} o \texttt{ar}. \\
+\texttt{key}           & TEXT       & \texttt{telefono}, \texttt{whatsapp\_link}, \texttt{email}, \texttt{facebook}, \texttt{instagram}, \texttt{linkedin}, \texttt{youtube}, \texttt{direccion}, \texttt{ciudad\_principal}, \texttt{youtube\_video}. \\
+\texttt{value}         & TEXT       & Valor del campo. \\
+\multicolumn{3}{l}{\texttt{UNIQUE(country\_code, key)}} \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{\texttt{sucursales\_db}}
+Sucursales gestionadas desde el admin.
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{id}            & INTEGER PK & Autoincremental. \\
+\texttt{country\_code} & TEXT       & \texttt{pe} o \texttt{ar}. \\
+\texttt{nombre}        & TEXT       & Nombre visible. \\
+\texttt{tipo}          & TEXT       & \texttt{principal}, \texttt{sucursal}, \texttt{atencion}. \\
+\texttt{direccion}     & TEXT       & Direccion fisica. \\
+\texttt{lat, lng}      & REAL       & Coordenadas para Google Maps. \\
+\texttt{maps\_url}     & TEXT       & Link directo en Google Maps. \\
+\texttt{telefono}      & TEXT       & Opcional. \\
+\texttt{orden}         & INTEGER    & Para ordenar manualmente. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{\texttt{banners\_config}}
+Configuracion de los banners del sitio.
+
+\begin{longtable}{p{3.5cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{slot}          & TEXT       & Identificador del slot. \\
+\texttt{country\_code} & TEXT       & \texttt{*} (global), \texttt{pe} o \texttt{ar}. \\
+\texttt{group\_name}   & TEXT       & Agrupacion visual (Hero, Home Cards, etc.). \\
+\texttt{label}         & TEXT       & Nombre legible. \\
+\texttt{description}   & TEXT       & Descripcion / contexto. \\
+\texttt{filename}      & TEXT       & Ruta en \texttt{static/images/banners/}. \\
+\texttt{orden}         & INTEGER    & Orden de presentacion. \\
+\texttt{pages}         & TEXT       & JSON con lista de paginas. \\
+\texttt{activo}        & INTEGER    & 0 / 1. \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{\texttt{audit\_log}}
+Registro de toda accion administrativa.
+
+\begin{longtable}{p{3cm} p{2cm} p{9cm}}
+\toprule
+\textbf{Columna} & \textbf{Tipo} & \textbf{Descripcion} \\
+\midrule
+\endhead
+\texttt{id}      & INTEGER PK & Autoincremental. \\
+\texttt{usuario} & TEXT       & Email del admin que ejecuto la accion. \\
+\texttt{accion}  & TEXT       & Codigo de la accion. \\
+\texttt{detalle} & TEXT       & Detalle libre. \\
+\texttt{fecha}   & TEXT       & \texttt{datetime('now')}. \\
+\bottomrule
+\end{longtable}
 
 % ============================================================================
 \section{Sistema Multi-Pais}
@@ -415,77 +561,62 @@ el correo HTML enviado al area de cumplimiento (ver \S\ref{sec:email}).
 El sitio sirve dos vitrinas separadas bajo el mismo dominio:
 
 \begin{itemize}[leftmargin=*]
-    \item \texttt{cgmrental.com/pe/} --- Peru (default, mercado principal).
+    \item \texttt{cgmrental.com/pe/} --- Peru (mercado principal).
     \item \texttt{cgmrental.com/ar/} --- Argentina.
 \end{itemize}
 
-\subsection{Configuracion por pais (\texttt{countries.py})}
+\subsection{Dos niveles de configuracion}
 
-El diccionario \texttt{COUNTRIES} contiene todos los parametros que cambian
-entre paises:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Defaults} en \texttt{countries.py}: diccionario hardcodeado
+        con valores por defecto (banderas, flags de visibilidad, moneda) que
+        se usa como fallback si la BD no tiene un valor.
+    \item \textbf{Sobrescritura dinamica} desde la BD: las tablas
+        \texttt{site\_config} y \texttt{sucursales\_db} permiten al panel
+        admin modificar telefonos, redes, direccion principal y sucursales
+        sin tocar codigo.
+\end{enumerate}
 
-\begin{lstlisting}[language=Python]
-COUNTRIES = {
-    "pe": {
-        "code": "pe", "nombre": "Peru", "bandera_svg": "per.svg",
-        "telefono": "+51 943 567 445",
-        "whatsapp_link": "https://wa.link/sht6gi",
-        "email": "contacto@cgmrental.com",
-        "facebook": "...", "instagram": "...", "linkedin": "...", "youtube": "...",
-        "ciudad_principal": "Lima",
-        "direccion": "Carretera Panamericana Sur Km. 30.5, San Pedro, Lurin",
-        "sucursales": [ ... 8 sucursales ... ],
-        # Flags de visibilidad
-        "show_mineria": True,  "show_agricola": True,  "show_energia": True,
-        "show_usados":  True,  "show_leasing":  True,  "show_portal_proveedores": True,
-        "moneda": "S/.",
-    },
-    "ar": {
-        "code": "ar", "nombre": "Argentina", ...
-        "show_agricola": False, "show_energia": False, "show_usados": False,
-        "show_leasing":  False, "show_portal_proveedores": False,
-        "moneda": "ARS",
-    }
-}
-DEFAULT_COUNTRY = "pe"
-\end{lstlisting}
+\subsection{Selector de pais en la UI}
+
+En el header del sitio se muestran \textbf{dos botones independientes}
+(\texttt{Portal PE} / \texttt{Portal AR}) que enlazan a \texttt{/pe/} y
+\texttt{/ar/} respectivamente. El boton del pais actual se resalta con borde
+y fondo verde. Anteriormente esto era un dropdown; se cambio a botones
+directos para reducir clicks y mejorar accesibilidad en movil.
 
 \subsection{Deteccion automatica de pais}
 
-La ruta raiz \texttt{/} ejecuta \texttt{\_detect\_country\_from\_ip()} que lee
-el header \texttt{CF-IPCountry} de Cloudflare:
+La ruta raiz \texttt{/} ejecuta \texttt{\_detect\_country\_from\_ip()} que
+lee el header \texttt{CF-IPCountry} de Cloudflare:
 
 \begin{lstlisting}[language=Python]
 def _detect_country_from_ip(_ip=None):
     cf = request.headers.get("CF-IPCountry", "").strip().upper()
-    # XX = Cloudflare no detecto pais  |  T1 = Tor
     if cf and cf not in ("XX", "T1"):
         return {"PE": "pe", "AR": "ar"}.get(cf)
     return None
 \end{lstlisting}
 
-Si Cloudflare reporta PE o AR, redirige a la vitrina correspondiente. Cualquier
-otro pais (o IPs locales) cae a \texttt{DEFAULT\_COUNTRY = "pe"}. Ver detalles
-de configuracion del servidor en \texttt{GEOIP\_SETUP.md}.
+Cualquier otro pais cae a \texttt{DEFAULT\_COUNTRY = "pe"}.
 
-\subsection{Filtrado de productos por pais}
+\subsection{Filtrado por pais}
 
-El campo \texttt{show\_arg} en la tabla \texttt{products} controla qu\'e
-productos aparecen en cada vitrina:
+Los campos \texttt{show\_pe} y \texttt{show\_arg} en \texttt{products} y
+\texttt{blog\_posts} controlan en que vitrina aparece cada elemento:
 
 \begin{itemize}[leftmargin=*]
-    \item Si el usuario est\'a en \texttt{/pe/}: se muestran productos con
-        \texttt{show\_arg = 0 OR show\_arg IS NULL}.
-    \item Si el usuario est\'a en \texttt{/ar/}: se muestran productos con
-        \texttt{show\_arg = 1 OR show\_arg IS NULL}.
+    \item Vitrina \texttt{/pe/}: muestra elementos con \texttt{show\_pe=1}.
+    \item Vitrina \texttt{/ar/}: muestra elementos con \texttt{show\_arg=1}.
+    \item Un mismo producto puede tener ambos flags si se vende en los dos
+        paises (comun para mineria).
 \end{itemize}
 
 \subsection{Unidades multivalor}
 
 El campo \texttt{unidad} acepta varios sectores separados por pipe
-(\texttt{Construccion|Mediana Mineria}). Para que las consultas SQL hagan
-match correctamente, existe el helper \texttt{\_unidad\_clause()} en
-\texttt{app.py}:
+(\texttt{Construccion|Mediana Mineria}). El helper \texttt{\_unidad\_clause()}
+en \texttt{app.py} construye el WHERE adecuado:
 
 \begin{lstlisting}[language=Python]
 def _unidad_clause(unidad, col="unidad"):
@@ -496,12 +627,34 @@ def _unidad_clause(unidad, col="unidad"):
 \end{lstlisting}
 
 % ============================================================================
-\section{Mapa de Rutas}
+\section{Cache en Memoria}
 % ============================================================================
 
-Todas las rutas publicas estan definidas en \texttt{app.py}.
+El modulo \texttt{cache.py} implementa una capa de cache con TTL e
+invalidacion explicita para datos que cambian con poca frecuencia:
 
-\subsection{Paginas publicas}
+\begin{itemize}[leftmargin=*]
+    \item Configuracion del pais (\texttt{site\_config} + \texttt{sucursales\_db}).
+    \item Banners del sitio (\texttt{banners\_config}).
+\end{itemize}
+
+\subsection{Estrategia de invalidacion}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Lectura:} cualquier request publico lee del cache.
+    \item \textbf{Escritura desde admin:} cada vez que el panel admin
+        guarda cambios, llama explicitamente a \texttt{invalidate()} para
+        que el siguiente request publico lea fresco desde la BD.
+\end{itemize}
+
+Esto evita queries repetidas a SQLite en cada peticion y garantiza
+simultaneamente que los cambios del admin se vean de inmediato.
+
+% ============================================================================
+\section{Mapa de Rutas Publicas}
+% ============================================================================
+
+\subsection{Paginas}
 
 \begin{longtable}{p{6cm} p{3cm} p{5.5cm}}
 \toprule
@@ -536,7 +689,7 @@ Todas las rutas publicas estan definidas en \texttt{app.py}.
 \midrule
 \endhead
 \texttt{/robots.txt}    & GET & Politica para crawlers + apunta al sitemap. \\
-\texttt{/sitemap.xml}   & GET & Sitemap generado dinamicamente: paginas estaticas + categorias + productos para PE y AR. \\
+\texttt{/sitemap.xml}   & GET & Sitemap dinamico por pais. \\
 \bottomrule
 \end{longtable}
 
@@ -547,48 +700,79 @@ Todas las rutas publicas estan definidas en \texttt{app.py}.
 \textbf{Ruta} & \textbf{Metodo} & \textbf{Funcion} \\
 \midrule
 \endhead
-\texttt{/api/contacto}    & POST          & Guarda cotizacion en \texttt{cotizaciones} y envia email. \\
-\texttt{/api/cart/add}    & POST          & Agrega un producto al carrito en sesion. \\
-\texttt{/api/cart/qty}    & POST          & Actualiza la cantidad de un item del carrito. \\
-\texttt{/api/cart}        & GET / DELETE  & Lee el carrito completo o elimina un item / vacia el carrito. \\
-\texttt{/api/denuncia}    & POST          & Persiste denuncia (tipo + descripcion) y envia email confidencial. \\
-\texttt{/api/proveedor}   & POST          & Registra proveedor y envia email a CGM. \\
+\texttt{/api/contacto}    & POST          & Guarda cotizacion + email. Valida 7 campos. \\
+\texttt{/api/cart/add}    & POST          & Agrega un producto al carrito. \\
+\texttt{/api/cart/qty}    & POST          & Actualiza cantidad de item. \\
+\texttt{/api/cart}        & GET / DELETE  & Lee o elimina items del carrito. \\
+\texttt{/api/denuncia}    & POST          & Persiste denuncia + email confidencial. \\
+\texttt{/api/proveedor}   & POST          & Registra proveedor + email. \\
 \bottomrule
 \end{longtable}
 
-\subsection{Categorias del catalogo}
+\subsection{Diccionario \texttt{CATEGORIAS}}
 
-El diccionario \texttt{CATEGORIAS} en \texttt{app.py} mapea slugs URL a tuplas
-\texttt{(tags, unidad, tipo, titulo)}. Esta es la fuente de verdad para los
-filtros del catalogo.
+En \texttt{app.py} se define un diccionario que mapea slugs URL a tuplas
+\texttt{(tags, unidad, tipo, titulo)}. Es la fuente de verdad para los
+filtros del catalogo. Cubre:
 
-\begin{lstlisting}[language=Python]
-CATEGORIAS = {
-    "alquiler":                                  ("alquiler", None,          None,             "Alquiler"),
-    "alquiler/construccion":                     ("alquiler", "Construccion", None,            "Construccion"),
-    "alquiler/construccion/excavadora":          ("alquiler", "Construccion", "Excavadora",    "Excavadoras"),
-    "alquiler/construccion/cargador-frontal":    ("alquiler", "Construccion", "Cargador Frontal", "Cargadores Frontales"),
-    ...
-    "alquiler/mineria":                          ("alquiler", "Mediana Mineria", None,         "Mineria"),
-    "alquiler/agricola":                         ("alquiler", "Agricola",       None,           "Agricola"),
-    "alquiler/energia":                          ("alquiler", "Energia",        None,           "Energia"),
-    "usados":                                    ("usados",   None,             None,           "Equipos Usados"),
-    ...
-}
-\end{lstlisting}
-
-Sectores soportados:
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Construccion} con $\sim$15 tipos: excavadora, cargador
-        frontal, tractor de orugas, rodillo compactador, motoniveladora,
-        retroexcavadora, minicargador, camion cisterna, camion grua,
-        compresora, torre de iluminacion, aditamentos, camion volquete,
-        micropavimentadora, pavimentadora, autohormigonera, tren de chancado.
-    \item \textbf{Mediana Mineria}.
-    \item \textbf{Agricola} (con aditamentos).
-    \item \textbf{Energia}: grupos electrogenos, compresoras, aditamentos.
-    \item \textbf{Usados}: subdividido en Construccion, Agricola y Energia.
+    \item 2 etiquetas principales: \texttt{alquiler}, \texttt{usados}.
+    \item 4 unidades: Construccion, Mediana Mineria, Agricola, Energia.
+    \item $\sim$25 tipos de maquinaria.
 \end{itemize}
+
+% ============================================================================
+\section{Formularios y Validacion}
+% ============================================================================
+
+\subsection{Formularios de cotizacion (envio directo a Salesforce)}
+
+Tanto \texttt{templates/pages/contacto.html} como
+\texttt{templates/pages/carrito.html} envian sus datos directo al endpoint
+de Salesforce Web-to-Lead via \texttt{POST}, no a la API interna. El payload
+incluye campos con IDs de Salesforce (e.g.\ \texttt{00NUU000001AZFF},
+\texttt{00NUU000001NBa5}).
+
+\subsubsection{Campos obligatorios}
+
+Todos los campos visibles de los dos formularios son \texttt{required}:
+
+\begin{itemize}[leftmargin=*]
+    \item Nombres y Apellidos, Razon Social, Email, Celular,
+        RUC/DNI/CUIT, Pais, Departamento/Provincia.
+    \item \textbf{Contacto:} ademas Equipo requerido.
+    \item \textbf{Carrito:} ademas valida que el carrito tenga al menos un
+        producto.
+    \item Politica de privacidad: checkbox obligatorio.
+\end{itemize}
+
+\subsubsection{Validaciones especiales en JS}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tipo de operacion} (checkboxes Alquiler / Compra): se
+        valida via JS que al menos uno este marcado.
+    \item \textbf{Otro Pais} (solo en contacto.html): se hace
+        \texttt{required} dinamicamente solo cuando el select de Pais tiene
+        valor \texttt{"Otro"}.
+    \item \textbf{Carrito vacio}: bloqueo de submit si la tabla del carrito
+        no tiene filas.
+\end{itemize}
+
+\subsection{Endpoint \texttt{/api/contacto}}
+
+Aunque los formularios publicos van directo a Salesforce, el endpoint
+interno se mantiene como respaldo. Valida 7 campos obligatorios
+(\texttt{nombre}, \texttt{empresa}, \texttt{email}, \texttt{telefono},
+\texttt{tipo}, \texttt{mensaje}, \texttt{pais}) y formato basico de email.
+La respuesta de error incluye un campo \texttt{campos\_faltantes} con la
+lista exacta de campos vacios.
+
+\subsection{Canal de denuncias}
+
+\texttt{templates/pages/canal\_denuncias.html} envia via AJAX a
+\texttt{/api/denuncia}. Los datos del denunciante son \textbf{opcionales por
+diseno} (anonimato). Solo son requeridos: nombre del denunciado, tipo de
+denuncia y descripcion de los hechos.
 
 % ============================================================================
 \section{Carrito y Cotizador}
@@ -599,8 +783,7 @@ El carrito vive en la \textbf{sesion Flask} (cookie firmada con
 
 \subsection{Separacion por pais}
 
-Cada pais tiene su propio carrito independiente para evitar cruces de
-inventarios entre vitrinas:
+Cada pais tiene su propio carrito independiente:
 
 \begin{lstlisting}[language=Python]
 def _cart_key(country=None):
@@ -608,9 +791,14 @@ def _cart_key(country=None):
     return f"cart_{cc}"   # cart_pe, cart_ar
 \end{lstlisting}
 
-\subsection{Estructura interna del carrito}
+\subsection{Cotizador flotante}
 
-Cada item es un diccionario:
+Definido en \texttt{base.html}, es un panel desplegable + boton que se
+muestra en todas las paginas excepto en \texttt{/carrito/}. Permite al
+usuario revisar los equipos acumulados sin abandonar la navegacion. Se
+sincroniza con la sesion via \texttt{cart.js}.
+
+\subsection{Estructura interna del carrito}
 
 \begin{lstlisting}[language=Python]
 {
@@ -622,39 +810,51 @@ Cada item es un diccionario:
 }
 \end{lstlisting}
 
-\subsection{Cotizador flotante}
-
-Definido en \texttt{base.html}. Es un panel + boton que se muestra en todas las
-paginas excepto en \texttt{/carrito/}. Permite al usuario revisar los equipos
-acumulados sin abandonar la navegacion. La UI se mantiene sincronizada con la
-sesion via \texttt{cart.js}.
-
 % ============================================================================
 \section{Productos Relacionados con Prioridades}
 % ============================================================================
 
 En la ficha de cada producto (\texttt{/producto/<slug>/}) se muestran hasta
-6 productos relacionados. El algoritmo aplica dos niveles de prioridad y
-combina ambos resultados:
+6 productos relacionados. El algoritmo aplica dos niveles de prioridad:
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Nivel 1.} Mismo \texttt{tipo} + misma \texttt{unidad} + mismo
-        \texttt{tag} (excluyendo el producto actual). Maximo 3.
+    \item \textbf{Nivel 1.} Mismo \texttt{tipo} + misma \texttt{unidad} +
+        mismo \texttt{tag}. Maximo 3.
     \item \textbf{Nivel 2.} Mismo \texttt{tag} + misma \texttt{unidad}, pero
-        \texttt{tipo} distinto. Completa los espacios restantes hasta llegar a
-        6.
+        \texttt{tipo} distinto. Completa hasta 6.
 \end{enumerate}
 
-Ambos niveles aplican el filtro \texttt{show\_arg} segun el pais y usan
-\texttt{ORDER BY RANDOM()} para que la rotacion sea natural.
+Ambos niveles aplican filtro \texttt{show\_pe/show\_arg} segun el pais y
+usan \texttt{ORDER BY RANDOM()} para rotacion natural.
+
+% ============================================================================
+\section{Capacita: Centro de Entrenamiento}
+% ============================================================================
+
+La pagina \texttt{/capacita/} presenta los 4 programas de formacion de
+operadores de maquinaria pesada. Los datos estan hardcodeados en la
+plantilla.
+
+\begin{longtable}{p{4.5cm} p{2.5cm} p{2.5cm} p{4cm}}
+\toprule
+\textbf{Programa} & \textbf{Duracion} & \textbf{Inversion} & \textbf{Modalidad} \\
+\midrule
+Formacion Basica         & 12 dias & S/. 3,250 & Presencial \\
+Especializacion          & 10 dias & S/. 2,800 & Semi Presencial \\
+Perfeccionamiento        & 9 dias  & S/. 2,800 & Semi Presencial \\
+Actualizacion Virtual    & 6 dias  & S/. 500   & 100\% Virtual \\
+\bottomrule
+\end{longtable}
+
+Todos los programas incluyen \textbf{Certificado de aprobacion a nombre de
+CGM Rental} en su seccion de Beneficios.
 
 % ============================================================================
 \section{Emails Transaccionales}
-\label{sec:email}
 % ============================================================================
 
 La funcion \texttt{send\_email()} en \texttt{app.py} envia correos HTML via
-SMTP plano (TLS en puerto 587). Todas las credenciales viven en variables de
+SMTP plano (TLS en puerto 587). Las credenciales viven en variables de
 entorno:
 
 \begin{lstlisting}[language=bash]
@@ -665,20 +865,15 @@ SMTP_PASS=<app-password>
 EMAIL_DESTINO=contacto@cgmrental.com
 \end{lstlisting}
 
-Las plantillas HTML estan \textbf{embebidas en el codigo Python}, no en
-archivos separados. Cada formulario tiene su plantilla:
-
-\begin{itemize}[leftmargin=*]
-    \item Cotizacion: en \texttt{/api/contacto}.
-    \item Denuncia: en \texttt{/api/denuncia} (estilo corporativo verde / lima).
-    \item Proveedor: en \texttt{/api/proveedor}.
-\end{itemize}
+Las plantillas HTML estan \textbf{embebidas en el codigo Python}. Cada
+formulario tiene su propia plantilla: cotizacion, denuncia (estilo corporativo
+verde / lima), proveedor.
 
 \begin{warningbox}
 Si \texttt{SMTP\_USER} o \texttt{SMTP\_PASS} no estan configurados,
 \texttt{send\_email()} devuelve \texttt{False} silenciosamente. La cotizacion
-si se guarda en la base de datos, pero no llega al correo de ventas. Verifica
-el \texttt{.env} en cada despliegue.
+si se guarda en la base de datos, pero no llega al correo de ventas.
+Verificar el \texttt{.env} en cada despliegue.
 \end{warningbox}
 
 % ============================================================================
@@ -687,22 +882,21 @@ el \texttt{.env} en cada despliegue.
 
 \subsection{Plantilla maestra (\texttt{base.html})}
 
-\texttt{base.html} es la plantilla padre que extienden todas las paginas. Define:
-
+Define:
 \begin{itemize}[leftmargin=*]
-    \item \texttt{<head>}: metatags, favicons, preload de fuentes, hojas de
-        estilo CDN (Bootstrap, Swiper, Bootstrap Icons, FontAwesome brands) y
-        las CSS locales \texttt{cgm.css} y \texttt{capacita.css}.
-    \item Bloques Jinja para sobrescribir: \texttt{title}, \texttt{meta\_desc},
+    \item \texttt{<head>}: metatags, favicons, preload de fuentes, CSS
+        locales (Bootstrap, Bootstrap Icons, Swiper) + CSS custom
+        (\texttt{cgm.css}, \texttt{capacita.css}) + FontAwesome brands
+        desde CDN.
+    \item Bloques Jinja: \texttt{title}, \texttt{meta\_desc},
         \texttt{og\_title}, \texttt{og\_desc}, \texttt{extra\_head},
         \texttt{content}, \texttt{extra\_scripts}.
-    \item Inclusion del nav (\texttt{\_nav.html}) y del footer
-        (\texttt{\_footer.html} si la URL contiene \texttt{/contacto/}, sino el
+    \item Inclusion del nav (\texttt{\_nav.html}) y del footer (
+        \texttt{\_footer.html} si la URL contiene \texttt{/contacto/}, sino
         \texttt{\_mini\_footer.html}).
     \item Cotizador flotante con badge de cantidad.
-    \item Boton de WhatsApp flotante (link tomado de \texttt{country.whatsapp\_link}).
-    \item Variable global JS: \texttt{window.CGM\_COUNTRY = "<pe|ar>"}.
-    \item Animacion de subrayado en titulos via \texttt{IntersectionObserver}.
+    \item Boton de WhatsApp flotante.
+    \item Variable global: \texttt{window.CGM\_COUNTRY = "<pe|ar>"}.
 \end{itemize}
 
 \subsection{Context processor}
@@ -721,71 +915,150 @@ def inject_globals():
     }
 \end{lstlisting}
 
-Asi cualquier template puede usar \texttt{\{\{ cart\_count \}\}},
-\texttt{\{\{ COUNTRIES \}\}} o \texttt{\{\{ PARTNERS \}\}} sin pasarlas
-explicitamente.
-
 \subsection{JavaScript}
 
-Solo hay tres archivos en \texttt{static/js/}, todos en vanilla JS:
+Tres archivos en vanilla JS, sin frameworks:
 
 \begin{itemize}[leftmargin=*]
-    \item \texttt{main.js} (285 lineas): inicializacion de Swipers, comportamiento
-        del nav, animaciones, lazyload de imagenes, manejo del menu mobile.
-    \item \texttt{cart.js} (197 lineas): llama a los endpoints \texttt{/api/cart/*},
-        actualiza el badge, abre/cierra el panel del cotizador, sincroniza el
-        \texttt{localStorage} con la sesion.
-    \item \texttt{cotizador.js} (28 lineas): helper para el envio del
-        formulario del carrito.
+    \item \texttt{main.js}: Swipers, comportamiento del nav, animaciones,
+        lazyload, menu mobile.
+    \item \texttt{cart.js}: llamadas a \texttt{/api/cart/*}, actualiza badge,
+        sincroniza panel del cotizador.
+    \item \texttt{cotizador.js}: helper para el envio del formulario.
 \end{itemize}
 
-\subsection{CSS}
+% ============================================================================
+\section{Panel de Administracion}
+% ============================================================================
 
-\texttt{cgm.css} contiene aproximadamente 4\,000 lineas con todos los
-componentes custom: tipografias corporativas Estricta, paleta verde
-(\texttt{\#004D3D}) + lima (\texttt{\#C5E86C}), cards de producto, banners,
-secciones de la home, etc. Es CSS plano, sin preprocesadores.
+Este informe describe el panel desde un enfoque tecnico. Para la guia de
+uso operativo, ver el documento separado
+\textit{Manual del Panel de Administracion}.
+
+\subsection{Arquitectura}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Blueprint Flask:} montado en \texttt{/admin}, registrado
+        en \texttt{app.py}:
+\begin{lstlisting}[language=Python]
+from admin.routes import admin_bp
+app.register_blueprint(admin_bp)
+\end{lstlisting}
+    \item \textbf{Modulos:}
+    \begin{itemize}
+        \item \texttt{admin/routes.py} (1370 lineas) --- todas las rutas y
+            logica del panel.
+        \item \texttt{admin/auth.py} --- autenticacion Azure AD con MSAL.
+        \item \texttt{admin/products\_sync.py} --- sincronizacion bidireccional
+            entre la BD y \texttt{products.json}.
+        \item \texttt{admin/\_\_init\_\_.py}.
+    \end{itemize}
+    \item \textbf{Plantillas:} 11 templates en \texttt{templates/admin/}.
+    \item \textbf{CSS:} \texttt{static/css/admin.css}.
+    \item \textbf{Tablas:} \texttt{audit\_log}, \texttt{site\_config},
+        \texttt{sucursales\_db}, \texttt{banners\_config}.
+\end{itemize}
+
+\subsection{Rutas principales}
+
+\begin{longtable}{p{6cm} p{2cm} p{6cm}}
+\toprule
+\textbf{Ruta} & \textbf{Metodo} & \textbf{Funcion} \\
+\midrule
+\endhead
+\texttt{/admin/login}                       & GET           & Pantalla de login Azure AD. \\
+\texttt{/admin/auth/callback}               & GET           & Callback OAuth2. \\
+\texttt{/admin/logout}                      & GET           & Cierre de sesion. \\
+\texttt{/admin/dashboard}                   & GET           & KPIs y graficos. \\
+\texttt{/admin/dashboard/data}              & GET           & Datos AJAX filtrados por pais. \\
+\texttt{/admin/productos}                   & GET           & Listado paginado de productos. \\
+\texttt{/admin/productos/nuevo}             & GET/POST      & Crear producto. \\
+\texttt{/admin/productos/<id>/editar}       & GET/POST      & Editar producto. \\
+\texttt{/admin/productos/<id>/toggle}       & POST          & Activar / desactivar. \\
+\texttt{/admin/productos/sync-json}         & POST          & Reconstruir \texttt{products.json}. \\
+\texttt{/admin/upload}                      & POST          & Subir imagen (convierte a WebP). \\
+\texttt{/admin/banners}                     & GET           & Listar banners + huerfanos. \\
+\texttt{/admin/banners/replace}             & POST          & Reemplazar imagen de slot. \\
+\texttt{/admin/banners/country-upload}      & POST          & Crear version por pais. \\
+\texttt{/admin/banners/country-remove}      & POST          & Eliminar version por pais. \\
+\texttt{/admin/contacto}                    & GET/POST      & Editar \texttt{site\_config}. \\
+\texttt{/admin/sucursales}                  & GET           & Listado de sucursales. \\
+\texttt{/admin/sucursales/guardar}          & POST          & Crear / editar sucursal. \\
+\texttt{/admin/blog}                        & GET           & Listado de posts. \\
+\texttt{/admin/blog/nuevo}                  & GET/POST      & Crear post. \\
+\texttt{/admin/blog/<id>/editar}            & GET/POST      & Editar post. \\
+\texttt{/admin/historial}                   & GET           & Audit log paginado. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Autenticacion}
+
+\begin{itemize}[leftmargin=*]
+    \item OAuth2 contra Azure AD usando \textbf{MSAL} (Microsoft
+        Authentication Library).
+    \item Variables de entorno: \texttt{AZURE\_CLIENT\_ID},
+        \texttt{AZURE\_CLIENT\_SECRET}, \texttt{AZURE\_TENANT\_ID},
+        \texttt{AZURE\_REDIRECT\_URI}.
+    \item Whitelist de correos en \texttt{ADMIN\_ALLOWED\_EMAILS}
+        (lista separada por comas). Solo los emails de esta lista pueden
+        entrar al panel.
+    \item Sesion en cookie Flask firmada.
+\end{itemize}
+
+\subsection{Procesamiento de imagenes}
+
+Todas las imagenes subidas pasan por Pillow:
+
+\begin{itemize}[leftmargin=*]
+    \item Si la extension es \texttt{webp}: se guarda tal cual.
+    \item Si es \texttt{jpg/jpeg/png}: se convierte a WebP con calidad 88,
+        respetando transparencia para RGBA/LA/P.
+    \item Imagenes de producto se renumeran automaticamente
+        (\texttt{1.webp}, \texttt{2.webp}, ...).
+    \item Tamano maximo: 10 MB.
+    \item Banners conservan su \texttt{filename} al reemplazarse.
+\end{itemize}
 
 % ============================================================================
 \section{SEO}
 % ============================================================================
 
 \subsection{\texttt{robots.txt}}
-Servido dinamicamente en \texttt{/robots.txt}. Permite todo y apunta al sitemap.
+Servido dinamicamente en \texttt{/robots.txt}. Permite todo y apunta al
+sitemap.
 
 \subsection{\texttt{sitemap.xml}}
 Generado en cada request en \texttt{/sitemap.xml}. Incluye:
 
 \begin{itemize}[leftmargin=*]
-    \item Paginas estaticas por pais: home, nosotros, contacto, leasing,
-        novedades, capacita, carrito, canal de denuncias.
+    \item Paginas estaticas por pais (home, nosotros, contacto, leasing,
+        novedades, capacita, carrito, canal de denuncias).
     \item Todas las categorias de productos activas por pais.
-    \item Todos los productos activos por pais (filtrados con \texttt{show\_arg}).
+    \item Todos los productos activos por pais (filtrados con
+        \texttt{show\_pe}/\texttt{show\_arg}).
 \end{itemize}
-
-\subsection{Metatags}
-Cada pagina define su propio \texttt{title}, \texttt{meta description} y Open
-Graph mediante los bloques de \texttt{base.html}.
 
 % ============================================================================
 \section{Variables de Entorno}
 % ============================================================================
 
-El proyecto usa \texttt{python-dotenv} para cargar variables desde \texttt{.env}
-en la raiz. Variables relevantes:
-
-\begin{longtable}{p{4cm} p{2cm} p{8cm}}
+\begin{longtable}{p{5cm} p{2cm} p{8cm}}
 \toprule
 \textbf{Variable} & \textbf{Default} & \textbf{Uso} \\
 \midrule
 \endhead
-\texttt{FLASK\_SECRET\_KEY} & \texttt{cgm-dev-secret} & Firma de cookies de sesion. \textbf{Obligatoria en produccion}. \\
-\texttt{FLASK\_DEBUG}       & \texttt{True}           & Modo debug (debe ser \texttt{False} en produccion). \\
-\texttt{SMTP\_HOST}         & \texttt{smtp.gmail.com} & Servidor de correo. \\
-\texttt{SMTP\_PORT}         & \texttt{587}            & Puerto SMTP. \\
-\texttt{SMTP\_USER}         & ---                     & Cuenta de envio. \\
-\texttt{SMTP\_PASS}         & ---                     & Password / app-password. \\
-\texttt{EMAIL\_DESTINO}     & \texttt{contacto@cgmrental.com} & Destinatario de cotizaciones. \\
+\texttt{FLASK\_SECRET\_KEY}         & \texttt{cgm-dev-secret} & Firma de cookies de sesion. \textbf{Obligatoria en produccion}. \\
+\texttt{FLASK\_DEBUG}               & \texttt{True}           & Modo debug. \texttt{False} en produccion. \\
+\texttt{SMTP\_HOST}                 & \texttt{smtp.gmail.com} & Servidor de correo. \\
+\texttt{SMTP\_PORT}                 & \texttt{587}            & Puerto SMTP. \\
+\texttt{SMTP\_USER}                 & ---                     & Cuenta de envio. \\
+\texttt{SMTP\_PASS}                 & ---                     & Password / app-password. \\
+\texttt{EMAIL\_DESTINO}             & \texttt{contacto@...}   & Destinatario de cotizaciones. \\
+\texttt{AZURE\_CLIENT\_ID}          & ---                     & App ID de Azure AD. \\
+\texttt{AZURE\_CLIENT\_SECRET}      & ---                     & Secret de Azure AD. \\
+\texttt{AZURE\_TENANT\_ID}          & ---                     & Tenant ID. \\
+\texttt{AZURE\_REDIRECT\_URI}       & \texttt{.../callback}   & Callback OAuth2. \\
+\texttt{ADMIN\_ALLOWED\_EMAILS}     & ---                     & Whitelist (comas). \\
 \bottomrule
 \end{longtable}
 
@@ -802,7 +1075,7 @@ python -m venv venv
 source venv/bin/activate     # Linux/Mac
 # .\venv\Scripts\Activate.ps1  # Windows PowerShell
 pip install -r requirements.txt
-cp .env.example .env          # editar credenciales SMTP
+cp .env.example .env          # editar credenciales SMTP / Azure
 python app.py                 # http://localhost:5000
 \end{lstlisting}
 
@@ -822,29 +1095,56 @@ El servicio \texttt{cgmrental.service} corre Gunicorn:
 gunicorn -w 4 -b 0.0.0.0:8015 app:app --daemon
 \end{lstlisting}
 
-Nginx hace el reverse proxy desde \texttt{:443} hacia \texttt{:8015} y
-propaga el header \texttt{X-Forwarded-For} y el \texttt{CF-IPCountry} de
-Cloudflare.
+Nginx hace reverse proxy desde \texttt{:443} hacia \texttt{:8015} y propaga
+\texttt{X-Forwarded-For} y \texttt{CF-IPCountry} de Cloudflare.
+
+\subsection{Carpetas ignoradas por Git}
+
+El \texttt{.gitignore} excluye del repositorio:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{.env}, \texttt{.env.local} --- secretos.
+    \item \texttt{.claude/}, \texttt{.vscode/}, \texttt{.idea/} --- editor.
+    \item \texttt{\_\_pycache\_\_/}, \texttt{*.pyc} --- bytecode Python.
+    \item \texttt{\_archive/}, \texttt{\_no\_usado/} --- archivos historicos
+        y descartados.
+    \item \texttt{*.db}, \texttt{*.sqlite} --- BDs locales, \textbf{excepto}
+        \texttt{data/cgm.db} (incluida con \texttt{!data/cgm.db}).
+    \item \texttt{*.xlsx}, \texttt{*.sql} --- artefactos de importacion.
+\end{itemize}
 
 % ============================================================================
-\section{Funcionalidades Ocultas o Pendientes}
+\section{Historial Tecnico Relevante}
 % ============================================================================
 
-\subsection{Rutas comentadas en \texttt{app.py}}
-Las paginas individuales de certificaciones ISO y la pagina de Politica
-Integrada estan \textbf{deshabilitadas} (codigo comentado, aprox. lineas
-744--765). Hoy estos contenidos se sirven directamente como PDFs en modales
-del frontend. Las plantillas \texttt{certificacion\_iso.html} y
-\texttt{politica\_integrada.html} quedan disponibles para usos futuros.
+\subsection{Migracion a SQL Server (revertida)}
+Hubo un intento de migrar la base de datos de SQLite a Azure SQL Server. La
+migracion fue revertida porque \textbf{SQLite resultaba mas rapido} para los
+patrones de lectura del sitio. La base de datos sigue siendo SQLite local
+en \texttt{data/cgm.db}.
 
-\subsection{Panel de administracion}
-El blueprint \texttt{admin/} esta presente en el repositorio pero \textbf{no se
-registra en \texttt{app.py}} en la rama actual (\texttt{v\_sin\_admin}). Para
-detalles ver el documento \textit{Manual del Panel de Administracion}.
+\subsection{Selector de pais: dropdown $\rightarrow$ dos botones}
+El header anteriormente tenia un boton \texttt{Portal PE} con dropdown que
+listaba paises. Se reemplazo por dos botones independientes lado a lado
+(\texttt{Portal PE} y \texttt{Portal AR}) para reducir clicks y mejorar
+accesibilidad en movil.
 
-\subsection{Bases de datos residuales}
-Existe un archivo \texttt{cgm\_rental.db} de 0 bytes que convive con
-\texttt{cgm.db}. Es residuo de pruebas iniciales y puede borrarse.
+\subsection{Reorganizacion de banners}
+Los banners pasaron de estar todos en \texttt{static/images/banners/} a una
+estructura por subcarpetas: \texttt{hero/}, \texttt{categorias/},
+\texttt{home-cards/}, \texttt{otros/}, cada una con sub-carpetas
+\texttt{pe/} y \texttt{ar/} para versiones especificas por pais.
+
+\subsection{Migracion CDN $\rightarrow$ locales}
+Bootstrap, Bootstrap Icons y Swiper se migraron de CDN a archivos locales
+en \texttt{static/} para mayor estabilidad y autonomia.
+
+\subsection{Endurecimiento de validacion de formularios}
+Los formularios de cotizacion (\texttt{contacto.html}, \texttt{carrito.html})
+ahora exigen \textbf{todos los campos visibles} como obligatorios, validan
+que al menos uno de Alquiler/Compra este marcado, y que el carrito no este
+vacio. El endpoint \texttt{/api/contacto} valida 7 campos en lugar de los
+3 originales.
 
 % ============================================================================
 \section{Consideraciones de Seguridad}
@@ -852,47 +1152,40 @@ Existe un archivo \texttt{cgm\_rental.db} de 0 bytes que convive con
 
 \begin{itemize}[leftmargin=*]
     \item \textbf{SQL Injection:} todas las queries usan parametros
-        \texttt{?}. Las concatenaciones con f-strings se hacen solo con
-        valores de una whitelist (\texttt{arg\_filter}, \texttt{\_unidad\_clause}).
-    \item \textbf{CSRF:} actualmente \textbf{no hay token CSRF} en los
-        formularios. Si el sitio creciera para manejar autenticacion de
-        usuarios finales, conviene incorporar Flask-WTF.
+        \texttt{?}. Las concatenaciones con f-strings solo emplean valores
+        de una whitelist.
+    \item \textbf{CSRF:} los formularios publicos van directo a Salesforce
+        (origin externo), por lo que no llevan CSRF token propio. Las rutas
+        POST internas consumen JSON sin estado autenticado, por lo que el
+        riesgo CSRF es bajo.
     \item \textbf{XSS:} Jinja2 escapa por defecto. El campo
-        \texttt{blog\_posts.contenido} \textbf{si} se renderiza con
-        \texttt{|safe} porque contiene HTML --- el contenido debe venir de
-        fuentes confiables (admin).
-    \item \textbf{Cookie de sesion:} firmada con \texttt{FLASK\_SECRET\_KEY};
-        si esta variable no se setea en produccion el sitio funciona pero las
-        sesiones son falsificables.
-    \item \textbf{Subida de archivos:} solo se permite via panel admin (que
-        valida extensiones y tamano $\leq$ 10 MB).
+        \texttt{blog\_posts.contenido} se renderiza con \texttt{|safe} ---
+        debe venir de admins de confianza unicamente.
+    \item \textbf{Cookie de sesion:} firmada con \texttt{FLASK\_SECRET\_KEY}.
+        En produccion debe ser un valor unico y aleatorio.
+    \item \textbf{Panel admin:} doble capa de proteccion --- Azure AD +
+        whitelist de emails.
+    \item \textbf{Subida de archivos:} solo desde el panel admin, con
+        validacion de extensiones y tamano $\leq$ 10 MB.
 \end{itemize}
 
 % ============================================================================
 \section{Hoja de Ruta Sugerida}
 % ============================================================================
 
-\subsection{Mejoras tecnicas recomendadas}
 \begin{enumerate}[leftmargin=*]
-    \item Anadir un sistema formal de migraciones (Alembic) en lugar de los
+    \item Migracion formal de schema con Alembic en lugar de
         \texttt{ALTER TABLE} con \texttt{try/except}.
-    \item Implementar tokens CSRF en los formularios publicos.
-    \item Migrar \texttt{products.json} a fuente unica (la base de datos) y
-        desactivar el seed automatico en produccion.
-    \item Anadir tests automatizados (\texttt{pytest} + \texttt{Flask-Testing}).
-    \item Habilitar logging estructurado en archivos rotativos.
-    \item Considerar mover el envio de email a una cola asincronica
-        (\texttt{Celery} + \texttt{Redis}) para no bloquear el request.
+    \item Vista admin para gestionar cotizaciones / proveedores / denuncias
+        recibidas (actualmente solo se guardan en BD y se envian por email).
+    \item Cola asincronica (\texttt{Celery} + \texttt{Redis}) para email,
+        para no bloquear el request del usuario.
+    \item Sistema de roles dentro del admin (actualmente cualquier email
+        autorizado tiene acceso total).
+    \item Tests automatizados (\texttt{pytest}).
+    \item Logging estructurado en archivos rotativos.
+    \item Migracion del HTML inline de emails a templates Jinja separados.
 \end{enumerate}
-
-\subsection{Limpieza de archivos sugerida}
-\begin{itemize}[leftmargin=*]
-    \item Eliminar \texttt{cgm\_rental.db} (0 bytes).
-    \item Eliminar \texttt{temp\_compare.json} y \texttt{temp\_gen\_excel.py}.
-    \item Consolidar los scripts utilitarios (\texttt{apply\_db\_fixes.py},
-        \texttt{dup\_arg.py}, \texttt{fix\_routing.py}, \texttt{gen\_*.py})
-        en una carpeta \texttt{scripts/}.
-\end{itemize}
 
 % ============================================================================
 \section{Glosario}
@@ -901,16 +1194,17 @@ Existe un archivo \texttt{cgm\_rental.db} de 0 bytes que convive con
 \begin{description}[leftmargin=*]
     \item[\texttt{slug}] Identificador URL-friendly de un producto o post.
         Ejemplo: \texttt{excavadora-john-deere-210g}.
-    \item[\texttt{tag}] Categoria comercial: \texttt{alquiler} o \texttt{venta}
-        (alias de \texttt{usados}).
+    \item[\texttt{tag}] Categoria comercial: \texttt{alquiler} o
+        \texttt{venta} (alias \texttt{usados}).
     \item[\texttt{unidad}] Sector economico: Construccion, Mediana Mineria,
         Agricola, Energia.
-    \item[\texttt{tipo}] Tipo de equipo dentro de un sector. Ej: Excavadora,
-        Cargador Frontal.
-    \item[\texttt{show\_arg}] Flag binario que indica si el producto debe
-        aparecer en la vitrina de Argentina.
-    \item[\texttt{ficha\_url}] Ruta a la ficha tecnica en PDF, almacenada en
-        \texttt{static/docs/fichas/}.
+    \item[\texttt{tipo}] Tipo de equipo dentro de un sector.
+    \item[\texttt{show\_pe / show\_arg}] Flags binarios que indican en que
+        vitrina aparece el producto/post.
+    \item[\texttt{slot}] Posicion fija de un banner en el diseno.
+    \item[\texttt{huerfano}] Archivo en \texttt{static/images/banners/} que
+        no esta registrado en \texttt{banners\_config}.
+    \item[\texttt{ficha\_url}] Ruta a la ficha tecnica PDF.
 \end{description}
 
 \vspace{1cm}
