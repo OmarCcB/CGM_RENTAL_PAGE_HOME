@@ -91,17 +91,6 @@ def auth_callback():
         flash("No se pudo obtener la información del usuario.", "danger")
         return redirect(url_for("admin.login"))
 
-    # ── Whitelist de correos autorizados ─────────────────────────────────────
-    allowed_raw = os.getenv("ADMIN_ALLOWED_EMAILS", "")
-    allowed = {e.strip().lower() for e in allowed_raw.split(",") if e.strip()}
-    user_email = (user.get("email") or "").strip().lower()
-    if allowed and user_email not in allowed:
-        log_action(user_email or "?", "login_denegado",
-                   f"Email no autorizado intento ingresar: {user_email}")
-        flash("Tu correo no tiene permisos para acceder al panel de administración. "
-              "Si crees que esto es un error, contacta al administrador.", "danger")
-        return redirect(url_for("admin.login"))
-
     session["admin_user"] = user
     log_action(user.get("email", "?"), "login", "Inicio de sesión exitoso")
     flash(f"Bienvenido, {user['name']}", "success")
