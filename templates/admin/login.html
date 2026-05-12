@@ -32,21 +32,13 @@
         Ingresar con Microsoft
       </a>
     {% elif not configured %}
-      <div style="background:#f0f9f6;border-radius:8px;padding:16px;text-align:left;border:2px solid #C5E86C;">
+      <div style="background:#f0f9f6;border-radius:8px;padding:16px;text-align:center;border:2px solid #C5E86C;">
         <p style="color:#02534C;font-weight:700;margin-bottom:8px;">
-          <i class="bi bi-exclamation-triangle me-1"></i> Azure AD no configurado
+          <i class="bi bi-shield-lock me-1"></i> Acceso no disponible
         </p>
         <p style="font-size:0.85rem;color:#555;margin-bottom:0;">
-          Para habilitar el inicio de sesión, configura las siguientes variables de entorno:
-        </p>
-      </div>
-      <div class="adm-config-warning mt-3">
-        <code>AZURE_CLIENT_ID</code><br>
-        <code>AZURE_CLIENT_SECRET</code><br>
-        <code>AZURE_TENANT_ID</code><br>
-        <code>AZURE_REDIRECT_URI</code>
-        <p class="mt-2 mb-0" style="font-size:0.8rem;">
-          Registra una aplicación en <strong>Azure Active Directory</strong> y agrega estas variables en tu archivo <code>.env</code>.
+          El panel de administración no está disponible en este momento.<br>
+          Contacta al administrador del sistema.
         </p>
       </div>
     {% else %}
@@ -71,7 +63,7 @@
     {% endwith %}
 
     <p class="mt-4" style="font-size:0.78rem;color:#aaa;">
-      &copy; 2025 CGM Rental &mdash; Uso interno
+      &copy; {{ now.year if now else 2026 }} CGM Rental &mdash; Uso interno
     </p>
   </div>
 </div>

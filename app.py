@@ -529,12 +529,14 @@ def inject_globals():
         filename = bans.get(slot, fallback)
         return _uf("static", filename="images/banners/" + filename)
 
+    from datetime import datetime as _dt
     return {
         "cart_count": cart_count(cc),
         "COUNTRIES": COUNTRIES,
         "PARTNERS": PARTNERS,
         "banners": bans,
         "burl": burl,
+        "now": _dt.now(),
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
