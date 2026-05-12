@@ -28,21 +28,32 @@
 \definecolor{cgmgreen}{HTML}{004D3D}
 \definecolor{cgmlime}{HTML}{C5E86C}
 \definecolor{cgmgray}{HTML}{4A4A4A}
+\definecolor{cgmgreenlight}{HTML}{E8F0EE}
 \definecolor{codebg}{HTML}{F5F5F5}
 
-% ── Estilos de titulos ──────────────────────────────────────────────────────
-\titleformat{\section}{\color{cgmgreen}\Large\bfseries}{\thesection}{1em}{}
+% ── Logos ────────────────────────────────────────────────────────────────────
+\graphicspath{{./}}
+\def\cgmlogo{cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-270x270.png}
+\def\cgmlogoheader{cgm-logo.png}
+
+% ── Estilos de títulos ──────────────────────────────────────────────────────
+\titleformat{\section}
+  {\color{cgmgreen}\Large\bfseries}
+  {\color{cgmlime}\rule[-0.4ex]{4pt}{1.4em}\hspace{6pt}\thesection}{0.6em}{}
 \titleformat{\subsection}{\color{cgmgreen}\large\bfseries}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}{\color{cgmgray}\normalsize\bfseries}{\thesubsubsection}{1em}{}
 
-% ── Encabezado y pie de pagina ──────────────────────────────────────────────
+% ── Encabezado y pie de página ──────────────────────────────────────────────
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\headrule}{\hbox to\headwidth{\color{cgmgreen}\leaders\hrule height \headrulewidth\hfill}}
-\fancyhead[L]{\textcolor{cgmgreen}{\textbf{CGM Rental}}}
-\fancyhead[R]{\textcolor{cgmgray}{Informe Tecnico}}
-\fancyfoot[C]{\thepage}
+\fancyhead[L]{%
+  \raisebox{-0.35\height}{\includegraphics[height=22pt]{\cgmlogoheader}}}
+\fancyhead[R]{\textcolor{cgmgray}{Informe Técnico}}
+\fancyfoot[L]{}
+\fancyfoot[C]{\textcolor{cgmgreen}{\textbf{\thepage}}}
+\fancyfoot[R]{\textcolor{cgmgray}{\footnotesize cgmrental.com}}
 
 % ── Listings para codigo ────────────────────────────────────────────────────
 \lstdefinestyle{cgmcode}{
@@ -62,49 +73,73 @@
 }
 \lstset{style=cgmcode}
 
-% ── Caja de informacion ─────────────────────────────────────────────────────
+% ── Cajas temáticas ─────────────────────────────────────────────────────────
 \newtcolorbox{infobox}[1][]{
-    colback=cgmlime!15,
+    colback=cgmlime!18,
     colframe=cgmgreen,
-    boxrule=0.6pt,
-    arc=2pt,
-    left=8pt,right=8pt,top=6pt,bottom=6pt,
-    #1
+    boxrule=0.7pt, arc=3pt,
+    left=10pt,right=10pt,top=8pt,bottom=8pt, #1
 }
-
 \newtcolorbox{warningbox}[1][]{
-    colback=red!5,
-    colframe=red!50,
-    boxrule=0.6pt,
-    arc=2pt,
-    left=8pt,right=8pt,top=6pt,bottom=6pt,
-    #1
+    colback=red!6,
+    colframe=red!55,
+    boxrule=0.7pt, arc=3pt,
+    left=10pt,right=10pt,top=8pt,bottom=8pt, #1
 }
-
-% ── Metadatos ───────────────────────────────────────────────────────────────
-\title{
-    \vspace{-2cm}
-    \begin{flushleft}
-    \textcolor{cgmgreen}{\rule{\linewidth}{2pt}}\\[0.4cm]
-    \textcolor{cgmgreen}{\Huge\bfseries Informe Tecnico}\\[0.25cm]
-    \textcolor{cgmgray}{\LARGE Sitio Web Corporativo}\\[0.2cm]
-    \textcolor{cgmgreen}{\Large CGM Rental --- Alquiler de Maquinaria Pesada}\\[0.2cm]
-    \textcolor{cgmlime!70!black}{\rule{\linewidth}{1pt}}
-    \end{flushleft}
+\newtcolorbox{tipbox}[1][]{
+    colback=cgmlime!12,
+    colframe=cgmlime!80!cgmgreen,
+    boxrule=0.7pt, arc=3pt,
+    left=10pt,right=10pt,top=8pt,bottom=8pt, #1
 }
-
-\author{
-    \textbf{Desarrollado por:} Omar Antonio Ccencho Barazorda\\
-    \textbf{Cliente:} CGM Rental\\
-    \textbf{Repositorio:} \texttt{CGM\_RENTAL\_PAGE\_HOME}
-}
-
-\date{\today}
 
 % ============================================================================
 \begin{document}
-\maketitle
+
+% ── Portada ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
 \thispagestyle{empty}
+\begin{center}
+\vspace*{0.5cm}
+
+\includegraphics[width=5cm]{\cgmlogo}\\[0.8cm]
+
+\textcolor{cgmgreen}{\rule{\linewidth}{2.5pt}}\\[0.5cm]
+
+{\color{cgmgreen}\Huge\bfseries Informe Técnico}\\[0.2cm]
+{\color{cgmgreen}\Huge\bfseries Sitio Web Corporativo}\\[0.4cm]
+
+\textcolor{cgmlime!70!black}{\rule{0.5\linewidth}{1pt}}\\[0.4cm]
+
+{\color{cgmgray}\LARGE Documentación Estructural}\\[0.3cm]
+{\color{cgmgreen}\Large CGM Rental --- Alquiler de Maquinaria Pesada}\\[0.6cm]
+
+\textcolor{cgmgreen}{\rule{0.6\linewidth}{0.5pt}}\\[1.5cm]
+
+\begin{tcolorbox}[
+    colback=cgmgreenlight,
+    colframe=cgmgreen,
+    boxrule=0.8pt,
+    arc=4pt,
+    width=0.85\linewidth,
+    left=14pt, right=14pt, top=12pt, bottom=12pt,
+]
+\centering
+\textbf{\large\color{cgmgreen}Información del documento}\\[0.4cm]
+\begin{tabular}{r l}
+\textbf{Empresa:}      & CGM Rental \\
+\textbf{Módulo:}       & Sitio Web Corporativo \\
+\textbf{Repositorio:}  & \texttt{CGM\_RENTAL\_PAGE\_HOME} \\
+\textbf{Fecha:}        & \today \\
+\end{tabular}
+\end{tcolorbox}
+
+\vfill
+
+{\color{cgmgray}\small Documento técnico --- Distribución interna}
+
+\end{center}
+\end{titlepage}
 
 \begin{infobox}
 \textbf{Proposito del documento.} Esta documentacion describe la arquitectura,
@@ -1207,11 +1242,112 @@ vacio. El endpoint \texttt{/api/contacto} valida 7 campos en lugar de los
     \item[\texttt{ficha\_url}] Ruta a la ficha tecnica PDF.
 \end{description}
 
+% ============================================================================
+\section{Despliegue en Producción}
+% ============================================================================
+
+\subsection{Ubicación en el servidor}
+
+El proyecto se encuentra en el servidor de producción bajo la ruta:
+
+\begin{lstlisting}
+/var/www/cgmrental/
+\end{lstlisting}
+
+El usuario del sistema operativo que ejecuta la aplicación es
+\texttt{admincgm} en el host \texttt{mq-vtl-prd-cgm}.
+
+\subsection{Servidor de aplicación}
+
+La aplicación corre con \textbf{Gunicorn} (Green Unicorn), un servidor
+WSGI de producción para Python. Configuración activa:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Workers:} 4 procesos paralelos (\texttt{-w 4}).
+    \item \textbf{Bind:} \texttt{0.0.0.0:8015} (puerto 8015, todas las
+        interfaces).
+    \item \textbf{App:} \texttt{app:app} (módulo \texttt{app.py},
+        instancia \texttt{app}).
+\end{itemize}
+
+\subsection{Script de arranque}
+
+El archivo \texttt{start.sh} crea una sesión \textbf{screen} llamada
+\texttt{cgmrental} en segundo plano y dentro de ella lanza Gunicorn:
+
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+screen -dmS cgmrental bash -c '
+cd /var/www/cgmrental
+source venv/bin/activate
+gunicorn -w 4 -b 0.0.0.0:8015 app:app
+exec bash
+'
+\end{lstlisting}
+
+El uso de \texttt{screen} permite que el proceso persista aunque se
+cierre la sesión SSH.
+
+\subsection{Servicio systemd}
+
+La aplicación se registra como servicio del sistema operativo en
+\texttt{/etc/systemd/system/cgmrental.service}, lo que garantiza que
+arranque automáticamente al reiniciar el servidor:
+
+\begin{lstlisting}
+[Unit]
+Description=CGM Rental Web
+After=network.target
+
+[Service]
+User=admincgm
+Type=forking
+RemainAfterExit=yes
+ExecStart=/usr/bin/screen -dmS cgmrental /var/www/cgmrental/start.sh
+ExecStop=/usr/bin/screen -S cgmrental -X quit
+
+[Install]
+WantedBy=multi-user.target
+\end{lstlisting}
+
+\subsection{Comandos de administración del servicio}
+
+\begin{longtable}{p{7cm} p{7cm}}
+\toprule
+\textbf{Acción} & \textbf{Comando} \\
+\midrule
+\endhead
+Iniciar el servicio      & \texttt{sudo systemctl start cgmrental} \\
+Detener el servicio      & \texttt{sudo systemctl stop cgmrental} \\
+Reiniciar el servicio    & \texttt{sudo systemctl restart cgmrental} \\
+Ver estado               & \texttt{sudo systemctl status cgmrental} \\
+Ver sesión screen activa & \texttt{screen -ls} \\
+Conectarse a la consola  & \texttt{screen -r cgmrental} \\
+Salir sin cerrar screen  & \texttt{Ctrl+A} luego \texttt{D} \\
+\bottomrule
+\end{longtable}
+
+\begin{tipbox}
+\textbf{Después de subir cambios al servidor}, siempre ejecutar
+\texttt{sudo systemctl restart cgmrental} para que Flask cargue el
+código actualizado.
+\end{tipbox}
+
 \vspace{1cm}
-\begin{infobox}
-\textbf{Contacto del desarrollador.} Para dudas sobre la arquitectura,
-decisiones de diseno o ampliacion de la plataforma, contactar al desarrollador
-del proyecto: \textbf{Omar Antonio Ccencho Barazorda}.
-\end{infobox}
+\begin{tcolorbox}[
+    colback=cgmgreen,
+    colframe=cgmlime,
+    boxrule=1pt,
+    arc=4pt,
+    coltext=white,
+    left=14pt, right=14pt, top=12pt, bottom=12pt,
+]
+\begin{center}
+\textbf{\Large Documento de uso interno}\\[0.3cm]
+Este informe es de distribución restringida al equipo técnico de CGM Rental.\\[0.2cm]
+Para consultas sobre la arquitectura o el servidor, comunicarse con\\
+el área de sistemas o tecnología de la empresa.
+\end{center}
+\end{tcolorbox}
 
 \end{document}

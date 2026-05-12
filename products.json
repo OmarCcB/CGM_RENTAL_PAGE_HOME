@@ -1722,7 +1722,8 @@
     "unidad": "Construcción",
     "imagen": "camion-volquete-ar/1.webp",
     "activo": 1,
-    "show_arg": 1
+    "show_arg": 1,
+    "show_pe": 0
   },
   {
     "id": 2277,

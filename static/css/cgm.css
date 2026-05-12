@@ -985,14 +985,14 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 55%;
+  height: 30%;
   width: auto;
   pointer-events: none;
-  opacity: .8;
+  opacity: .85;
   z-index: 1;
 }
-.cgm-cotiz-hero-arrow--left  { left: 8%; }
-.cgm-cotiz-hero-arrow--right { right: 8%; transform: translateY(-50%) scaleX(-1); }
+.cgm-cotiz-hero-arrow--left  { left: 5%; }
+.cgm-cotiz-hero-arrow--right { right: 5%; transform: translateY(-50%) scaleX(-1); }
 .cgm-cotiz-hero-content {
   position: relative;
   z-index: 2;
@@ -3540,6 +3540,26 @@ select.cgm-contacto-input { cursor: pointer; }
 
   /* Capacita: ocultar flechas del hero en móvil */
   .cgm-cap-hero-arrow { display: none !important; }
+
+  /* Cotización: flechas en parte inferior, un poco más grandes que sucursales y sin difuminado */
+  .cgm-cotiz-hero-arrow {
+    height: 22% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
+    top: auto !important;
+    bottom: 12% !important;
+    transform: none !important;
+  }
+  .cgm-cotiz-hero-arrow--right { transform: scaleX(-1) !important; }
+}
+@media (max-width: 480px) {
+  .cgm-cotiz-hero-arrow {
+    height: 17% !important;
+    opacity: 0.85 !important;
+    filter: none !important;
+    bottom: 10% !important;
+  }
+  .cgm-cotiz-hero-arrow--right { transform: scaleX(-1) !important; }
 
   /* Banner-full (CTAs internos): proporcional en vez de altura fija */
   .cgm-banner-full { height: auto; aspect-ratio: 16/5; }
