@@ -11,21 +11,26 @@ import os
 import functools
 from flask import session, redirect, url_for, flash
 
-AZURE_CLIENT_ID = os.getenv("AZURE_CLIENT_ID", "")
-AZURE_CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET", "")
-AZURE_TENANT_ID = os.getenv("AZURE_TENANT_ID", "")
-AZURE_REDIRECT_URI = os.getenv("AZURE_REDIRECT_URI", "http://localhost:5000/admin/auth/callback")
-
 SCOPES = ["User.Read"]
 
 
+def _azure_vars():
+    return {
+        "client_id":     os.getenv("AZURE_CLIENT_ID", ""),
+        "client_secret": os.getenv("AZURE_CLIENT_SECRET", ""),
+        "tenant_id":     os.getenv("AZURE_TENANT_ID", ""),
+        "redirect_uri":  os.getenv("AZURE_REDIRECT_URI", "http://localhost:5000/admin/auth/callback"),
+    }
+
+
 def _get_msal_app():
+    v = _azure_vars()
     try:
         import msal
         return msal.ConfidentialClientApplication(
-            AZURE_CLIENT_ID,
-            authority=f"https://login.microsoftonline.com/{AZURE_TENANT_ID}",
-            client_credential=AZURE_CLIENT_SECRET,
+            v["client_id"],
+            authority=f"https://login.microsoftonline.com/{v['tenant_id']}",
+            client_credential=v["client_secret"],
         )
     except ImportError:
         return None
@@ -33,7 +38,8 @@ def _get_msal_app():
 
 def azure_configured():
     """Returns True if all Azure AD env vars are set."""
-    return bool(AZURE_CLIENT_ID and AZURE_CLIENT_SECRET and AZURE_TENANT_ID)
+    v = _azure_vars()
+    return bool(v["client_id"] and v["client_secret"] and v["tenant_id"])
 
 
 def get_auth_url():
@@ -43,11 +49,10 @@ def get_auth_url():
     app = _get_msal_app()
     if app is None:
         return None
-    result = app.get_authorization_request_url(
+    return app.get_authorization_request_url(
         SCOPES,
-        redirect_uri=AZURE_REDIRECT_URI,
+        redirect_uri=_azure_vars()["redirect_uri"],
     )
-    return result
 
 
 def get_token_from_code(code):
@@ -60,7 +65,7 @@ def get_token_from_code(code):
     result = app.acquire_token_by_authorization_code(
         code,
         scopes=SCOPES,
-        redirect_uri=AZURE_REDIRECT_URI,
+        redirect_uri=_azure_vars()["redirect_uri"],
     )
     if "error" in result:
         return None
