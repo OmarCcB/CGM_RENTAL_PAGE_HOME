@@ -321,7 +321,7 @@
       <div class="chart-wrap doughnut-wrap">
         <canvas id="chartTipo"></canvas>
         <div class="doughnut-center" id="tipoCenterText">
-          <div class="doughnut-center-value">{{ alquiler_c + venta_c + ambos_c }}</div>
+          <div class="doughnut-center-value">{{ alquiler_c + venta_c }}</div>
           <div class="doughnut-center-label">Equipos</div>
         </div>
       </div>
@@ -495,7 +495,7 @@ let sectorChart = new Chart(sectorCtx, {
     plugins: {
       legend:{ position:'top', labels:{ font:legendFont(), padding:10,
                usePointStyle:true, boxWidth:10 } },
-      tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} equipo${ctx.parsed.y!==1?'s':''}` }}
+      tooltip:{ callbacks:{ label: ctx => { const v = ctx.chart.options.indexAxis==='y' ? ctx.parsed.x : ctx.parsed.y; return ` ${ctx.dataset.label}: ${v} equipo${v!==1?'s':''}`; } }}
     },
     scales: {
       y:{ beginAtZero:true, ticks:{ stepSize:1, font:{size:isMobile()?10:11} }, grid:{color:'#f0f0f0'} },
@@ -511,13 +511,20 @@ let sectorChart = new Chart(sectorCtx, {
 });
 
 const paisCtx = document.getElementById('chartPais').getContext('2d');
+const paisCenterEl = paisCtx.canvas.closest('.doughnut-wrap').querySelector('.doughnut-center-value');
 let paisChart = new Chart(paisCtx, {
   type: 'doughnut',
   data: { labels:['Perú 🇵🇪','Argentina 🇦🇷'],
     datasets:[{ data:[{{ pe_count }},{{ ar_count }}],
       backgroundColor:[C.green,C.lime], borderWidth:0, hoverOffset:8 }] },
   options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
-    plugins:{ legend:doughnutLegend(),
+    plugins:{ legend:{ ...doughnutLegend(), onClick(e, legendItem, legend) {
+        legend.chart.toggleDataVisibility(legendItem.index);
+        legend.chart.update();
+        const data = legend.chart.data.datasets[0].data;
+        const total = data.reduce((s,v,i) => s + (legend.chart.getDataVisibility(i) ? v : 0), 0);
+        if (paisCenterEl) paisCenterEl.textContent = total;
+      }},
       tooltip:{ callbacks:{ label: ctx => {
         const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
         return ` ${ctx.label}: ${ctx.parsed} equipos (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
@@ -526,13 +533,20 @@ let paisChart = new Chart(paisCtx, {
 });
 
 const tipoCtx = document.getElementById('chartTipo').getContext('2d');
+const tipoCenterEl = tipoCtx.canvas.closest('.doughnut-wrap').querySelector('.doughnut-center-value');
 let tipoChart = new Chart(tipoCtx, {
   type: 'doughnut',
-  data: { labels:['Solo Alquiler','Solo Venta','Alquiler + Venta'],
-    datasets:[{ data:[{{ alquiler_c }},{{ venta_c }},{{ ambos_c }}],
-      backgroundColor:[C.green,C.navy,C.lime], borderWidth:0, hoverOffset:8 }] },
+  data: { labels:['Alquiler','Venta / Usados'],
+    datasets:[{ data:[{{ alquiler_c }},{{ venta_c }}],
+      backgroundColor:[C.green,C.navy], borderWidth:0, hoverOffset:8 }] },
   options: { responsive:true, maintainAspectRatio:false, cutout:'68%',
-    plugins:{ legend:doughnutLegend(),
+    plugins:{ legend:{ ...doughnutLegend(), onClick(e, legendItem, legend) {
+        legend.chart.toggleDataVisibility(legendItem.index);
+        legend.chart.update();
+        const data = legend.chart.data.datasets[0].data;
+        const total = data.reduce((s,v,i) => s + (legend.chart.getDataVisibility(i) ? v : 0), 0);
+        if (tipoCenterEl) tipoCenterEl.textContent = total;
+      }},
       tooltip:{ callbacks:{ label: ctx => {
         const tot = ctx.dataset.data.reduce((a,b)=>a+b,0);
         return ` ${ctx.label}: ${ctx.parsed} (${tot?((ctx.parsed/tot)*100).toFixed(1):0}%)`;
@@ -615,8 +629,8 @@ function updateCharts(d) {
   }
 
   // Tipo
-  const totTipo = d.alquiler_c + d.venta_c + d.ambos_c;
-  tipoChart.data.datasets[0].data = [d.alquiler_c, d.venta_c, d.ambos_c];
+  const totTipo = d.alquiler_c + d.venta_c;
+  tipoChart.data.datasets[0].data = [d.alquiler_c, d.venta_c];
   tipoChart.update();
   const tipoCentro = document.querySelector('#tipoCenterText .doughnut-center-value');
   if (tipoCentro) tipoCentro.textContent = totTipo;
@@ -681,7 +695,15 @@ function setSectorType(type, btn) {
   btn.closest('.chart-card').querySelectorAll('.chart-toggle-btn')
      .forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  sectorChart.options.indexAxis = type === 'horizontalBar' ? 'y' : 'x';
+  const horiz = type === 'horizontalBar';
+  sectorChart.options.indexAxis = horiz ? 'y' : 'x';
+  const sz = isMobile() ? 10 : 11;
+  sectorChart.options.scales.x = horiz
+    ? { beginAtZero:true, ticks:{ stepSize:1, font:{size:sz} }, grid:{color:'#f0f0f0'} }
+    : { grid:{display:false}, ticks:{ font:{size:sz} } };
+  sectorChart.options.scales.y = horiz
+    ? { grid:{display:false}, ticks:{ font:{size:sz} } }
+    : { beginAtZero:true, ticks:{ stepSize:1, font:{size:sz} }, grid:{color:'#f0f0f0'} };
   sectorChart.update();
 }
 

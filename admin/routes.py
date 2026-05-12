@@ -91,6 +91,15 @@ def auth_callback():
         flash("No se pudo obtener la información del usuario.", "danger")
         return redirect(url_for("admin.login"))
 
+    allowed_raw = os.getenv("ADMIN_ALLOWED_EMAILS", "")
+    allowed = {e.strip().lower() for e in allowed_raw.split(",") if e.strip()}
+    user_email = (user.get("email") or "").strip().lower()
+    if allowed and user_email not in allowed:
+        log_action(user_email or "?", "login_denegado",
+                   f"Email no autorizado intentó ingresar: {user_email}")
+        flash("Tu correo no tiene permisos para acceder al panel.", "danger")
+        return redirect(url_for("admin.login"))
+
     session["admin_user"] = user
     log_action(user.get("email", "?"), "login", "Inicio de sesión exitoso")
     flash(f"Bienvenido, {user['name']}", "success")
@@ -146,9 +155,8 @@ def dashboard():
     ar_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_arg=1").fetchone()["c"]
 
     # ── Equipos por tipo (tags) ───────────────────────────────────────────────
-    alquiler_c = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags NOT LIKE '%venta%'").fetchone()["c"]
-    venta_c    = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%venta%' AND tags NOT LIKE '%alquiler%'").fetchone()["c"]
-    ambos_c    = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags LIKE '%venta%'").fetchone()["c"]
+    alquiler_c = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags NOT LIKE '%venta%' AND tags NOT LIKE '%usados%'").fetchone()["c"]
+    venta_c    = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND (tags LIKE '%venta%' OR tags LIKE '%usados%') AND tags NOT LIKE '%alquiler%'").fetchone()["c"]
 
     # ── Blog por categoría ────────────────────────────────────────────────────
     blog_cat = conn.execute(
@@ -186,7 +194,7 @@ def dashboard():
         sector_data=json.dumps(sector_data),
         sector_inactive=json.dumps(sector_inactive),
         pe_count=pe_count, ar_count=ar_count,
-        alquiler_c=alquiler_c, venta_c=venta_c, ambos_c=ambos_c,
+        alquiler_c=alquiler_c, venta_c=venta_c,
         # charts blog
         blog_cat_labels=json.dumps(blog_cat_labels),
         blog_cat_data=json.dumps(blog_cat_data),
@@ -254,9 +262,8 @@ def dashboard_data():
     ar_count = conn.execute("SELECT COUNT(*) as c FROM products WHERE activo=1 AND show_arg=1").fetchone()["c"]
 
     # ── Tipo de operación ─────────────────────────────────────────────────
-    alquiler_c = conn.execute(f"SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags NOT LIKE '%venta%'{pf}").fetchone()["c"]
-    venta_c    = conn.execute(f"SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%venta%' AND tags NOT LIKE '%alquiler%'{pf}").fetchone()["c"]
-    ambos_c    = conn.execute(f"SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags LIKE '%venta%'{pf}").fetchone()["c"]
+    alquiler_c = conn.execute(f"SELECT COUNT(*) as c FROM products WHERE activo=1 AND tags LIKE '%alquiler%' AND tags NOT LIKE '%venta%' AND tags NOT LIKE '%usados%'{pf}").fetchone()["c"]
+    venta_c    = conn.execute(f"SELECT COUNT(*) as c FROM products WHERE activo=1 AND (tags LIKE '%venta%' OR tags LIKE '%usados%') AND tags NOT LIKE '%alquiler%'{pf}").fetchone()["c"]
 
     # ── Blog por categoría ────────────────────────────────────────────────
     blog_cat = conn.execute(
@@ -281,7 +288,7 @@ def dashboard_data():
         "sector_active": sector_active,
         "sector_inactive": sector_inactive,
         "pe_count": pe_count, "ar_count": ar_count,
-        "alquiler_c": alquiler_c, "venta_c": venta_c, "ambos_c": ambos_c,
+        "alquiler_c": alquiler_c, "venta_c": venta_c,
         # charts blog
         "blog_cat_labels": [(r["categoria"] or "sin categoría").capitalize() for r in blog_cat],
         "blog_cat_data":   [r["c"] for r in blog_cat],
