@@ -107,14 +107,11 @@
               <p style="font-size:0.74rem;color:#666;margin:0 0 4px 0;font-family:monospace;text-align:center;" title="{{ img.filename }}">
                 {{ img.filename }}
               </p>
-              <form method="post" action="{{ url_for('admin.producto_imagen_eliminar', pid=producto.id) }}"
-                    onsubmit="return confirm('¿Eliminar la imagen {{ img.filename }}? Esta acción no se puede deshacer.')">
-                <input type="hidden" name="filename" value="{{ img.filename }}">
-                <button type="submit" class="btn-adm-danger w-100"
-                        style="justify-content:center;font-size:0.72rem;padding:3px 6px;">
-                  <i class="bi bi-trash"></i> Borrar
-                </button>
-              </form>
+              <button type="button" class="btn-adm-danger w-100"
+                      style="justify-content:center;font-size:0.72rem;padding:3px 6px;"
+                      onclick="deleteImagen({{ producto.id }}, '{{ img.filename }}', this)">
+                <i class="bi bi-trash"></i> Borrar
+              </button>
             </div>
           </div>
         </div>
@@ -358,6 +355,26 @@ async function handlePdfUpload(files) {
     }
   } catch(e) {
     status.innerHTML = `<span style="color:red;font-size:.83rem;">Error de red.</span>`;
+  }
+}
+
+async function deleteImagen(pid, filename, btn) {
+  if (!confirm(`¿Eliminar la imagen ${filename}? Esta acción no se puede deshacer.`)) return;
+  btn.disabled = true;
+  const fd = new FormData();
+  fd.append('filename', filename);
+  try {
+    const r = await fetch(`/admin/productos/${pid}/imagen/eliminar`, { method: 'POST', body: fd });
+    if (r.ok) {
+      showToast(`Imagen '${filename}' eliminada.`, 'success');
+      setTimeout(() => location.reload(), 700);
+    } else {
+      btn.disabled = false;
+      showToast('Error al eliminar la imagen.', 'danger');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    showToast('Error de red al eliminar.', 'danger');
   }
 }
 
