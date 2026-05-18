@@ -432,6 +432,7 @@ def _save_producto(pid):
     show_pe  = 1 if f.get("show_pe")  else 0
     show_arg = 1 if f.get("show_arg") else 0
     a_solicitud = 1 if f.get("a_solicitud") else 0
+    ficha_url = f.get("ficha_url", "").strip() or None
     tags_list = f.getlist("tags")
     tags = ",".join(tags_list)
 
@@ -446,9 +447,9 @@ def _save_producto(pid):
     if pid is None:
         conn.execute(
             """INSERT INTO products
-               (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud),
+               (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, ficha_url)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, ficha_url),
         )
         conn.commit()
         pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
@@ -464,7 +465,7 @@ def _save_producto(pid):
         flash("Producto creado exitosamente.", "success")
     else:
         # Leer slug ANTERIOR antes de actualizar
-        old_row = conn.execute("SELECT slug, imagen FROM products WHERE id=?", (pid,)).fetchone()
+        old_row = conn.execute("SELECT slug, imagen, ficha_url FROM products WHERE id=?", (pid,)).fetchone()
         old_slug = old_row["slug"] if old_row else None
         old_imagen = old_row["imagen"] if old_row else None
 
@@ -481,10 +482,11 @@ def _save_producto(pid):
             if old_imagen and old_imagen.startswith(old_slug + "/"):
                 nueva_imagen = slug + "/" + old_imagen[len(old_slug) + 1:]
 
+        ficha_url_final = ficha_url if ficha_url else (old_row["ficha_url"] if old_row else None)
         conn.execute(
             """UPDATE products SET slug=?, nombre=?, marca=?, descripcion=?, descripcion_texto=?,
-               tags=?, tipo=?, unidad=?, activo=?, show_pe=?, show_arg=?, a_solicitud=?, imagen=? WHERE id=?""",
-            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, nueva_imagen, pid),
+               tags=?, tipo=?, unidad=?, activo=?, show_pe=?, show_arg=?, a_solicitud=?, imagen=?, ficha_url=? WHERE id=?""",
+            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, nueva_imagen, ficha_url_final, pid),
         )
         conn.commit()
         updated_row = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
@@ -672,6 +674,24 @@ def upload():
         url = f"/static/images/banners/{filename}"
     else:
         url = f"/static/products/{slug}/{filename}"
+        # Si es PDF de producto, actualizar ficha_url en BD + JSON automáticamente
+        if ext in ALLOWED_PDF_EXT:
+            try:
+                conn = get_conn()
+                producto = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
+                if producto:
+                    conn.execute("UPDATE products SET ficha_url=? WHERE slug=?", (url, slug))
+                    conn.commit()
+                    updated_row = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
+                    conn.close()
+                    try:
+                        sync_upsert(updated_row)
+                    except Exception as e:
+                        current_app.logger.warning(f"sync_upsert (pdf upload) fallo: {e}")
+                else:
+                    conn.close()
+            except Exception as e:
+                current_app.logger.warning(f"update ficha_url en upload fallo: {e}")
         # Si es la primera imagen del producto, actualizar BD + JSON automáticamente
         if is_product_image and next_num == 1:
             try:

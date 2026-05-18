@@ -162,6 +162,8 @@
       </div>
       {% endif %}
 
+      <input type="hidden" id="inp-ficha-url" name="ficha_url" value="{{ producto.ficha_url or '' }}">
+      <input type="hidden" id="inp-ficha-url" name="ficha_url" value="{{ producto.ficha_url or '' }}">
       <div class="adm-dropzone" id="pdf-drop">
         <i class="bi bi-file-earmark-pdf" style="color:#c0392b;"></i>
         <p>Arrastra el PDF aquí o <strong>haz clic</strong> para seleccionar</p>
@@ -349,6 +351,7 @@ async function handlePdfUpload(files) {
     const d = await r.json();
     if (d.ok) {
       status.innerHTML = `<span style="color:#02534C;font-size:.83rem;"><i class="bi bi-check-circle me-1"></i>Subido: <a href="${d.url}" target="_blank">${d.url}</a></span>`;
+      document.getElementById('inp-ficha-url').value = d.url;
       showToast('PDF subido correctamente.', 'success');
     } else {
       status.innerHTML = `<span style="color:red;font-size:.83rem;">${d.error}</span>`;
