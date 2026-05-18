@@ -36,7 +36,7 @@
       </div>
       <div class="col-auto d-flex gap-2 flex-wrap">
         {% if has_local %}
-        <a href="{{ url_for('static', filename='docs/' + product.ficha_url) }}"
+        <a href="{{ ficha_pdf_url }}"
            download class="cgm-btn cgm-btn-verde" style="font-size:13px;padding:10px 18px;">
           <i class="bi bi-download me-2"></i>Descargar PDF
         </a>
@@ -94,7 +94,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (function () {
-  const pdfUrl = "{{ url_for('static', filename='docs/' + product.ficha_url) }}";
+  const pdfUrl = "{{ ficha_pdf_url }}";
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 

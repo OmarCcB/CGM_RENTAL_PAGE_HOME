@@ -835,13 +835,22 @@ def ficha_tecnica(slug, country=None):
     # Verificar si existe la ficha local usando ficha_url del registro
     ficha_url = prod.get("ficha_url") or ""
     if ficha_url and not ficha_url.startswith("http"):
-        local_path = _os.path.join(app.static_folder, "docs", ficha_url)
-        has_local  = _os.path.exists(local_path)
+        # ficha_url puede ser '/static/products/slug/file.pdf' (nuevo) o solo 'filename.pdf' (legado)
+        if ficha_url.startswith("/static/"):
+            local_path = _os.path.join(app.root_path, ficha_url.lstrip("/"))
+        else:
+            local_path = _os.path.join(app.static_folder, "docs", ficha_url)
+        has_local = _os.path.exists(local_path)
+        if has_local:
+            ficha_pdf_url = ficha_url if ficha_url.startswith("/static/") else f"/static/docs/{ficha_url}"
+        else:
+            ficha_pdf_url = ficha_url
     else:
         has_local = False
+        ficha_pdf_url = ficha_url
     return render_template("pages/ficha_tecnica.html",
                            country=c, country_code=country, product=prod,
-                           has_local=has_local)
+                           has_local=has_local, ficha_pdf_url=ficha_pdf_url)
 
 
 @app.route("/<country>/carrito/")
