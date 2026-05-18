@@ -564,6 +564,26 @@ def producto_imagen_eliminar(pid):
     full = os.path.join(folder, filename)
     if os.path.isfile(full):
         os.remove(full)
+        # Si era la imagen principal, actualizar campo imagen en BD
+        conn2 = get_conn()
+        prod_row = conn2.execute("SELECT imagen FROM products WHERE id=?", (pid,)).fetchone()
+        if prod_row and prod_row["imagen"] == f"{slug}/{filename}":
+            # Buscar siguiente imagen disponible en el folder
+            remaining = sorted([
+                f for f in os.listdir(folder)
+                if os.path.splitext(f)[1].lower() == ".webp"
+            ]) if os.path.isdir(folder) else []
+            nueva_imagen = f"{slug}/{remaining[0]}" if remaining else None
+            conn2.execute("UPDATE products SET imagen=? WHERE id=?", (nueva_imagen, pid))
+            conn2.commit()
+            updated_row = conn2.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
+            conn2.close()
+            try:
+                sync_upsert(updated_row)
+            except Exception as e:
+                current_app.logger.warning(f"sync_upsert (eliminar imagen) fallo: {e}")
+        else:
+            conn2.close()
         log_action(current_user().get("email", "?"), "eliminar_imagen_producto",
                    f"ID={pid} slug={slug} file={filename}")
         flash(f"Imagen '{filename}' eliminada.", "success")
