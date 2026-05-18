@@ -672,6 +672,25 @@ def upload():
         url = f"/static/images/banners/{filename}"
     else:
         url = f"/static/products/{slug}/{filename}"
+        # Si es la primera imagen del producto, actualizar BD + JSON automáticamente
+        if is_product_image and next_num == 1:
+            try:
+                conn = get_conn()
+                producto = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
+                if producto and not producto["imagen"]:
+                    relative_path = f"{slug}/{filename}"
+                    conn.execute("UPDATE products SET imagen=? WHERE slug=?", (relative_path, slug))
+                    conn.commit()
+                    updated_row = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
+                    conn.close()
+                    try:
+                        sync_upsert(updated_row)
+                    except Exception as e:
+                        current_app.logger.warning(f"sync_upsert (primera imagen) fallo: {e}")
+                else:
+                    conn.close()
+            except Exception as e:
+                current_app.logger.warning(f"update imagen en upload fallo: {e}")
 
     log_action(current_user().get("email", "?"), "subir_archivo", f"{url}")
     return jsonify({"ok": True, "url": url, "filename": filename})
