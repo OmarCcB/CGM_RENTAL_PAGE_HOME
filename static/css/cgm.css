@@ -671,8 +671,15 @@ h1, h2, h3, h4, h5, h6 { color: var(--cgm-negro); }
   line-height: 1.6;
 }
 .cgm-hero .swiper-pagination { bottom: 24px; }
-.cgm-hero .swiper-pagination-bullet { background: rgba(255,255,255,.6); opacity: 1; }
-.cgm-hero .swiper-pagination-bullet-active { background: #fff; transform: scale(1.3); }
+/* Accessibility: touch target ≥24×24px — padding transparente sin cambiar apariencia visual */
+.cgm-hero .swiper-pagination-bullet {
+  background: rgba(255,255,255,.6);
+  opacity: 1;
+  box-sizing: content-box !important;
+  padding: 8px !important;
+  background-clip: content-box !important;
+}
+.cgm-hero .swiper-pagination-bullet-active { background: #fff; transform: scale(1.3); background-clip: content-box !important; }
 .cgm-hero .swiper-button-prev,
 .cgm-hero .swiper-button-next {
   color: rgba(255,255,255,.7);
@@ -2237,6 +2244,55 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-footer-copy-link:hover { color: rgba(255,255,255,.8); }
 
 /* ══════════════════════════════════════════════════════════════
+   HERO INTERIOR (blog, capacita, nuestros locales, etc.)
+   ══════════════════════════════════════════════════════════════ */
+.cgm-cap-hero {
+  position: relative;
+  min-height: 420px;
+  background: var(--cgm-verde);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.cgm-cap-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(2,60,54,.95) 0%, rgba(2,83,76,.75) 100%);
+}
+.cgm-cap-hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 20px;
+}
+.cgm-cap-hero-badge {
+  display: inline-block;
+  background: var(--cgm-lima);
+  color: var(--cgm-verde);
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+.cgm-cap-hero-title {
+  font-family: 'CGM BOLD', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+.cgm-cap-hero-title span { color: var(--cgm-lima); }
+.cgm-cap-hero-sub {
+  font-size: clamp(.95rem, 2vw, 1.2rem);
+  color: rgba(255,255,255,.75);
+  letter-spacing: 2px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
    MINI FOOTER (todas las páginas excepto contacto)
    ══════════════════════════════════════════════════════════════ */
 .cgm-mini-footer {
@@ -2328,7 +2384,7 @@ select.cgm-contacto-input { cursor: pointer; }
   font-size: 12px;
   font-weight: 700;
   letter-spacing: .8px;
-  color: rgba(255,255,255,.75);
+  color: rgba(255,255,255,.95);
   text-decoration: none;
   transition: color .2s;
 }
@@ -2347,7 +2403,7 @@ select.cgm-contacto-input { cursor: pointer; }
 
 .cgm-mini-footer-copy {
   font-size: 12px;
-  color: rgba(255,255,255,.45);
+  color: rgba(255,255,255,.8);
   white-space: nowrap;
 }
 
@@ -3168,10 +3224,14 @@ select.cgm-contacto-input { cursor: pointer; }
   background: var(--cgm-verde);
   opacity: .4;
   width: 10px; height: 10px;
+  box-sizing: content-box !important;
+  padding: 7px !important;
+  background-clip: content-box !important;
 }
 .cgm-nosotros-dots .swiper-pagination-bullet-active {
   opacity: 1;
   background: var(--cgm-verde);
+  background-clip: content-box !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3929,7 +3989,12 @@ select.cgm-contacto-input { cursor: pointer; }
 .cgm-test-next { color: var(--cgm-verde) !important; }
 .cgm-test-prev::after,
 .cgm-test-next::after { font-size: 18px !important; }
-.cgm-test-pag .swiper-pagination-bullet-active { background: var(--cgm-verde) !important; }
+.cgm-test-pag .swiper-pagination-bullet {
+  box-sizing: content-box !important;
+  padding: 8px !important;
+  background-clip: content-box !important;
+}
+.cgm-test-pag .swiper-pagination-bullet-active { background: var(--cgm-verde) !important; background-clip: content-box !important; }
 
 /* ══════════════════════════════════════════════════════════════
    NOSOTROS — RESPONSIVE

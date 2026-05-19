@@ -1,0 +1,640 @@
+{% extends "admin/base.html" %}
+{% block title %}Categorías{% endblock %}
+{% block breadcrumb %}Categorías{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Secciones ──────────────────────────────────────────────────────── */
+.cat-section          { border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(2,83,76,.08); margin-bottom:1.5rem; background:#fff; }
+.cat-section-header   { padding:14px 20px; display:flex; align-items:center; gap:10px; }
+.cat-section-header.alquiler { background:linear-gradient(90deg,#02534C,#1a6b62); color:#fff; }
+.cat-section-header.usados   { background:linear-gradient(90deg,#1F3864,#2e4f8a); color:#fff; }
+.cat-section-header .sec-icon{ font-size:1.3rem; opacity:.85; }
+.cat-section-header .sec-title{ font-size:1rem; font-weight:700; letter-spacing:.3px; }
+.cat-section-header .sec-badge{ margin-left:auto; background:rgba(255,255,255,.2);
+  color:#fff; border-radius:20px; padding:2px 10px; font-size:.75rem; font-weight:600; }
+
+/* ── Fila de cada tipo ──────────────────────────────────────────────── */
+.cat-row              { display:flex; align-items:center; gap:12px; padding:10px 18px;
+  border-bottom:1px solid #f0f4f3; transition:background .15s; }
+.cat-row:last-child   { border-bottom:none; }
+.cat-row:hover        { background:#f7faf9; }
+.cat-row.inactive     { opacity:.45; }
+
+.cat-status-dot       { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.cat-status-dot.on    { background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+.cat-status-dot.off   { background:#cbd5d3; }
+
+.cat-names            { flex:1; min-width:0; }
+.cat-tipo-internal    { font-size:.72rem; color:#6b7c79; line-height:1; margin-bottom:2px; }
+.cat-tipo-display     { font-size:.92rem; font-weight:600; color:#1a2e2a; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; }
+
+.cat-url-chip         { font-size:.72rem; padding:3px 9px; border-radius:20px;
+  font-family:monospace; white-space:nowrap; flex-shrink:0; }
+.cat-url-chip.slug    { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+.cat-url-chip.query   { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+
+.cat-flags            { display:flex; gap:5px; flex-shrink:0; }
+.cat-flag             { font-size:1.1rem; line-height:1; opacity:.25; }
+.cat-flag.on          { opacity:1; }
+
+.cat-actions          { display:flex; gap:5px; flex-shrink:0; }
+.cat-btn              { width:30px; height:30px; border-radius:7px; border:1px solid;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:.8rem; cursor:pointer; transition:all .15s; background:#fff; }
+.cat-btn.edit         { border-color:#d4e2e0; color:#02534C; }
+.cat-btn.edit:hover   { background:#02534C; color:#fff; border-color:#02534C; }
+.cat-btn.del          { border-color:#fecaca; color:#dc2626; }
+.cat-btn.del:hover    { background:#dc2626; color:#fff; border-color:#dc2626; }
+.cat-btn.toggle       { border-color:#d4e2e0; color:#6b7c79; }
+.cat-btn.toggle:hover { background:#f0f4f3; }
+
+/* ── Filtro por país ────────────────────────────────────────────────── */
+.filter-bar           { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.filter-btn           { padding:6px 16px; border-radius:20px; border:2px solid #d4e2e0;
+  background:#fff; font-size:.83rem; font-weight:600; cursor:pointer;
+  transition:all .15s; color:#6b7c79; display:flex; align-items:center; gap:5px; }
+.filter-btn:hover     { border-color:#02534C; color:#02534C; }
+.filter-btn.active    { background:#02534C; border-color:#02534C; color:#fff; }
+.filter-btn.active.ar { background:#1F3864; border-color:#1F3864; }
+.filter-count         { background:rgba(255,255,255,.25); border-radius:10px;
+  padding:0 6px; font-size:.72rem; }
+.filter-btn:not(.active) .filter-count { background:#f0f4f3; color:#6b7c79; }
+
+/* ── Botón nueva categoría ──────────────────────────────────────────── */
+.cat-add-row          { padding:10px 18px; border-top:2px dashed #d4e2e0; }
+.cat-add-btn          { width:100%; padding:7px; border:none; background:none;
+  color:#02534C; font-size:.85rem; font-weight:600; cursor:pointer;
+  border-radius:8px; transition:background .15s; display:flex; align-items:center;
+  justify-content:center; gap:6px; }
+.cat-add-btn:hover    { background:#f0f4f3; }
+
+/* ── Preview URL en modal ───────────────────────────────────────────── */
+.url-preview          { background:#f0f4f3; border-radius:8px; padding:8px 12px;
+  font-family:monospace; font-size:.78rem; color:#02534C; word-break:break-all;
+  border:1px solid #d4e2e0; min-height:36px; }
+.url-preview .url-segment { color:#6b7c79; }
+.url-preview .url-dynamic { color:#02534C; font-weight:700; }
+
+/* ── Paso a paso en modal ───────────────────────────────────────────── */
+.form-step            { background:#f7faf9; border-radius:8px; padding:14px 16px; margin-bottom:12px; }
+.form-step-label      { font-size:.72rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.5px; color:#6b7c79; margin-bottom:8px; display:flex;
+  align-items:center; gap:6px; }
+.form-step-num        { width:18px; height:18px; border-radius:50%; background:#02534C;
+  color:#fff; font-size:.65rem; display:inline-flex; align-items:center;
+  justify-content:center; flex-shrink:0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Encabezado -->
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <div>
+    <h2 class="adm-page-title mb-1"><i class="bi bi-diagram-3 me-2"></i>Categorías</h2>
+    <p class="text-muted small mb-0">Los cambios aquí se reflejan <strong>automáticamente</strong> en el menú del sitio y en el selector de tipo al editar productos.</p>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNueva">
+    <i class="bi bi-plus-lg me-1"></i>Nueva categoría
+  </button>
+</div>
+
+<hr class="my-3">
+
+<!-- ── Filtro por país ─────────────────────────────────────────────── -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+  <div class="filter-bar" id="filterBar">
+    <span class="text-muted small fw-semibold me-1">Filtrar por país:</span>
+    <button class="filter-btn active" data-filter="all">
+      🌎 Todos
+      <span class="filter-count" id="cnt-all">{{ rows | length }}</span>
+    </button>
+    <button class="filter-btn" data-filter="pe">
+      🇵🇪 Perú
+      <span class="filter-count" id="cnt-pe">{{ rows | selectattr('show_pe','equalto',1) | list | length }}</span>
+    </button>
+    <button class="filter-btn ar" data-filter="ar">
+      🇦🇷 Argentina
+      <span class="filter-count" id="cnt-ar">{{ rows | selectattr('show_ar','equalto',1) | list | length }}</span>
+    </button>
+  </div>
+  <div id="filter-status" class="text-muted small" style="display:none;">
+    <i class="bi bi-funnel-fill me-1"></i>
+    Mostrando solo categorías visibles en <strong id="filter-status-label"></strong>
+    — <a href="#" id="filter-reset-link" class="text-decoration-none">ver todas</a>
+  </div>
+</div>
+
+<!-- Agrupar por tag | unidad -->
+{% set grupos = {} %}
+{% for row in rows %}
+  {% set gkey = row.tag ~ '||' ~ row.unidad %}
+  {% if gkey not in grupos %}{% set _ = grupos.update({gkey: []}) %}{% endif %}
+  {% set _ = grupos[gkey].append(row) %}
+{% endfor %}
+
+{% if not rows %}
+<div class="text-center py-5" style="color:#6b7c79;">
+  <i class="bi bi-diagram-3" style="font-size:3rem;opacity:.3;"></i>
+  <p class="mt-3 mb-1 fw-semibold">Sin categorías aún</p>
+  <p class="small">Crea la primera con el botón de arriba.</p>
+</div>
+{% endif %}
+
+{% for gkey, items in grupos.items() %}
+{% set sec_tag   = items[0].tag %}
+{% set sec_unidad= items[0].unidad %}
+{% set sec_slug  = items[0].unidad_slug %}
+
+<div class="cat-section">
+
+  <!-- Cabecera de sección -->
+  <div class="cat-section-header {{ sec_tag }}">
+    <span class="sec-icon">
+      {% if sec_unidad == 'Construcción' %}🏗️
+      {% elif sec_unidad == 'Mediana Minería' %}⛏️
+      {% elif sec_unidad == 'Agrícola' %}🌾
+      {% elif sec_unidad == 'Energía' %}⚡
+      {% else %}📦{% endif %}
+    </span>
+    <div>
+      <div class="sec-title">{{ sec_tag | capitalize }} / {{ sec_unidad }}</div>
+      <div style="font-size:.73rem;opacity:.75;">/{{ sec_tag }}/{{ sec_slug }}/</div>
+    </div>
+    <span class="sec-badge">{{ items | length }} tipo{{ 's' if items|length != 1 }}</span>
+  </div>
+
+  <!-- Filas de tipos -->
+  {% for row in items | sort(attribute='orden') %}
+  <div class="cat-row {% if not row.activo %}inactive{% endif %}"
+       data-pe="{{ row.show_pe }}" data-ar="{{ row.show_ar }}">
+
+    <!-- Dot de estado -->
+    <div class="cat-status-dot {{ 'on' if row.activo else 'off' }}"
+         title="{{ 'Activo' if row.activo else 'Inactivo' }}"></div>
+
+    <!-- Nombre -->
+    <div class="cat-names">
+      <div class="cat-tipo-internal">tipo interno: {{ row.tipo }}</div>
+      <div class="cat-tipo-display">{{ row.tipo_titulo }}</div>
+    </div>
+
+    <!-- URL generada -->
+    <div>
+      {% if row.slug_sub %}
+      <span class="cat-url-chip slug" title="URL propia: /pe/categoria-producto/{{ sec_tag }}/{{ sec_slug }}/{{ row.slug_sub }}/">
+        /{{ row.slug_sub }}/
+      </span>
+      {% else %}
+      <span class="cat-url-chip query" title="Usa filtro: /pe/categoria-producto/{{ sec_tag }}/{{ sec_slug }}/?tipo={{ row.tipo }}">
+        ?tipo={{ row.tipo }}
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Banderas -->
+    <div class="cat-flags">
+      <span class="cat-flag {{ 'on' if row.show_pe else '' }}" title="{{ 'Visible en Perú' if row.show_pe else 'Oculto en Perú' }}">🇵🇪</span>
+      <span class="cat-flag {{ 'on' if row.show_ar else '' }}" title="{{ 'Visible en Argentina' if row.show_ar else 'Oculto en Argentina' }}">🇦🇷</span>
+    </div>
+
+    <!-- Orden -->
+    <span style="font-size:.75rem;color:#6b7c79;min-width:28px;text-align:center;"
+          title="Orden en el menú">#{{ row.orden }}</span>
+
+    <!-- Acciones -->
+    <div class="cat-actions">
+      <!-- Toggle activo -->
+      <button class="cat-btn toggle toggle-btn" data-id="{{ row.id }}"
+              title="{{ 'Desactivar (ocultar del menú)' if row.activo else 'Activar (mostrar en menú)' }}">
+        <i class="bi bi-toggle-{{ 'on text-success' if row.activo else 'off text-muted' }}"></i>
+      </button>
+      <!-- Editar -->
+      <button class="cat-btn edit edit-btn"
+              data-id="{{ row.id }}"
+              data-tipo="{{ row.tipo | e }}"
+              data-tipo_titulo="{{ row.tipo_titulo | e }}"
+              data-slug_sub="{{ (row.slug_sub or '') | e }}"
+              data-show_pe="{{ row.show_pe }}"
+              data-show_ar="{{ row.show_ar }}"
+              data-orden="{{ row.orden }}"
+              data-activo="{{ row.activo }}"
+              data-sec_tag="{{ sec_tag }}"
+              data-sec_slug="{{ sec_slug }}"
+              title="Editar">
+        <i class="bi bi-pencil"></i>
+      </button>
+      <!-- Eliminar -->
+      <form method="POST" action="{{ url_for('admin.categoria_eliminar', cid=row.id) }}"
+            class="d-inline"
+            onsubmit="return confirm('¿Eliminar ' + {{ row.tipo_titulo | tojson }} + '? Esta acción no se puede deshacer.')">
+        <button type="submit" class="cat-btn del" title="Eliminar categoría">
+          <i class="bi bi-trash"></i>
+        </button>
+      </form>
+    </div>
+
+  </div>
+  {% endfor %}
+
+  <!-- Botón rápido "Agregar tipo a esta sección" -->
+  <div class="cat-add-row">
+    <button class="cat-add-btn quick-add-btn"
+            data-tag="{{ sec_tag }}"
+            data-unidad="{{ sec_unidad | e }}"
+            data-unidad_slug="{{ sec_slug }}"
+            data-label="{{ sec_tag | capitalize }} / {{ sec_unidad }}">
+      <i class="bi bi-plus-circle"></i>
+      Agregar tipo a {{ sec_unidad }}
+    </button>
+  </div>
+
+</div>
+{% endfor %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODAL NUEVA CATEGORÍA
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalNueva" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.categoria_nueva') }}" id="formNueva">
+
+        <div class="modal-header" style="background:linear-gradient(90deg,#02534C,#1a6b62);color:#fff;">
+          <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Nueva categoría / desglose</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body p-4">
+
+          <!-- Paso 1: Sección -->
+          <div class="form-step">
+            <div class="form-step-label">
+              <span class="form-step-num">1</span> ¿A qué sección pertenece?
+            </div>
+            <select name="unidad_combo" id="unidadCombo" class="form-select" required>
+              <option value="">Selecciona una sección...</option>
+              {% for tag, unidad, unidad_slug in unidades %}
+              <option value="{{ tag }}|{{ unidad }}|{{ unidad_slug }}">
+                {{ tag | capitalize }} / {{ unidad }}
+              </option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="tag" id="f_tag">
+            <input type="hidden" name="unidad" id="f_unidad">
+            <input type="hidden" name="unidad_slug" id="f_unidad_slug">
+          </div>
+
+          <!-- Paso 2: Nombre -->
+          <div class="form-step">
+            <div class="form-step-label">
+              <span class="form-step-num">2</span> Nombre del tipo
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold mb-1">
+                  Tipo <span class="text-danger">*</span>
+                  <span class="text-muted fw-normal" style="font-size:.78rem;">— valor en base de datos</span>
+                </label>
+                <input type="text" name="tipo" id="n_tipo" class="form-control" required
+                       placeholder="ej: Excavadora"
+                       oninput="autoSlugNueva(this.value); autoTituloNueva(this.value)">
+                <div class="form-text">Cómo se filtra en BD. Usa la primera letra en mayúscula.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold mb-1">
+                  Título en el menú <span class="text-danger">*</span>
+                  <span class="text-muted fw-normal" style="font-size:.78rem;">— lo que ve el usuario</span>
+                </label>
+                <input type="text" name="tipo_titulo" id="n_tipo_titulo" class="form-control" required
+                       placeholder="ej: Excavadoras">
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 3: URL -->
+          <div class="form-step">
+            <div class="form-step-label">
+              <span class="form-step-num">3</span> URL en el menú
+            </div>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold mb-1">Slug URL
+                  <span class="text-muted fw-normal" style="font-size:.78rem;">— se genera solo, puedes editarlo</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text" style="font-size:.8rem;color:#02534C;">/</span>
+                  <input type="text" name="slug_sub" id="n_slug_sub" class="form-control"
+                         placeholder="ej: excavadora"
+                         oninput="slugManualNueva=true; updateUrlPreview()">
+                  <span class="input-group-text" style="font-size:.8rem;color:#02534C;">/</span>
+                </div>
+                <div class="form-text">Se auto-completa al escribir el Tipo.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold mb-1">Vista previa de la URL</label>
+                <div class="url-preview" id="url_preview_nueva">
+                  <span class="url-segment">/pe/categoria-producto/</span><span class="url-dynamic" id="up_section">…</span><span class="url-segment">/</span><span class="url-dynamic" id="up_tipo">…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 4: Visibilidad -->
+          <div class="form-step">
+            <div class="form-step-label">
+              <span class="form-step-num">4</span> ¿Dónde se muestra?
+            </div>
+            <div class="row g-3">
+              <div class="col-auto">
+                <label class="form-label fw-semibold mb-2">Orden en menú</label>
+                <input type="number" name="orden" id="n_orden" class="form-control" value="99" min="0" style="width:90px;">
+              </div>
+              <div class="col">
+                <label class="form-label fw-semibold mb-2">País</label>
+                <div class="d-flex gap-3 mt-1">
+                  <div class="form-check">
+                    <input type="checkbox" name="show_pe" id="new_show_pe" class="form-check-input" checked>
+                    <label for="new_show_pe" class="form-check-label">🇵🇪 Perú</label>
+                  </div>
+                  <div class="form-check">
+                    <input type="checkbox" name="show_ar" id="new_show_ar" class="form-check-input">
+                    <label for="new_show_ar" class="form-check-label">🇦🇷 Argentina</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /modal-body -->
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-plus-circle me-1"></i>Crear categoría
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODAL EDITAR
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" id="formEditar">
+
+        <div class="modal-header" style="background:#1F3864;color:#fff;">
+          <div>
+            <h5 class="modal-title fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Editar categoría</h5>
+            <small id="e_context" style="opacity:.7;font-size:.78rem;"></small>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body p-4">
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">Título en el menú <span class="text-danger">*</span></label>
+              <input type="text" name="tipo_titulo" id="e_tipo_titulo" class="form-control form-control-lg" required
+                     placeholder="Ej: Excavadoras">
+              <div class="form-text">Lo que ve el usuario en la navegación.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">
+                Slug URL
+                <span class="text-muted fw-normal" style="font-size:.78rem;">— parte de la URL</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text" style="font-size:.85rem;color:#02534C;">/</span>
+                <input type="text" name="slug_sub" id="e_slug_sub" class="form-control form-control-lg"
+                       placeholder="ej: excavadora"
+                       oninput="updateUrlPreviewEdit()">
+                <span class="input-group-text" style="font-size:.85rem;color:#02534C;">/</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview URL -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold mb-1">Vista previa de la URL generada</label>
+            <div class="url-preview" id="url_preview_edit">—</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold mb-1">Orden</label>
+              <input type="number" name="orden" id="e_orden" class="form-control" min="0">
+            </div>
+            <div class="col-md-9">
+              <label class="form-label fw-semibold mb-2">Visibilidad por país</label>
+              <div class="d-flex gap-4 mt-1">
+                <div class="form-check">
+                  <input type="checkbox" name="show_pe" id="e_show_pe" class="form-check-input">
+                  <label for="e_show_pe" class="form-check-label fw-semibold">🇵🇪 Mostrar en Perú</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" name="show_ar" id="e_show_ar" class="form-check-input">
+                  <label for="e_show_ar" class="form-check-label fw-semibold">🇦🇷 Mostrar en Argentina</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check form-switch">
+            <input type="checkbox" name="activo" id="e_activo" class="form-check-input" role="switch">
+            <label for="e_activo" class="form-check-label fw-semibold">
+              Activo — aparece en el menú de navegación del sitio
+            </label>
+          </div>
+
+        </div><!-- /modal-body -->
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+/* ── Filtro por país ──────────────────────────────────────────────── */
+const filterBtns   = document.querySelectorAll('.filter-btn');
+const statusBar    = document.getElementById('filter-status');
+const statusLabel  = document.getElementById('filter-status-label');
+const resetLink    = document.getElementById('filter-reset-link');
+let   activeFilter = 'all';
+
+function applyFilter(f) {
+  activeFilter = f;
+
+  // Botones activos
+  filterBtns.forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === f);
+    b.classList.toggle('ar',     b.dataset.filter === 'ar');
+  });
+
+  // Mostrar/ocultar filas
+  document.querySelectorAll('.cat-row').forEach(row => {
+    const pe = row.dataset.pe === '1';
+    const ar = row.dataset.ar === '1';
+    let show = f === 'all' || (f === 'pe' && pe) || (f === 'ar' && ar);
+    row.style.display = show ? '' : 'none';
+  });
+
+  // Ocultar secciones enteras si no tienen filas visibles
+  document.querySelectorAll('.cat-section').forEach(sec => {
+    const visible = [...sec.querySelectorAll('.cat-row')]
+                      .some(r => r.style.display !== 'none');
+    sec.style.display = visible ? '' : 'none';
+  });
+
+  // Barra de estado
+  if (f === 'all') {
+    statusBar.style.display = 'none';
+  } else {
+    statusBar.style.display = '';
+    statusLabel.textContent = f === 'pe' ? '🇵🇪 Perú' : '🇦🇷 Argentina';
+  }
+}
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => applyFilter(btn.dataset.filter));
+});
+resetLink.addEventListener('click', e => { e.preventDefault(); applyFilter('all'); });
+
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function slugify(text) {
+  return text.toLowerCase().trim()
+    .replace(/[àáâãäå]/g,'a').replace(/[èéêë]/g,'e')
+    .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+    .replace(/[ùúûü]/g,'u').replace(/[ñ]/g,'n')
+    .replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+}
+
+/* ── Auto-slug en modal nueva ─────────────────────────────────────── */
+let slugManualNueva = false;
+function autoSlugNueva(val) {
+  if (slugManualNueva) return;
+  document.getElementById('n_slug_sub').value = slugify(val);
+  updateUrlPreview();
+}
+function autoTituloNueva(val) {
+  const t = document.getElementById('n_tipo_titulo');
+  if (!t._manual) t.value = val + (val && !val.endsWith('s') ? 's' : '');
+}
+document.getElementById('n_slug_sub').addEventListener('input', () => { slugManualNueva = true; });
+document.getElementById('n_tipo_titulo').addEventListener('input', function(){ this._manual = true; });
+
+/* ── Vista previa URL modal nueva ─────────────────────────────────── */
+function updateUrlPreview() {
+  const tag  = document.getElementById('f_tag').value || '…';
+  const slug = document.getElementById('f_unidad_slug').value || '…';
+  const sub  = document.getElementById('n_slug_sub').value.trim();
+  const tipo = document.getElementById('n_tipo').value.trim();
+  const sec  = tag + '/' + slug;
+  let dest;
+  if (sub)  dest = '<span class="url-dynamic">' + sub + '/</span>';
+  else if (tipo) dest = '<span class="url-segment">?tipo=</span><span class="url-dynamic">' + tipo + '</span>';
+  else dest = '<span class="url-dynamic">…</span>';
+  document.getElementById('up_section').textContent = sec;
+  document.getElementById('url_preview_nueva').innerHTML =
+    '<span class="url-segment">/pe/categoria-producto/</span>' +
+    '<span class="url-dynamic">' + sec + '</span>' +
+    '<span class="url-segment">/</span>' + dest;
+}
+
+/* ── Resolver campos ocultos del select de sección ──────────────── */
+document.getElementById('unidadCombo').addEventListener('change', function() {
+  const parts = this.value.split('|');
+  document.getElementById('f_tag').value         = parts[0] || '';
+  document.getElementById('f_unidad').value      = parts[1] || '';
+  document.getElementById('f_unidad_slug').value = parts[2] || '';
+  slugManualNueva = false;
+  updateUrlPreview();
+});
+
+/* ── Botones rápidos "Agregar a esta sección" ──────────────────────── */
+document.querySelectorAll('.quick-add-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const combo = document.getElementById('unidadCombo');
+    const val   = btn.dataset.tag + '|' + btn.dataset.unidad + '|' + btn.dataset.unidad_slug;
+    combo.value = val;
+    combo.dispatchEvent(new Event('change'));
+    // Limpiar campos
+    ['n_tipo','n_tipo_titulo','n_slug_sub'].forEach(id => document.getElementById(id).value = '');
+    slugManualNueva = false;
+    document.getElementById('n_tipo_titulo')._manual = false;
+    updateUrlPreview();
+    new bootstrap.Modal(document.getElementById('modalNueva')).show();
+  });
+});
+
+/* ── Toggle activo (sin recargar tabla entera) ───────────────────── */
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const res = await fetch(`/admin/categorias/${btn.dataset.id}/toggle`, { method:'POST' });
+    if (res.ok) {
+      location.reload();
+    } else {
+      showToast('Error al cambiar estado', 'danger');
+      btn.disabled = false;
+    }
+  });
+});
+
+/* ── Vista previa URL modal editar ────────────────────────────────── */
+let _editSecTag = '', _editSecSlug = '', _editTipo = '';
+function updateUrlPreviewEdit() {
+  const sub = document.getElementById('e_slug_sub').value.trim();
+  let dest;
+  if (sub) dest = '<span class="url-dynamic">' + sub + '/</span>';
+  else     dest = '<span class="url-segment">?tipo=</span><span class="url-dynamic">' + _editTipo + '</span>';
+  document.getElementById('url_preview_edit').innerHTML =
+    '<span class="url-segment">/pe/categoria-producto/</span>' +
+    '<span class="url-dynamic">' + _editSecTag + '/' + _editSecSlug + '</span>' +
+    '<span class="url-segment">/</span>' + dest;
+}
+
+/* ── Abrir modal de edición ──────────────────────────────────────── */
+document.querySelectorAll('.edit-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    _editSecTag  = btn.dataset.sec_tag  || '';
+    _editSecSlug = btn.dataset.sec_slug || '';
+    _editTipo    = btn.dataset.tipo     || '';
+
+    document.getElementById('formEditar').action = `/admin/categorias/${id}/editar`;
+    document.getElementById('e_context').textContent =
+      _editSecTag + ' / ' + _editSecSlug + ' › ' + _editTipo;
+    document.getElementById('e_tipo_titulo').value = btn.dataset.tipo_titulo;
+    document.getElementById('e_slug_sub').value    = btn.dataset.slug_sub;
+    document.getElementById('e_orden').value       = btn.dataset.orden;
+    document.getElementById('e_show_pe').checked   = btn.dataset.show_pe === '1';
+    document.getElementById('e_show_ar').checked   = btn.dataset.show_ar === '1';
+    document.getElementById('e_activo').checked    = btn.dataset.activo  === '1';
+
+    updateUrlPreviewEdit();
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+  });
+});
+</script>
+{% endblock %}

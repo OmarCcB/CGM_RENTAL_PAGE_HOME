@@ -3,53 +3,6 @@
    CAPACITA — Centro de Entrenamiento
    ══════════════════════════════════════════════════════════════ */
 
-/* ── Hero */
-.cgm-cap-hero {
-  position: relative;
-  min-height: 420px;
-  background: var(--cgm-verde);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-.cgm-cap-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(2,60,54,.95) 0%, rgba(2,83,76,.75) 100%);
-}
-.cgm-cap-hero-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 60px 20px;
-}
-.cgm-cap-hero-badge {
-  display: inline-block;
-  background: var(--cgm-lima);
-  color: var(--cgm-verde);
-  font-family: 'CGM BOLD', sans-serif;
-  font-size: 11px;
-  letter-spacing: 2px;
-  padding: 6px 18px;
-  border-radius: 20px;
-  margin-bottom: 20px;
-}
-.cgm-cap-hero-title {
-  font-family: 'CGM BOLD', sans-serif;
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  color: #fff;
-  margin: 0 0 12px;
-  line-height: 1.1;
-}
-.cgm-cap-hero-title span { color: var(--cgm-lima); }
-.cgm-cap-hero-sub {
-  font-size: clamp(.95rem, 2vw, 1.2rem);
-  color: rgba(255,255,255,.75);
-  letter-spacing: 2px;
-  line-height: 1.6;
-  margin: 0;
-}
-
 /* ── Equipos grid */
 .cgm-cap-equipos-grid {
   display: grid;

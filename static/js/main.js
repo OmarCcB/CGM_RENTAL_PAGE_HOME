@@ -251,6 +251,44 @@ function cgmToast(msg, type = 'success') {
   });
 })();
 
+/* ── Restricción de caracteres en formularios ── */
+(function () {
+  // Solo letras (incluyendo tildes y ñ), espacios, guión, apóstrofe, punto
+  var RE_NOMBRE  = /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ \-'.]/g;
+  // Solo dígitos, +, guión, espacios, paréntesis
+  var RE_TEL     = /[^0-9+\-() ]/g;
+  // Solo dígitos y guión (RUC / DNI / CUIT)
+  var RE_RUC     = /[^0-9\-]/g;
+  // Bloquea caracteres que no tienen sentido en nombres de empresa
+  var RE_EMPRESA = /[@#$%^*=<>{}\[\]|\\~`]/g;
+
+  function bind(sel, re) {
+    try {
+      document.querySelectorAll(sel).forEach(function (el) {
+        el.addEventListener('input', function () {
+          var start = this.selectionStart;
+          var oldLen = this.value.length;
+          var clean = this.value.replace(re, '');
+          if (clean !== this.value) {
+            this.value = clean;
+            var diff = oldLen - clean.length;
+            this.setSelectionRange(Math.max(0, start - diff), Math.max(0, start - diff));
+          }
+        });
+      });
+    } catch(e) {}
+  }
+
+  // Nombres / Apellidos
+  bind('[name="company"], #sfNombre, #denNombre, #denNombreD', RE_NOMBRE);
+  // Celular / Teléfono
+  bind('[name="00NUU000001NBtR"], #sfCelular', RE_TEL);
+  // RUC / DNI / CUIT
+  bind('[name="00N4100000TT12H"], #sfRuc', RE_RUC);
+  // Razón Social / Empresa
+  bind('[name="00NUU000001uW6H"], #sfRazon, #denEmpresa, #denEmpresaD', RE_EMPRESA);
+})();
+
 /* ── Formulario proveedor AJAX ───────────────── */
 (function () {
   const form = document.getElementById('cgmProveedorForm');

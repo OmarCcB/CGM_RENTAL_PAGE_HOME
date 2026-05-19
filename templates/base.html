@@ -19,16 +19,30 @@
 
 
 
-  <!-- Bootstrap 5.3 — servido localmente (sin latencia CDN) -->
+  <!-- LCP preload: cada página puede inyectar su imagen hero crítica -->
+  {% block preload_lcp %}{% endblock %}
+
+  <!-- Bootstrap 5.3 — bloquea render (necesario para layout inicial) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <!-- Bootstrap Icons — servido localmente -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}">
-  <!-- Swiper 11 — servido localmente -->
+  <!-- CGM Custom CSS — bloquea render (estilos críticos above-the-fold) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}">
+
+  <!-- Bootstrap Icons — no crítico para primer paint; carga no-bloqueante -->
+  <link rel="preload" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"></noscript>
+
+  <!-- Swiper CSS — bloqueante para evitar flash visual en el hero carrusel -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}">
 
-  <!-- CGM Custom CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/capacita.css') }}">
+  <!-- font-display:swap para bootstrap-icons (evita texto invisible mientras carga) -->
+  <style>
+  @font-face {
+    font-family: "bootstrap-icons";
+    src: url("{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090") format("woff2");
+    font-display: swap;
+  }
+  </style>
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -83,7 +97,7 @@
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/swiper-bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cart.js') }}" defer></script>
 
   {% block extra_scripts %}{% endblock %}
 

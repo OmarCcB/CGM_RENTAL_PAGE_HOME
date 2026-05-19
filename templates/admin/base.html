@@ -63,6 +63,12 @@
       </a>
     </li>
     <li class="adm-nav-item">
+      <a href="{{ url_for('admin.categorias') }}"
+         class="adm-nav-link {% if 'categoria' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-diagram-3"></i> Categorías
+      </a>
+    </li>
+    <li class="adm-nav-item">
       <a href="{{ url_for('admin.historial') }}"
          class="adm-nav-link {% if request.endpoint == 'admin.historial' %}active{% endif %}">
         <i class="bi bi-journal-text"></i> Historial

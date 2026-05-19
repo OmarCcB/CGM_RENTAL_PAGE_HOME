@@ -49,7 +49,7 @@
       <!-- Logo -->
       <a class="navbar-brand cgm-logo" href="/{{ country_code }}/">
         <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
-             alt="CGM Rental" height="30" style="width:auto;max-height:60px">
+             alt="CGM Rental" width="180" height="60" style="width:auto;max-height:60px">
       </a>
 
       <!-- Hamburguesa -->
@@ -82,19 +82,12 @@
                   Construcción <i class="bi bi-chevron-right float-end"></i>
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/excavadora/">Excavadoras</a></li>
-                  {% if country_code == 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/?tipo=Topador">Topadores</a></li>{% endif %}
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/cargador-frontal/">Cargadores Frontales</a></li>
-                  {% if country_code != 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/tractor-de-orugas/">Tractores de Orugas</a></li>{% endif %}
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/rodillo-compactador/">Rodillos Compactadores</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/motoniveladora/">Motoniveladoras</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/retroexcavadora/">Retroexcavadoras</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/minicargador/">Minicargadores</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/camion-cisterna/">Camiones Cisterna</a></li>
-                  {% if country_code != 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/camion-grua/">Camiones Grúa</a></li>{% endif %}
-                  {% if country_code != 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/compresora/">Compresoras</a></li>{% endif %}
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/torre-de-iluminacion/">Torres de Iluminación</a></li>
-                  {% if country_code != 'ar' %}<li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/construccion/aditamentos/">Aditamentos</a></li>{% endif %}
+                  {% for cat in nav_cats.get('alquiler|construccion', []) %}
+                  {% if (country_code == 'pe' and cat.show_pe) or (country_code == 'ar' and cat.show_ar) %}
+                  <li><a class="dropdown-item cgm-drop-item"
+                    href="/{{ country_code }}/categoria-producto/alquiler/construccion/{% if cat.slug_sub %}{{ cat.slug_sub }}/{% else %}?tipo={{ cat.tipo | urlencode }}{% endif %}">{{ cat.tipo_titulo }}</a></li>
+                  {% endif %}
+                  {% endfor %}
                 </ul>
               </li>
 
@@ -105,13 +98,12 @@
                   Minería <i class="bi bi-chevron-right float-end"></i>
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
-                  {% if country_code == 'ar' %}
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Excavadora">Excavadoras</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Topador">Topadores</a></li>
-                  {% else %}
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/">Excavadoras</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/mineria/?tipo=Aditamento">Aditamentos</a></li>
+                  {% for cat in nav_cats.get('alquiler|mineria', []) %}
+                  {% if (country_code == 'pe' and cat.show_pe) or (country_code == 'ar' and cat.show_ar) %}
+                  <li><a class="dropdown-item cgm-drop-item"
+                    href="/{{ country_code }}/categoria-producto/alquiler/mineria/{% if cat.slug_sub %}{{ cat.slug_sub }}/{% else %}?tipo={{ cat.tipo | urlencode }}{% endif %}">{{ cat.tipo_titulo }}</a></li>
                   {% endif %}
+                  {% endfor %}
                 </ul>
               </li>
               {% endif %}
@@ -123,11 +115,12 @@
                   Agrícola <i class="bi bi-chevron-right float-end"></i>
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Especializados">Tractores Especializados/Fruteros</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Utilitarios">Tractores Utilitarios de 75 a 100 HP</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Grande">Tractores Grandes 150 HP a Más</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Tractor+Mediano">Tractores Medianos de 100 a 150 HP</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/agricola/?tipo=Aditamento">Aditamentos</a></li>
+                  {% for cat in nav_cats.get('alquiler|agricola', []) %}
+                  {% if (country_code == 'pe' and cat.show_pe) or (country_code == 'ar' and cat.show_ar) %}
+                  <li><a class="dropdown-item cgm-drop-item"
+                    href="/{{ country_code }}/categoria-producto/alquiler/agricola/{% if cat.slug_sub %}{{ cat.slug_sub }}/{% else %}?tipo={{ cat.tipo | urlencode }}{% endif %}">{{ cat.tipo_titulo }}</a></li>
+                  {% endif %}
+                  {% endfor %}
                 </ul>
               </li>
               {% endif %}
@@ -139,8 +132,12 @@
                   Energía <i class="bi bi-chevron-right float-end"></i>
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/energia/">Grupos Electrógenos</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/alquiler/energia/?tipo=Aditamento">Aditamentos</a></li>
+                  {% for cat in nav_cats.get('alquiler|energia', []) %}
+                  {% if (country_code == 'pe' and cat.show_pe) or (country_code == 'ar' and cat.show_ar) %}
+                  <li><a class="dropdown-item cgm-drop-item"
+                    href="/{{ country_code }}/categoria-producto/alquiler/energia/{% if cat.slug_sub %}{{ cat.slug_sub }}/{% else %}?tipo={{ cat.tipo | urlencode }}{% endif %}">{{ cat.tipo_titulo }}</a></li>
+                  {% endif %}
+                  {% endfor %}
                 </ul>
               </li>
               {% endif %}
@@ -166,8 +163,12 @@
                   Energía <i class="bi bi-chevron-right float-end"></i>
                 </a>
                 <ul class="dropdown-menu cgm-drop cgm-sub-drop">
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/energia/?tipo=Generador">Grupos Electrógenos</a></li>
-                  <li><a class="dropdown-item cgm-drop-item" href="/{{ country_code }}/categoria-producto/usados/energia/?tipo=Aditamento">Aditamentos</a></li>
+                  {% for cat in nav_cats.get('usados|energia', []) %}
+                  {% if (country_code == 'pe' and cat.show_pe) or (country_code == 'ar' and cat.show_ar) %}
+                  <li><a class="dropdown-item cgm-drop-item"
+                    href="/{{ country_code }}/categoria-producto/usados/energia/{% if cat.slug_sub %}{{ cat.slug_sub }}/{% else %}?tipo={{ cat.tipo | urlencode }}{% endif %}">{{ cat.tipo_titulo }}</a></li>
+                  {% endif %}
+                  {% endfor %}
                 </ul>
               </li>
               {% endif %}

@@ -46,16 +46,26 @@
         </div>
         <div class="col-md-6 adm-form-group">
           <label class="adm-form-label">Tipo</label>
-          <input type="text" name="tipo" class="adm-form-control"
-                 value="{{ producto.tipo if producto else '' }}"
-                 placeholder="Ej: Excavadora">
+          <!-- Valor real enviado al servidor -->
+          <input type="hidden" name="tipo" id="inp-tipo" value="{{ producto.tipo if producto else '' }}">
+          <!-- Selector dinámico (no tiene name) -->
+          <select id="tipo-select" class="adm-form-control">
+            <option value="">-- Selecciona Tag y Sector primero --</option>
+          </select>
+          <!-- Input personalizado (visible cuando se elige "Otro") -->
+          <input type="text" id="tipo-custom" class="adm-form-control mt-1"
+                 placeholder="Escribe el tipo personalizado..."
+                 style="display:none;">
+          <small style="color:#888;font-size:0.75rem;">
+            Las opciones dependen del Tag y Sector seleccionados arriba.
+          </small>
         </div>
       </div>
 
       <div class="row g-2">
         <div class="col-md-6 adm-form-group">
           <label class="adm-form-label">Sector (Unidad)</label>
-          <select name="unidad" class="adm-form-control">
+          <select name="unidad" id="sel-unidad" class="adm-form-control">
             <option value="">-- Sin sector --</option>
             {% set sectores = ['Construcción', 'Mediana Minería', 'Agrícola', 'Energía'] %}
             {% for s in sectores %}
@@ -97,14 +107,28 @@
       </div>
 
       {% if imagenes %}
+      <p style="font-size:0.78rem;color:#888;margin-bottom:8px;">
+        <i class="bi bi-grip-vertical me-1"></i>Arrastra las imágenes para cambiar el orden. La primera será la imagen principal.
+      </p>
       <div class="row g-2 mb-3" id="img-grid">
         {% for img in imagenes %}
-        <div class="col-6 col-sm-4 col-md-3">
-          <div style="border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;background:#f8f8f8;position:relative;">
+        <div class="col-6 col-sm-4 col-md-3" data-filename="{{ img.filename }}">
+          <div style="border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;background:#f8f8f8;position:relative;cursor:grab;">
+            {% if loop.first %}
+            <div style="position:absolute;top:6px;left:6px;background:#02534C;color:#fff;
+                        font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;z-index:2;">
+              PRINCIPAL
+            </div>
+            {% endif %}
+            <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.35);
+                        color:#fff;border-radius:4px;padding:2px 5px;font-size:0.7rem;z-index:2;">
+              <i class="bi bi-grip-vertical"></i>
+            </div>
             <img src="{{ img.url }}?v={{ range(99999)|random }}" alt="{{ img.filename }}"
-                 style="width:100%;height:110px;object-fit:cover;display:block;">
+                 style="width:100%;height:110px;object-fit:cover;display:block;pointer-events:none;">
             <div style="padding:6px 8px;">
-              <p style="font-size:0.74rem;color:#666;margin:0 0 4px 0;font-family:monospace;text-align:center;" title="{{ img.filename }}">
+              <p style="font-size:0.74rem;color:#666;margin:0 0 4px 0;font-family:monospace;text-align:center;
+                        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ img.filename }}">
                 {{ img.filename }}
               </p>
               <button type="button" class="btn-adm-danger w-100"
@@ -116,6 +140,9 @@
           </div>
         </div>
         {% endfor %}
+      </div>
+      <div id="orden-status" style="font-size:0.78rem;color:#02534C;display:none;margin-bottom:8px;">
+        <i class="bi bi-check-circle me-1"></i>Orden guardado correctamente.
       </div>
       {% elif producto %}
       <p style="font-size:0.85rem;color:#888;margin-bottom:14px;">
@@ -261,6 +288,85 @@
 
 {% block extra_scripts %}
 <script>
+// ── Tipos dinámicos por Tag + Sector (generado desde BD) ──────────────────
+const TIPOS_MAP = {
+  {% for key, cats in nav_cats.items() %}{% if cats %}
+  {{ (cats[0].tag ~ '|' ~ cats[0].unidad) | tojson }}: [{% for cat in cats %}{{ cat.tipo | tojson }}{% if not loop.last %},{% endif %}{% endfor %}],
+  {% endif %}{% endfor %}
+};
+
+function actualizarTipos() {
+  const tag      = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(e=>e.value).find(v=>v==='alquiler'||v==='usados') || '';
+  const sector   = document.getElementById('sel-unidad').value;
+  const select   = document.getElementById('tipo-select');
+  const inpHidden = document.getElementById('inp-tipo');
+  const inpCustom = document.getElementById('tipo-custom');
+  const key      = `${tag}|${sector}`;
+  const tipos    = TIPOS_MAP[key] || [];
+  const current  = inpHidden.value;
+
+  select.innerHTML = '';
+
+  if (!tag || !sector) {
+    select.innerHTML = '<option value="">-- Selecciona Tag y Sector primero --</option>';
+    inpCustom.style.display = 'none';
+    return;
+  }
+
+  // Opción vacía
+  const optEmpty = document.createElement('option');
+  optEmpty.value = ''; optEmpty.textContent = '-- Sin tipo específico --';
+  select.appendChild(optEmpty);
+
+  // Opciones del mapa
+  tipos.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    if (t === current) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  // Opción personalizada
+  const optOtro = document.createElement('option');
+  optOtro.value = '__otro__'; optOtro.textContent = '── Otro (escribir) ──';
+  select.appendChild(optOtro);
+
+  // Si el valor actual no está en el mapa ni es vacío, seleccionar "Otro"
+  const knownValues = ['', ...tipos, '__otro__'];
+  if (current && !tipos.includes(current)) {
+    optOtro.selected = true;
+    inpCustom.style.display = 'block';
+    inpCustom.value = current;
+  } else if (!current) {
+    select.value = '';
+    inpCustom.style.display = 'none';
+  }
+}
+
+document.getElementById('tipo-select').addEventListener('change', function() {
+  const inpHidden = document.getElementById('inp-tipo');
+  const inpCustom = document.getElementById('tipo-custom');
+  if (this.value === '__otro__') {
+    inpCustom.style.display = 'block';
+    inpCustom.focus();
+    inpHidden.value = inpCustom.value;
+  } else {
+    inpCustom.style.display = 'none';
+    inpHidden.value = this.value;
+  }
+});
+
+document.getElementById('tipo-custom').addEventListener('input', function() {
+  document.getElementById('inp-tipo').value = this.value;
+});
+
+// Escuchar cambios en tags y sector
+document.querySelectorAll('input[name="tags"]').forEach(cb => cb.addEventListener('change', actualizarTipos));
+document.getElementById('sel-unidad').addEventListener('change', actualizarTipos);
+
+// Inicializar al cargar
+document.addEventListener('DOMContentLoaded', actualizarTipos);
+
 // Auto-slug generation
 function autoSlug(val) {
   const slugInput = document.getElementById('inp-slug');
@@ -386,5 +492,66 @@ document.getElementById('prod-form').addEventListener('submit', function(e) {
     showToast('El nombre del producto es obligatorio.', 'danger');
   }
 });
+
+// ── Drag & drop reordenamiento de imágenes ──────────────────────────────────
+{% if producto and imagenes %}
+(function() {
+  const grid = document.getElementById('img-grid');
+  if (!grid) return;
+
+  // Cargar SortableJS dinámicamente
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
+  script.onload = function() {
+    Sortable.create(grid, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      handle: '[data-filename]',
+      onEnd: async function() {
+        // Recopilar nuevo orden
+        const items = grid.querySelectorAll('[data-filename]');
+        const orden = Array.from(items).map(el => el.dataset.filename);
+
+        const statusEl = document.getElementById('orden-status');
+        statusEl.style.display = 'none';
+
+        try {
+          const r = await fetch('/admin/productos/{{ producto.id }}/imagenes/reordenar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({orden})
+          });
+          const d = await r.json();
+          if (d.ok) {
+            // Marcar el primero como PRINCIPAL
+            grid.querySelectorAll('[data-filename]').forEach((el, i) => {
+              const badge = el.querySelector('.badge-principal');
+              if (i === 0) {
+                if (!badge) {
+                  const b = document.createElement('div');
+                  b.className = 'badge-principal';
+                  b.style.cssText = 'position:absolute;top:6px;left:6px;background:#02534C;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:10px;z-index:2;';
+                  b.textContent = 'PRINCIPAL';
+                  el.querySelector('div').prepend(b);
+                }
+              } else if (badge) {
+                badge.remove();
+              }
+            });
+            statusEl.style.display = 'block';
+            setTimeout(() => statusEl.style.display = 'none', 2500);
+            showToast('Orden guardado.', 'success');
+          } else {
+            showToast('Error al guardar el orden.', 'danger');
+          }
+        } catch(e) {
+          showToast('Error de red al reordenar.', 'danger');
+        }
+      }
+    });
+  };
+  document.head.appendChild(script);
+})();
+{% endif %}
 </script>
 {% endblock %}

@@ -140,10 +140,27 @@ document.getElementById('cgmDenunciaForm').addEventListener('submit', async func
   const form = this;
   const btn  = document.getElementById('denunciaSubmitBtn');
 
-  // Validar campos requeridos
+  // Validar campos requeridos (required, pattern, minlength)
   if (!form.checkValidity()) {
     form.reportValidity();
     return;
+  }
+
+  // Validar nombre del denunciado: solo letras
+  var nombreD = document.getElementById('denNombreD');
+  if (nombreD && /[0-9@#$%^&*]/.test(nombreD.value)) {
+    alert('El nombre del denunciado no puede contener números ni símbolos especiales.');
+    nombreD.focus(); return;
+  }
+
+  // Validar email del denunciante si fue ingresado
+  var emailDen = document.getElementById('denEmail');
+  if (emailDen && emailDen.value.trim() !== '') {
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(emailDen.value.trim())) {
+      alert('El email ingresado no es válido.');
+      emailDen.focus(); return;
+    }
   }
 
   btn.disabled = true;

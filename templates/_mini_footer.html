@@ -8,30 +8,30 @@
       <div class="cgm-mini-footer-btns">
         <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
-               alt="Bolsa de Trabajo">
+               alt="Bolsa de Trabajo" width="160" height="40" loading="lazy">
         </a>
         <a href="/{{ country_code }}/canal-de-denuncias/" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-canal-denuncias.webp') }}"
-               alt="Canal de Denuncias">
+               alt="Canal de Denuncias" width="160" height="40" loading="lazy">
         </a>
         {% if country.show_portal_proveedores %}
         <a href="{{ country.operadores_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-operadores.webp') }}"
-               alt="Operadores Fuerza Perú">
+               alt="Operadores Fuerza Perú" width="160" height="40" loading="lazy">
         </a>
         <a href="{{ country.huella_carbono_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-huella-carbono.webp') }}"
-               alt="Certificado Huella Carbono">
+               alt="Certificado Huella Carbono" width="160" height="40" loading="lazy">
         </a>
         {% endif %}
         <a href="{{ country.libro_reclamaciones_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-libro-reclamaciones.webp') }}"
-               alt="Libro de Reclamaciones">
+               alt="Libro de Reclamaciones" width="160" height="40" loading="lazy">
         </a>
         {% if country.show_portal_proveedores %}
         <a href="/{{ country_code }}/portalproveedores/" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-portal-proveedores.webp') }}"
-               alt="Portal de Proveedores">
+               alt="Portal de Proveedores" width="160" height="40" loading="lazy">
         </a>
         {% endif %}
       </div>

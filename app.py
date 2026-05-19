@@ -513,6 +513,33 @@ def _log_timing(response):
             print(f"[TIMING] {request.method} {request.path}  →  {elapsed:.0f} ms", flush=True)
     return response
 
+# ── Categorías dinámicas (desde BD) ──────────────────────────────────────────
+def get_nav_categorias():
+    """Devuelve dict 'tag|unidad_slug' → [lista de filas] para el nav.
+    Resultado cacheado 120 s; el admin invalida al guardar."""
+    cache_key = "nav_categorias"
+    hit, cached = _cache.get(cache_key)
+    if hit:
+        return cached
+    result = {}
+    ok = False
+    try:
+        conn = get_conn()
+        rows = conn.execute(
+            "SELECT * FROM categorias WHERE activo=1 ORDER BY tag, unidad_slug, orden"
+        ).fetchall()
+        for row in rows:
+            key = f"{row['tag']}|{row['unidad_slug']}"
+            result.setdefault(key, []).append(dict(row))
+        conn.close()
+        ok = True
+    except Exception:
+        pass
+    if ok:                          # Fix 7: no cachear si hubo error de BD
+        _cache.set(cache_key, result)
+    return result
+
+
 # ── Context Processor ──────────────────────────────────────────────────────────
 @app.context_processor
 def inject_globals():
@@ -537,6 +564,7 @@ def inject_globals():
         "banners": bans,
         "burl": burl,
         "now": _dt.now(),
+        "nav_cats": get_nav_categorias(),
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -676,9 +704,29 @@ def categoria(country=None, cat_path=""):
     if country not in COUNTRIES:
         return redirect(f"/{DEFAULT_COUNTRY}/categoria-producto/{cat_path}/")
     c = get_country(country)
-    if cat_path not in CATEGORIAS:
-        abort(404)
-    tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
+    if cat_path in CATEGORIAS:
+        tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
+    else:
+        # Intentar buscar ruta dinámica en tabla categorias (slug_sub)
+        parts = cat_path.rstrip("/").split("/")
+        cat_row = None
+        if len(parts) == 3:
+            _tag, _unidad_slug, _slug_sub = parts
+            try:
+                _conn = get_conn()
+                cat_row = _conn.execute(
+                    "SELECT * FROM categorias WHERE tag=? AND unidad_slug=? AND slug_sub=? AND activo=1",
+                    (_tag, _unidad_slug, _slug_sub)
+                ).fetchone()
+                _conn.close()
+            except Exception:
+                pass
+        if cat_row:
+            tags, unidad, tipo, titulo = (
+                cat_row["tag"], cat_row["unidad"], cat_row["tipo"], cat_row["tipo_titulo"]
+            )
+        else:
+            abort(404)
     extra_tipo = request.args.get("tipo")
     page = max(1, request.args.get("page", 1, type=int))
     proximamente = country == 'ar' and unidad in UNIDADES_PROXIMAMENTE_ARG
@@ -710,7 +758,7 @@ def categoria(country=None, cat_path=""):
     # ── URL de la etiqueta opuesta manteniendo unidad ──
     other_tag = "usados" if tags == "alquiler" else "alquiler"
     if unidad and "/" in cat_path:
-        unidad_slug_last = cat_path.split("/")[-1]
+        unidad_slug_last = cat_path.split("/")[1] if "/" in cat_path else cat_path.split("/")[-1]
         other_tag_path = f"{other_tag}/{unidad_slug_last}"
         if other_tag_path not in CATEGORIAS:
             other_tag_path = other_tag
@@ -811,10 +859,41 @@ def producto(slug, country=None):
 
     relacionados = [dict(r) for r in list(nivel1) + list(nivel2)]
     conn.close()
+
+    # ── Galería dinámica: leer imágenes reales del disco en el orden correcto ──
+    img_folder = os.path.join(app.root_path, "static", "products", slug)
+    imagenes = []
+    if os.path.isdir(img_folder):
+        all_files = [f for f in os.listdir(img_folder)
+                     if f.lower().endswith((".webp", ".jpg", ".jpeg", ".png"))]
+        orden = []
+        raw_orden = prod.get("imagenes_orden")
+        if raw_orden:
+            try:
+                orden = json.loads(raw_orden)
+            except Exception:
+                orden = []
+        if orden:
+            files_set = set(all_files)
+            ordered   = [f for f in orden if f in files_set]
+            remaining = sorted([f for f in all_files if f not in set(orden)],
+                               key=lambda x: (0, int(os.path.splitext(x)[0]))
+                               if os.path.splitext(x)[0].isdigit() else (1, x))
+            imagenes = ordered + remaining
+        else:
+            def _natural(name):
+                base = os.path.splitext(name)[0]
+                try:
+                    return (0, int(base))
+                except ValueError:
+                    return (1, base.lower())
+            imagenes = sorted(all_files, key=_natural)
+
     proximamente = country == 'ar' and prod.get("unidad") in UNIDADES_PROXIMAMENTE_ARG
     return render_template("pages/producto.html",
                            country=c, country_code=country, product=prod,
-                           relacionados=relacionados, proximamente=proximamente)
+                           relacionados=relacionados, proximamente=proximamente,
+                           imagenes=imagenes)
 
 
 @app.route("/producto/<slug>/ficha/")

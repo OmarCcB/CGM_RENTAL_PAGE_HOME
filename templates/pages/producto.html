@@ -81,16 +81,15 @@
           </div>
         </div>
 
-        <!-- Thumbnails -->
-        {% if product.imagen %}
+        <!-- Thumbnails (dinámico según imágenes reales del producto) -->
+        {% if imagenes %}
         <div class="swiper cgm-prod-thumb-swiper mt-3">
           <div class="swiper-wrapper">
-            {% set slug = product.slug %}
-            {% for i in range(1, 5) %}
+            {% for img_file in imagenes %}
             <div class="swiper-slide" style="width:auto;">
-              <img src="{{ url_for('static', filename='products/' + slug + '/' + i|string + '.webp') }}"
-                   alt="{{ product.nombre }} — foto {{ i }}"
-                   class="cgm-thumb-img {% if i == 1 %}active{% endif %}"
+              <img src="{{ url_for('static', filename='products/' + product.slug + '/' + img_file) }}"
+                   alt="{{ product.nombre }} — foto {{ loop.index }}"
+                   class="cgm-thumb-img {% if loop.first %}active{% endif %}"
                    loading="lazy"
                    onerror="this.parentElement.style.display='none'"
                    onclick="swapMainImg(this)">

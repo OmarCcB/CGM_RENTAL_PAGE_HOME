@@ -165,13 +165,17 @@
               <div class="col-12">
                 <label class="cgm-form-label" for="sfNombre">Nombres y Apellidos *</label>
                 <input type="text" id="sfNombre" name="company" class="cgm-form-control"
-                       placeholder="Juan Pérez" required>
+                       placeholder="Juan Pérez" required
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+"
+                       title="Solo letras y espacios. Sin números ni símbolos."
+                       minlength="3" autocomplete="name">
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfRazon">Razón Social *</label>
                 <input type="text" id="sfRazon" name="00NUU000001uW6H" class="cgm-form-control"
-                       placeholder="Mi Empresa S.A.C." required>
+                       placeholder="Mi Empresa S.A.C." required
+                       minlength="2" autocomplete="organization">
               </div>
 
               <div class="col-12 col-sm-6">
@@ -180,19 +184,27 @@
                 </label>
                 <input type="text" id="sfRuc" name="00N4100000TT12H" class="cgm-form-control"
                        placeholder="{% if country_code == 'ar' %}20-12345678-9{% else %}20123456789{% endif %}"
-                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}" required>
+                       maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}"
+                       minlength="{% if country_code == 'ar' %}11{% else %}8{% endif %}"
+                       pattern="{% if country_code == 'ar' %}[0-9\-]+{% else %}[0-9]+{% endif %}"
+                       title="{% if country_code == 'ar' %}Solo números y guiones. Formato: XX-XXXXXXXX-X{% else %}Solo números. 8 dígitos para DNI, 11 para RUC.{% endif %}"
+                       inputmode="numeric" autocomplete="off" required>
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfEmail">Email *</label>
                 <input type="email" id="sfEmail" name="00NUU000001NBa5" class="cgm-form-control"
-                       placeholder="correo@empresa.com" required>
+                       placeholder="correo@empresa.com" required autocomplete="email">
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfCelular">Celular *</label>
                 <input type="tel" id="sfCelular" name="00NUU000001NBtR" class="cgm-form-control"
-                       placeholder="999 999 999" maxlength="9" required>
+                       placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
+                       maxlength="15" minlength="7"
+                       pattern="[0-9+\-() ]+"
+                       title="Solo números. Puede incluir +, espacios o guiones."
+                       inputmode="tel" autocomplete="tel" required>
               </div>
 
               <div class="col-12 col-sm-6">
@@ -272,14 +284,49 @@
 {% block extra_scripts %}
 <script>
 document.getElementById('sfCartForm').addEventListener('submit', function(e) {
-  // Validar política
+  // 1) Nombres y Apellidos
+  var nombre = document.getElementById('sfNombre');
+  if (nombre && nombre.value.trim().length < 3) {
+    e.preventDefault();
+    alert('Ingresa tu nombre y apellido completos.');
+    nombre.focus(); return;
+  }
+  if (nombre && /[0-9@#$%^&*]/.test(nombre.value)) {
+    e.preventDefault();
+    alert('El nombre no puede contener números ni símbolos especiales.');
+    nombre.focus(); return;
+  }
+
+  // 2) Celular: mínimo 7 dígitos
+  var cel = document.getElementById('sfCelular');
+  if (cel) {
+    var soloDigitos = cel.value.replace(/[^0-9]/g, '');
+    if (soloDigitos.length < 7) {
+      e.preventDefault();
+      alert('Ingresa un número de celular válido (mínimo 7 dígitos).');
+      cel.focus(); return;
+    }
+  }
+
+  // 3) RUC / DNI / CUIT
+  var ruc = document.getElementById('sfRuc');
+  if (ruc && ruc.value.trim() !== '') {
+    var soloRuc = ruc.value.replace(/[^0-9]/g, '');
+    if (soloRuc.length < 8) {
+      e.preventDefault();
+      alert('Ingresa un RUC, DNI o CUIT válido.');
+      ruc.focus(); return;
+    }
+  }
+
+  // 4) Validar política
   if (!document.getElementById('sfPolitica').checked) {
     e.preventDefault();
     alert('Debes aceptar la política de privacidad.');
     return;
   }
 
-  // Validar al menos un tipo de operación (Alquiler o Compra)
+  // 5) Validar al menos un tipo de operación (Alquiler o Compra)
   var chkAlq = document.getElementById('chkAlquiler');
   var chkCom = document.getElementById('chkCompra');
   var alquiler = chkAlq && chkAlq.checked;
@@ -291,7 +338,7 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     return;
   }
 
-  // Validar que el carrito no esté vacío
+  // 6) Validar que el carrito no esté vacío
   var rowsCheck = document.querySelectorAll('#cartTable tbody tr');
   if (rowsCheck.length === 0) {
     e.preventDefault();

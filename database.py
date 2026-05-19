@@ -166,11 +166,120 @@ def init_db():
         "ALTER TABLE products ADD COLUMN a_solicitud INTEGER DEFAULT 0",
         "ALTER TABLE blog_posts ADD COLUMN show_arg INTEGER DEFAULT 0",
         "ALTER TABLE blog_posts ADD COLUMN show_pe INTEGER DEFAULT 1",
+        "ALTER TABLE products ADD COLUMN imagenes_orden TEXT",
     ]:
         try:
             conn.execute(sql)
         except Exception:
             pass
+
+    # Tabla de categorías dinámica
+    conn.executescript("""
+    CREATE TABLE IF NOT EXISTS categorias (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag          TEXT NOT NULL,
+        unidad       TEXT NOT NULL,
+        unidad_slug  TEXT NOT NULL,
+        tipo         TEXT NOT NULL,
+        tipo_titulo  TEXT NOT NULL,
+        slug_sub     TEXT,
+        orden        INTEGER DEFAULT 0,
+        show_pe      INTEGER DEFAULT 1,
+        show_ar      INTEGER DEFAULT 0,
+        activo       INTEGER DEFAULT 1,
+        UNIQUE(tag, unidad_slug, tipo)
+    );
+    """)
+
+    conn.commit()
+    conn.close()
+    seed_categorias()
+    migrate_categorias_slugs()
+
+
+def _slugify_tipo(texto):
+    """Convierte un nombre de tipo a slug URL: 'Tractor Grande' → 'tractor-grande'."""
+    import re
+    t = texto.lower().strip()
+    for a, b in [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),
+                 ('ñ','n'),('ü','u'),('ã','a'),('â','a')]:
+        t = t.replace(a, b)
+    t = re.sub(r'[^a-z0-9]+', '-', t)
+    t = re.sub(r'-+', '-', t).strip('-')
+    return t
+
+
+def migrate_categorias_slugs():
+    """Rellena slug_sub en filas que tienen NULL, generándolo desde el tipo."""
+    conn = _make_conn()
+    try:
+        rows = conn.execute(
+            "SELECT id, tipo FROM categorias WHERE slug_sub IS NULL OR slug_sub = ''"
+        ).fetchall()
+        for row in rows:
+            slug = _slugify_tipo(row[1])
+            conn.execute("UPDATE categorias SET slug_sub=? WHERE id=?", (slug, row[0]))
+        if rows:
+            conn.commit()
+    except Exception:
+        pass
+    conn.close()
+
+
+def seed_categorias():
+    """Siembra las categorías iniciales SOLO si la tabla está vacía."""
+    conn = _make_conn()
+    count = conn.execute("SELECT COUNT(*) FROM categorias").fetchone()[0]
+    if count > 0:
+        conn.close()
+        return
+
+    rows = [
+        # tag, unidad, unidad_slug, tipo, tipo_titulo, slug_sub, orden, show_pe, show_ar
+        # ── Alquiler / Construcción ───────────────────────────────────────────
+        ("alquiler","Construcción","construccion","Excavadora","Excavadoras","excavadora",1,1,1),
+        ("alquiler","Construcción","construccion","Cargador Frontal","Cargadores Frontales","cargador-frontal",2,1,1),
+        ("alquiler","Construcción","construccion","Tractor de Orugas","Tractores de Orugas","tractor-de-orugas",3,1,0),
+        ("alquiler","Construcción","construccion","Rodillo Compactador","Rodillos Compactadores","rodillo-compactador",4,1,1),
+        ("alquiler","Construcción","construccion","Motoniveladora","Motoniveladoras","motoniveladora",5,1,1),
+        ("alquiler","Construcción","construccion","Retroexcavadora","Retroexcavadoras","retroexcavadora",6,1,1),
+        ("alquiler","Construcción","construccion","Minicargador","Minicargadores","minicargador",7,1,1),
+        ("alquiler","Construcción","construccion","Camión Cisterna","Camiones Cisterna","camion-cisterna",8,1,1),
+        ("alquiler","Construcción","construccion","Camión Grúa","Camiones Grúa","camion-grua",9,1,0),
+        ("alquiler","Construcción","construccion","Compresora","Compresoras","compresora",10,1,0),
+        ("alquiler","Construcción","construccion","Torre de Iluminación","Torres de Iluminación","torre-de-iluminacion",11,1,1),
+        ("alquiler","Construcción","construccion","Aditamento","Aditamentos","aditamentos",12,1,0),
+        ("alquiler","Construcción","construccion","Topador","Topadores","topador",13,0,1),
+        ("alquiler","Construcción","construccion","Camión Volquete","Camiones Volquete","camion-volquete",14,1,0),
+        ("alquiler","Construcción","construccion","Micropavimentadora","Micropavimentadoras","micropavimentadora",15,1,0),
+        ("alquiler","Construcción","construccion","Pavimentadora","Pavimentadoras","pavimentadora",16,1,0),
+        ("alquiler","Construcción","construccion","Autohormigonera","Autohormigoneras","autohormigonera",17,1,0),
+        ("alquiler","Construcción","construccion","Tren de Chancado","Tren de Chancado","tren-de-chancado",18,1,0),
+        # ── Alquiler / Mediana Minería ────────────────────────────────────────
+        ("alquiler","Mediana Minería","mineria","Excavadora","Excavadoras","excavadora",1,1,1),
+        ("alquiler","Mediana Minería","mineria","Topador","Topadores","topador",2,0,1),
+        ("alquiler","Mediana Minería","mineria","Aditamento","Aditamentos","aditamento",3,1,0),
+        # ── Alquiler / Agrícola ───────────────────────────────────────────────
+        ("alquiler","Agrícola","agricola","Tractor Especializados","Tractores Especializados/Fruteros","tractor-especializados",1,1,0),
+        ("alquiler","Agrícola","agricola","Tractor Utilitarios","Tractores Utilitarios de 75 a 100 HP","tractor-utilitarios",2,1,0),
+        ("alquiler","Agrícola","agricola","Tractor Grande","Tractores Grandes 150 HP a Más","tractor-grande",3,1,0),
+        ("alquiler","Agrícola","agricola","Tractor Mediano","Tractores Medianos de 100 a 150 HP","tractor-mediano",4,1,0),
+        ("alquiler","Agrícola","agricola","Aditamento","Aditamentos","aditamento",5,1,0),
+        # ── Alquiler / Energía ────────────────────────────────────────────────
+        ("alquiler","Energía","energia","Generador","Grupos Electrógenos","grupo-electrogeno",1,1,0),
+        ("alquiler","Energía","energia","Compresora","Compresoras","compresora",2,1,0),
+        ("alquiler","Energía","energia","Aditamento","Aditamentos","aditamento",3,1,0),
+        # ── Usados / Energía ──────────────────────────────────────────────────
+        ("usados","Energía","energia","Generador","Grupos Electrógenos","generador",1,1,0),
+        ("usados","Energía","energia","Aditamento","Aditamentos","aditamento",2,1,0),
+    ]
+
+    conn.executemany(
+        """INSERT OR IGNORE INTO categorias
+           (tag, unidad, unidad_slug, tipo, tipo_titulo, slug_sub, orden, show_pe, show_ar)
+           VALUES (?,?,?,?,?,?,?,?,?)""",
+        rows
+    )
     conn.commit()
     conn.close()
 

@@ -371,9 +371,10 @@ def producto_nuevo():
     return render_template("admin/producto_form.html", user=current_user(), producto=None, modo="nuevo")
 
 
-def _listar_imagenes_producto(slug):
-    """Devuelve lista ordenada de imagenes del producto: [{filename, url}, ...].
-    Lee del filesystem real (no del campo `imagen` de la DB)."""
+def _listar_imagenes_producto(slug, producto=None):
+    """Devuelve lista ordenada de imágenes del producto: [{filename, url}, ...].
+    Si el producto tiene imagenes_orden en BD, respeta ese orden.
+    Fallback: orden natural (numérico o alfabético)."""
     if not slug:
         return []
     folder = os.path.join(current_app.root_path, "static", "products", slug)
@@ -383,14 +384,28 @@ def _listar_imagenes_producto(slug):
         f for f in os.listdir(folder)
         if f.lower().endswith((".webp", ".jpg", ".jpeg", ".png"))
     ]
-    # Orden natural: 1.webp, 2.webp, ... 10.webp
-    def _sort_key(name):
-        base = os.path.splitext(name)[0]
-        try:
-            return (0, int(base))
-        except ValueError:
-            return (1, base.lower())
-    files.sort(key=_sort_key)
+    # Intentar respetar imagenes_orden de la BD
+    orden = []
+    if producto:
+        raw = producto["imagenes_orden"] if producto["imagenes_orden"] else None
+        if raw:
+            try:
+                orden = json.loads(raw)
+            except Exception:
+                orden = []
+    if orden:
+        files_set = set(files)
+        ordered   = [f for f in orden if f in files_set]
+        remaining = sorted([f for f in files if f not in set(orden)])
+        files = ordered + remaining
+    else:
+        def _sort_key(name):
+            base = os.path.splitext(name)[0]
+            try:
+                return (0, int(base))
+            except ValueError:
+                return (1, base.lower())
+        files.sort(key=_sort_key)
     return [
         {"filename": f, "url": f"/static/products/{slug}/{f}"}
         for f in files
@@ -408,7 +423,7 @@ def producto_editar(pid):
         return redirect(url_for("admin.productos"))
     if request.method == "POST":
         return _save_producto(pid)
-    imagenes = _listar_imagenes_producto(producto["slug"])
+    imagenes = _listar_imagenes_producto(producto["slug"], producto)
     return render_template(
         "admin/producto_form.html",
         user=current_user(),
@@ -564,17 +579,25 @@ def producto_imagen_eliminar(pid):
     full = os.path.join(folder, filename)
     if os.path.isfile(full):
         os.remove(full)
-        # Si era la imagen principal, actualizar campo imagen en BD
         conn2 = get_conn()
-        prod_row = conn2.execute("SELECT imagen FROM products WHERE id=?", (pid,)).fetchone()
-        if prod_row and prod_row["imagen"] == f"{slug}/{filename}":
-            # Buscar siguiente imagen disponible en el folder
-            remaining = sorted([
-                f for f in os.listdir(folder)
-                if os.path.splitext(f)[1].lower() == ".webp"
-            ]) if os.path.isdir(folder) else []
-            nueva_imagen = f"{slug}/{remaining[0]}" if remaining else None
-            conn2.execute("UPDATE products SET imagen=? WHERE id=?", (nueva_imagen, pid))
+        prod_row = conn2.execute("SELECT imagen, imagenes_orden FROM products WHERE id=?", (pid,)).fetchone()
+        if prod_row:
+            # Actualizar imagenes_orden: quitar el archivo eliminado
+            raw_orden = prod_row["imagenes_orden"] if prod_row["imagenes_orden"] else "[]"
+            try:
+                orden = json.loads(raw_orden)
+            except Exception:
+                orden = []
+            orden = [f for f in orden if f != filename]
+            # Determinar nueva imagen principal
+            if prod_row["imagen"] == f"{slug}/{filename}":
+                nueva_imagen = f"{slug}/{orden[0]}" if orden else None
+            else:
+                nueva_imagen = prod_row["imagen"]
+            conn2.execute(
+                "UPDATE products SET imagen=?, imagenes_orden=? WHERE id=?",
+                (nueva_imagen, json.dumps(orden), pid)
+            )
             conn2.commit()
             updated_row = conn2.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
             conn2.close()
@@ -590,6 +613,34 @@ def producto_imagen_eliminar(pid):
     else:
         flash("Imagen no encontrada.", "warning")
     return redirect(url_for("admin.producto_editar", pid=pid))
+
+
+@admin_bp.route("/productos/<int:pid>/imagenes/reordenar", methods=["POST"])
+@admin_required
+def producto_imagenes_reordenar(pid):
+    """Guarda el nuevo orden de imágenes en imagenes_orden y actualiza imagen principal."""
+    data  = request.get_json(silent=True) or {}
+    orden = data.get("orden", [])
+    if not isinstance(orden, list):
+        return jsonify({"ok": False, "error": "orden debe ser lista"}), 400
+    conn = get_conn()
+    prod = conn.execute("SELECT slug FROM products WHERE id=?", (pid,)).fetchone()
+    if not prod:
+        conn.close()
+        return jsonify({"ok": False, "error": "Producto no encontrado"}), 404
+    slug = prod["slug"]
+    conn.execute("UPDATE products SET imagenes_orden=? WHERE id=?", (json.dumps(orden), pid))
+    if orden:
+        conn.execute("UPDATE products SET imagen=? WHERE id=?", (f"{slug}/{orden[0]}", pid))
+    conn.commit()
+    try:
+        updated_row = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
+        sync_upsert(updated_row)
+    except Exception as e:
+        current_app.logger.warning(f"sync_upsert (reordenar) fallo: {e}")
+    conn.close()
+    log_action(current_user().get("email", "?"), "reordenar_imagenes", f"ID={pid} slug={slug}")
+    return jsonify({"ok": True})
 
 
 @admin_bp.route("/productos/<int:pid>/eliminar", methods=["POST"])
@@ -649,21 +700,18 @@ def upload():
 
     os.makedirs(dest_dir, exist_ok=True)
 
-    # Para imagenes de PRODUCTO: convertir a webp y renombrar a siguiente numero
-    # (1.webp, 2.webp, 3.webp...). Asi no se mezclan jpg/png con webp.
+    # Para imágenes de PRODUCTO: convertir a webp conservando el nombre original.
     is_product_image = (dest_type != "banner") and (ext in ALLOWED_IMAGE_EXT)
     if is_product_image:
-        # Encontrar siguiente numero disponible
-        existing_nums = []
-        for fn in os.listdir(dest_dir):
-            base, e = os.path.splitext(fn)
-            if e.lower() == ".webp":
-                try:
-                    existing_nums.append(int(base))
-                except ValueError:
-                    pass
-        next_num = (max(existing_nums) + 1) if existing_nums else 1
-        save_path = os.path.join(dest_dir, f"{next_num}.webp")
+        # Construir nombre: stem original + .webp (sin números forzados)
+        stem = os.path.splitext(secure_filename(f.filename))[0].lower().replace(" ", "-")
+        new_filename = f"{stem}.webp"
+        # Evitar sobreescribir si ya existe: agregar sufijo -2, -3, ...
+        counter = 2
+        while os.path.exists(os.path.join(dest_dir, new_filename)):
+            new_filename = f"{stem}-{counter}.webp"
+            counter += 1
+        save_path = os.path.join(dest_dir, new_filename)
 
         if ext == "webp":
             f.save(save_path)
@@ -685,7 +733,7 @@ def upload():
             finally:
                 if os.path.isfile(tmp_path):
                     os.remove(tmp_path)
-        filename = f"{next_num}.webp"
+        filename = new_filename
     else:
         save_path = os.path.join(dest_dir, filename)
         f.save(save_path)
@@ -712,25 +760,37 @@ def upload():
                     conn.close()
             except Exception as e:
                 current_app.logger.warning(f"update ficha_url en upload fallo: {e}")
-        # Si es la primera imagen del producto, actualizar BD + JSON automáticamente
-        if is_product_image and next_num == 1:
+        # Si es imagen de producto: actualizar imagenes_orden e imagen principal en BD
+        if is_product_image:
             try:
                 conn = get_conn()
                 producto = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
-                if producto and not producto["imagen"]:
-                    relative_path = f"{slug}/{filename}"
-                    conn.execute("UPDATE products SET imagen=? WHERE slug=?", (relative_path, slug))
+                if producto:
+                    # Actualizar imagenes_orden: agregar al final
+                    raw_orden = producto["imagenes_orden"] if producto["imagenes_orden"] else "[]"
+                    try:
+                        orden = json.loads(raw_orden)
+                    except Exception:
+                        orden = []
+                    if filename not in orden:
+                        orden.append(filename)
+                    # Si no tiene imagen principal, asignar esta
+                    nueva_imagen = producto["imagen"] or f"{slug}/{orden[0]}"
+                    conn.execute(
+                        "UPDATE products SET imagenes_orden=?, imagen=? WHERE slug=?",
+                        (json.dumps(orden), nueva_imagen, slug)
+                    )
                     conn.commit()
                     updated_row = conn.execute("SELECT * FROM products WHERE slug=?", (slug,)).fetchone()
                     conn.close()
                     try:
                         sync_upsert(updated_row)
                     except Exception as e:
-                        current_app.logger.warning(f"sync_upsert (primera imagen) fallo: {e}")
+                        current_app.logger.warning(f"sync_upsert (imagen upload) fallo: {e}")
                 else:
                     conn.close()
             except Exception as e:
-                current_app.logger.warning(f"update imagen en upload fallo: {e}")
+                current_app.logger.warning(f"update imagenes_orden en upload fallo: {e}")
 
     log_action(current_user().get("email", "?"), "subir_archivo", f"{url}")
     return jsonify({"ok": True, "url": url, "filename": filename})
@@ -1407,3 +1467,170 @@ def historial():
         total=total,
     )
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CATEGORÍAS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Unidades disponibles (estáticas — la estructura de secciones no cambia)
+UNIDADES_OPCIONES = [
+    ("alquiler", "Construcción",    "construccion"),
+    ("alquiler", "Mediana Minería", "mineria"),
+    ("alquiler", "Agrícola",        "agricola"),
+    ("alquiler", "Energía",         "energia"),
+    ("usados",   "Construcción",    "construccion"),
+    ("usados",   "Agrícola",        "agricola"),
+    ("usados",   "Energía",         "energia"),
+]
+
+
+@admin_bp.route("/categorias")
+@admin_required
+def categorias():
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM categorias ORDER BY tag, unidad_slug, orden, tipo"
+    ).fetchall()
+    conn.close()
+    return render_template(
+        "admin/categorias.html",
+        user=current_user(),
+        rows=[dict(r) for r in rows],
+        unidades=UNIDADES_OPCIONES,
+    )
+
+
+@admin_bp.route("/categorias/nueva", methods=["POST"])
+@admin_required
+def categoria_nueva():
+    tag        = request.form.get("tag", "").strip()
+    unidad     = request.form.get("unidad", "").strip()
+    unidad_slug= request.form.get("unidad_slug", "").strip()
+    tipo       = request.form.get("tipo", "").strip()
+    tipo_titulo= request.form.get("tipo_titulo", "").strip()
+    slug_sub_raw = request.form.get("slug_sub", "").strip()
+    show_pe    = 1 if request.form.get("show_pe") else 0
+    show_ar    = 1 if request.form.get("show_ar") else 0
+
+    # ── Fix 1: orden seguro ────────────────────────────────────────────────
+    try:
+        orden = int(request.form.get("orden") or 99)
+    except (ValueError, TypeError):
+        orden = 99
+
+    # ── Slug siempre obligatorio: si no viene, se genera desde tipo ───────
+    if slug_sub_raw:
+        slug_sub = re.sub(r'[^a-z0-9-]', '-', slug_sub_raw.lower())
+        slug_sub = re.sub(r'-+', '-', slug_sub).strip('-')
+    else:
+        slug_sub = None
+    if not slug_sub:                           # fallback: generar desde tipo
+        _t = tipo.lower()
+        for a, b in [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),('ñ','n')]:
+            _t = _t.replace(a, b)
+        slug_sub = re.sub(r'[^a-z0-9]+', '-', _t).strip('-') or 'tipo'
+
+    # ── Fix 2: validación de campos obligatorios ───────────────────────────
+    if not (tag and unidad and unidad_slug and tipo and tipo_titulo):
+        flash("Faltan campos obligatorios.", "danger")
+        return redirect(url_for("admin.categorias"))
+
+    # ── Fix 5: validar tag/unidad/unidad_slug contra whitelist ────────────
+    valid_combos = {(t, u, s) for t, u, s in UNIDADES_OPCIONES}
+    if (tag, unidad, unidad_slug) not in valid_combos:
+        flash("Sección no válida.", "danger")
+        return redirect(url_for("admin.categorias"))
+
+    conn = get_conn()
+    try:
+        conn.execute(
+            """INSERT INTO categorias (tag, unidad, unidad_slug, tipo, tipo_titulo,
+               slug_sub, orden, show_pe, show_ar, activo)
+               VALUES (?,?,?,?,?,?,?,?,?,1)""",
+            (tag, unidad, unidad_slug, tipo, tipo_titulo, slug_sub, orden, show_pe, show_ar),
+        )
+        conn.commit()
+        _cache.invalidate("nav_categorias")
+        log_action(current_user().get("name","admin"), "categoria_nueva",
+                   f"{tag}/{unidad_slug}/{tipo}")
+        flash(f"Categoría '{tipo_titulo}' creada.", "success")
+    except Exception as e:
+        flash(f"Error: {e}", "danger")
+    conn.close()
+    return redirect(url_for("admin.categorias"))
+
+
+@admin_bp.route("/categorias/<int:cid>/editar", methods=["POST"])
+@admin_required
+def categoria_editar(cid):
+    tipo_titulo = request.form.get("tipo_titulo", "").strip()
+    slug_sub_raw= request.form.get("slug_sub", "").strip()
+    show_pe     = 1 if request.form.get("show_pe") else 0
+    show_ar     = 1 if request.form.get("show_ar") else 0
+    activo      = 1 if request.form.get("activo") else 0
+
+    # ── Fix 1: orden seguro ────────────────────────────────────────────────
+    try:
+        orden = int(request.form.get("orden") or 99)
+    except (ValueError, TypeError):
+        orden = 99
+
+    # ── Fix 2: tipo_titulo requerido ───────────────────────────────────────
+    if not tipo_titulo:
+        flash("El título del menú no puede estar vacío.", "danger")
+        return redirect(url_for("admin.categorias"))
+
+    # ── Slug siempre obligatorio (igual que en nueva) ──────────────────────
+    if slug_sub_raw:
+        slug_sub = re.sub(r'[^a-z0-9-]', '-', slug_sub_raw.lower())
+        slug_sub = re.sub(r'-+', '-', slug_sub).strip('-')
+    else:
+        slug_sub = None
+    if not slug_sub:                           # obtener tipo actual para fallback
+        try:
+            _conn_tmp = get_conn()
+            _row_tmp  = _conn_tmp.execute("SELECT tipo FROM categorias WHERE id=?", (cid,)).fetchone()
+            _conn_tmp.close()
+            _t = (_row_tmp["tipo"] if _row_tmp else "tipo").lower()
+            for a, b in [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),('ñ','n')]:
+                _t = _t.replace(a, b)
+            slug_sub = re.sub(r'[^a-z0-9]+', '-', _t).strip('-') or 'tipo'
+        except Exception:
+            slug_sub = 'tipo'
+
+    conn = get_conn()
+    conn.execute(
+        """UPDATE categorias SET tipo_titulo=?, slug_sub=?, show_pe=?, show_ar=?,
+           orden=?, activo=? WHERE id=?""",
+        (tipo_titulo, slug_sub, show_pe, show_ar, orden, activo, cid),
+    )
+    conn.commit()
+    _cache.invalidate("nav_categorias")
+    log_action(current_user().get("name","admin"), "categoria_editar", f"id={cid}")
+    conn.close()
+    flash("Categoría actualizada.", "success")
+    return redirect(url_for("admin.categorias"))
+
+
+@admin_bp.route("/categorias/<int:cid>/toggle", methods=["POST"])
+@admin_required
+def categoria_toggle(cid):
+    conn = get_conn()
+    conn.execute("UPDATE categorias SET activo = 1 - activo WHERE id=?", (cid,))
+    conn.commit()
+    _cache.invalidate("nav_categorias")
+    conn.close()
+    return jsonify({"ok": True})
+
+
+@admin_bp.route("/categorias/<int:cid>/eliminar", methods=["POST"])
+@admin_required
+def categoria_eliminar(cid):
+    conn = get_conn()
+    conn.execute("DELETE FROM categorias WHERE id=?", (cid,))
+    conn.commit()
+    _cache.invalidate("nav_categorias")
+    log_action(current_user().get("name","admin"), "categoria_eliminar", f"id={cid}")
+    conn.close()
+    flash("Categoría eliminada.", "warning")
+    return redirect(url_for("admin.categorias"))

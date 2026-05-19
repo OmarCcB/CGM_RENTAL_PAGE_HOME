@@ -1888,7 +1888,8 @@
     "unidad": "Construcción",
     "imagen": "minicargador-324g/1.webp",
     "activo": 1,
-    "show_arg": 0
+    "show_arg": 0,
+    "show_pe": 1
   },
   {
     "id": 9971,
@@ -1949,5 +1950,21 @@
     "imagen": "excavadora-hidraulica-250-p/1.webp",
     "activo": 1,
     "show_arg": 1
+  },
+  {
+    "id": 24958,
+    "slug": "generador-aksa-apd165c-6-cip-m302108",
+    "nombre": "GENERADOR AKSA APD165C-6 CIP: M302108",
+    "marca": "AKSA",
+    "descripcion": "Estado: Disponible | Año: 2021 | Horómetro: 12,280 | Potencia Standby: 165 kVA | Potencia Prime: 150 kVA | Potencia motor standby: 130 kW / 174 HP | Potencia motor prime: 120 kW / 161 HP | Motor: Cummins | Frecuencia: 60 Hz | Ubicación: Lima - Lurín",
+    "descripcion_texto": "El generador AKSA APD165C-6 es una excelente opción para empresas que buscan un grupo electrógeno diésel en venta, confiable y eficiente para respaldo energético en industria, construcción, minería, agroindustria y campamentos. Cuenta con 165 kVA standby, 150 kVA prime, motor Cummins 6BTAA5.9G2, alternador Stamford y panel de control DSE 6020, brindando potencia estable y continuidad operativa. Su diseño encapsulado, tanque integrado y estructura de fácil mantenimiento convierten a este generador usado en una alternativa inteligente para operaciones que requieren energía segura, control de ruido y una inversión eficiente en equipos.",
+    "ficha_url": null,
+    "tags": "usados",
+    "tipo": "Generador",
+    "unidad": "Energía",
+    "imagen": "generador-aksa-apd165c-6-cip-m302108/1.webp",
+    "activo": 1,
+    "show_pe": 1,
+    "show_arg": 0
   }
 ]
