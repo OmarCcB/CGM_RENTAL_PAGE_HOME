@@ -7,7 +7,11 @@
   <meta name="description" content="{% block meta_desc %}CGM Rental, empresa líder en alquiler de maquinaria pesada en Latinoamérica. Excavadoras, cargadores, tractores y más.{% endblock %}">
   <meta property="og:title" content="{% block og_title %}CGM Rental{% endblock %}">
   <meta property="og:description" content="{% block og_desc %}Alquiler de maquinaria pesada para construcción, minería, agricultura y energía.{% endblock %}">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ request.url_root }}static/images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}">
+  <link rel="canonical" href="{{ request.url }}">
+  {% block json_ld %}{% endblock %}
   <link rel="icon" href="{{ url_for('static', filename='images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-32x32.png') }}" type="image/png" sizes="32x32">
   <link rel="icon" href="{{ url_for('static', filename='images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png') }}" type="image/png" sizes="192x192">
   <link rel="preload" href="{{ url_for('static', filename='fonts/Estricta_Black.otf') }}" as="font" type="font/otf" crossorigin>

@@ -968,24 +968,39 @@ def sitemap():
                 "priority": "0.8"
             })
 
-        # Productos activos individuales
+        # Productos activos individuales (con imagen para Google Image Sitemap)
         productos = conn.execute(
-            f"SELECT slug FROM products WHERE activo=1 {arg_filter}"
+            f"SELECT slug, nombre, imagen FROM products WHERE activo=1 {arg_filter}"
         ).fetchall()
         for row in productos:
-            urls.append({
+            entry = {
                 "loc": f"{BASE}/{country_code}/producto/{row['slug']}/",
-                "priority": "0.7"
-            })
+                "priority": "0.9",
+            }
+            if row["imagen"]:
+                entry["image_loc"] = f"{BASE}/static/products/{row['imagen']}"
+                entry["image_title"] = row["nombre"]
+            urls.append(entry)
         conn.close()
 
-    # Render XML
-    xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>',
-                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    # Render XML con namespace de imágenes
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+        '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+    ]
     for u in urls:
-        xml_lines.append(
-            f'  <url><loc>{u["loc"]}</loc><priority>{u["priority"]}</priority></url>'
-        )
+        parts = ['  <url>',
+                 f'    <loc>{u["loc"]}</loc>',
+                 f'    <priority>{u.get("priority","0.8")}</priority>']
+        if u.get("image_loc"):
+            title_escaped = u["image_title"].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            parts.append('    <image:image>')
+            parts.append(f'      <image:loc>{u["image_loc"]}</image:loc>')
+            parts.append(f'      <image:title>{title_escaped}</image:title>')
+            parts.append('    </image:image>')
+        parts.append('  </url>')
+        xml_lines.extend(parts)
     xml_lines.append("</urlset>")
 
     return "\n".join(xml_lines), 200, {"Content-Type": "application/xml; charset=utf-8"}

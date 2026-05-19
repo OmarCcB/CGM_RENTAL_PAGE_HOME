@@ -2,6 +2,38 @@
 
 {% block title %}{{ product.nombre }} — CGM Rental | {{ country.nombre }}{% endblock %}
 {% block meta_desc %}{{ product.nombre }} de {{ product.marca }} disponible para {{ product.tags }} en {{ country.nombre }}. CGM Rental.{% endblock %}
+{% block og_title %}{{ product.nombre }} — Alquiler | CGM Rental{% endblock %}
+{% block og_desc %}{{ product.descripcion_texto or product.descripcion or (product.nombre ~ ' disponible para alquiler en ' ~ country.nombre ~ '. CGM Rental.') }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}{% if product.imagen %}{{ request.url_root }}static/products/{{ product.imagen }}{% else %}{{ request.url_root }}static/images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png{% endif %}{% endblock %}
+{% block og_url %}{{ request.url }}{% endblock %}
+
+{% block json_ld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": {{ product.nombre | tojson }},
+  "image": {% if product.imagen %}"{{ request.url_root }}static/products/{{ product.imagen }}"{% else %}null{% endif %},
+  "description": {{ (product.descripcion_texto or product.descripcion or (product.nombre ~ ' disponible para alquiler en ' ~ country.nombre)) | tojson }},
+  "brand": {
+    "@type": "Brand",
+    "name": {{ (product.marca or "CGM Rental") | tojson }}
+  },
+  "url": {{ request.url | tojson }},
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "{% if country_code == 'ar' %}ARS{% else %}USD{% endif %}",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+      "@type": "Organization",
+      "name": "CGM Rental",
+      "url": "https://cgmrental.com"
+    }
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 
