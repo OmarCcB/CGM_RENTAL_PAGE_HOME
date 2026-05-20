@@ -163,11 +163,11 @@
       <div class="swiper cgm-nosotros-swiper">
         <div class="swiper-wrapper">
 
-          {% for img in ['nosotros/nosotros.png', 'nosotros/equipo.png', 'nosotros/linea-de-evolucion-ar.png'] %}
+          {% for img in ['nosotros/nosotros.webp', 'nosotros/equipo.webp', 'nosotros/linea-de-evolucion-ar.webp'] %}
           <div class="swiper-slide">
             <div class="cgm-nosotros-slide"
                  style="background-image:url('{{ url_for('static', filename='images/' + img) }}');
-                        {% if img == 'nosotros/linea-de-evolucion-ar.png' %}background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#e7e9e9;{% endif %}">
+                        {% if img == 'nosotros/linea-de-evolucion-ar.webp' %}background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#e7e9e9;{% endif %}">
               <div class="cgm-nosotros-dark"></div>
             </div>
           </div>
@@ -203,7 +203,7 @@
       <a href="#" class="cgm-sig-link"
          onclick="abrirIsoPdf('{{ url_for('static', filename=badge[2]) }}', '{{ badge[1] }}'); return false;">
         <img src="{{ url_for('static', filename='images/' + badge[0]) }}"
-             alt="{{ badge[1] }}" class="cgm-sig-badge">
+             alt="{{ badge[1] }}" class="cgm-sig-badge" width="224" height="196" loading="lazy">
       </a>
       {% endfor %}
     </div>
@@ -232,17 +232,17 @@
       <div class="col-auto fade-up fade-up-delay-1">
         <a href="https://www.ipesa.com.pe/" target="_blank" rel="noopener">
           <img src="{{ url_for('static', filename='images/partners/ipesa.webp') }}"
-               alt="IPESA" class="cgm-ipesa-logo">
+               alt="IPESA" class="cgm-ipesa-logo" width="200" height="88" loading="lazy">
         </a>
       </div>
       <div class="col-auto fade-up fade-up-delay-2">
         <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
-             alt="CGM Rental" class="cgm-ipesa-logo">
+             alt="CGM Rental" class="cgm-ipesa-logo" width="220" height="88" loading="lazy">
       </div>
       <div class="col-auto fade-up fade-up-delay-3">
         <a href="https://www.facebook.com/ItaltracSelvaOficial/" target="_blank" rel="noopener">
           <img src="{{ url_for('static', filename='images/partners/ital-trac.webp') }}"
-               alt="ITAL TRAC" class="cgm-ipesa-logo">
+               alt="ITAL TRAC" class="cgm-ipesa-logo" width="199" height="88" loading="lazy">
         </a>
       </div>
     </div>
