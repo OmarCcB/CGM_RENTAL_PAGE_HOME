@@ -28,6 +28,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}">
 
   <!-- Bootstrap Icons — no crítico para primer paint; carga no-bloqueante -->
+  <link rel="preload" href="{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090"
+        as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"
         as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"></noscript>
