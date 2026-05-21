@@ -24,8 +24,52 @@
 
   <!-- Bootstrap 5.3 — bloquea render (necesario para layout inicial) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <!-- CGM Custom CSS — bloquea render (estilos críticos above-the-fold) -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}">
+
+  <!-- Swiper CSS — bloqueante para evitar flash visual en el hero carrusel -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}">
+
+  <!-- ── Critical CSS inline (above-the-fold: header + hero + search bar) ── -->
+  <style>
+    /* Variables y fonts */
+    :root{--cgm-verde:#02534c;--cgm-lima:#c4e76c;--cgm-blanco:#fff;--cgm-negro:#1a1a1a;--cgm-gris:#ededed;--cgm-gris-txt:#666;--cgm-topbar-h:50px;--cgm-nav-h:80px;--cgm-header-h:130px;--transition:.25s ease}
+    @font-face{font-family:'CGM BOLD';src:url('/static/fonts/Estricta_Black.otf') format('opentype');font-weight:900;font-display:swap}
+    @font-face{font-family:'Estricta';src:url('/static/fonts/Estricta_Bold.otf') format('opentype');font-display:swap}
+    @font-face{font-family:"bootstrap-icons";src:url("{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090") format("woff2");font-display:swap}
+    /* Reset/base */
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:'Estricta',sans-serif;font-size:15px;color:var(--cgm-gris-txt);background:#fff;overflow-x:hidden;padding-top:var(--cgm-header-h);min-height:100vh;display:flex;flex-direction:column}
+    img{max-width:100%;height:auto}
+    a{text-decoration:none;color:inherit}
+    main{flex:1}
+    /* Header (above-the-fold) */
+    .cgm-header{position:fixed;top:0;left:0;right:0;z-index:9999;transition:all var(--transition)}
+    .cgm-topbar{background:var(--cgm-verde);height:var(--cgm-topbar-h);overflow:hidden;display:flex;align-items:center}
+    .cgm-topbar > .container-fluid{height:100%}
+    .cgm-main-nav{background:#fff;height:var(--cgm-nav-h);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    .cgm-main-nav .container-fluid{height:100%}
+    .cgm-nav-link{font-family:'Estricta',sans-serif!important;font-size:20px!important;font-weight:900!important;color:var(--cgm-verde)!important;padding:8px 10px!important;display:inline-block;text-decoration:none!important}
+    /* Hero (LCP element) */
+    .cgm-hero{width:100%;height:0;padding-bottom:38%;max-height:780px;position:relative;overflow:hidden;display:flex;align-items:center}
+    .cgm-hero-bg{position:absolute;inset:0;background-size:105%;background-position:center;background-repeat:no-repeat}
+    .cgm-hero-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+    /* Swiper minimal para que el slide se vea sin esperar el JS */
+    .swiper{position:relative;overflow:hidden;width:100%;height:100%}
+    .swiper-wrapper{position:relative;width:100%;height:100%;display:flex}
+    .swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative}
+    /* Search bar (above-the-fold en home) */
+    .cgm-search-bar{background:var(--cgm-verde);padding:clamp(6px,1.2vw,10px) 0;position:relative}
+    .cgm-search-bar::after{content:'';position:absolute;bottom:-18px;left:0;width:100%;height:18px;background:linear-gradient(to bottom,rgba(197,232,108,.85) 0%,rgba(197,232,108,0) 100%);pointer-events:none}
+    .cgm-search-title{font-family:'Estricta',sans-serif;font-size:clamp(18px,2.8vw,38px);color:#fff;text-align:center;margin-bottom:clamp(6px,.8vw,12px);font-weight:400}
+    .cgm-search-title span{color:var(--cgm-lima);font-weight:700}
+    /* Responsive: ajustar header en móvil */
+    @media (max-width:991px){body{padding-top:60px}.cgm-topbar{display:none}.cgm-main-nav{height:60px}.cgm-hero{padding-bottom:50%}}
+  </style>
+
+  <!-- CGM Custom CSS — carga ASYNC, no bloquea render (critical CSS ya está inline arriba) -->
+  <link rel="preload" href="{{ url_for('static', filename='css/cgm.css') }}"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}"></noscript>
 
   <!-- Bootstrap Icons — no crítico para primer paint; carga no-bloqueante -->
   <link rel="preload" href="{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090"
@@ -34,27 +78,15 @@
         as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"></noscript>
 
-  <!-- Swiper CSS — bloqueante para evitar flash visual en el hero carrusel -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}">
-
-  <!-- font-display:swap para bootstrap-icons (evita texto invisible mientras carga) -->
-  <style>
-  @font-face {
-    font-family: "bootstrap-icons";
-    src: url("{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090") format("woff2");
-    font-display: swap;
-  }
-  </style>
-
   {% block extra_head %}{% endblock %}
 </head>
-<body style="min-height:100vh;display:flex;flex-direction:column;">
+<body>
 
   <!-- ══════════ HEADER ══════════ -->
   {% include "_nav.html" %}
 
   <!-- ══════════ MAIN CONTENT ══════════ -->
-  <main style="flex:1;">
+  <main>
     {% block content %}{% endblock %}
   </main>
 
