@@ -3,31 +3,44 @@
 {% block title %}CGM Rental — Alquiler de Maquinaria Pesada | {{ country.nombre }}{% endblock %}
 {% block meta_desc %}Alquiler de maquinaria pesada para construcción, minería, agricultura y energía en {{ country.nombre }}. Flota moderna con disponibilidad garantizada.{% endblock %}
 
-{# Preload del hero slide 1 — le dice al browser que lo descargue ANTES de parsear el CSS #}
+{# Preload LCP: móvil carga 1200px, desktop 1920px #}
 {% block preload_lcp %}
-{# Desktop (>800px): preload imagen completa; mobile: preload versión ligera #}
 <link rel="preload" as="image" fetchpriority="high"
       href="{{ burl('hero/slide-1') }}"
-      imagesrcset="{{ burl_mobile('hero/slide-1') }} 800w, {{ burl('hero/slide-1') }} 1920w"
-      imagesizes="(max-width: 800px) 800px, 1920px">
+      imagesrcset="{{ burl_mobile('hero/slide-1') }} 1200w, {{ burl('hero/slide-1') }} 1920w"
+      imagesizes="(max-width: 600px) 100vw, 1920px">
 {% endblock %}
 
 {% block content %}
 
 <!-- ══════════ 1. HERO ══════════ -->
 <section class="cgm-hero" aria-label="Hero principal">
-  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
+
+  {# ① Imagen estática — LCP inmediato, visible antes de que Swiper inicialice #}
+  <div id="cgmHeroStatic" style="position:absolute;inset:0;z-index:1;">
+    <img src="{{ burl('hero/slide-1') }}"
+         srcset="{{ burl_mobile('hero/slide-1') }} 1200w, {{ burl('hero/slide-1') }} 1920w"
+         sizes="(max-width: 600px) 100vw, 1920px"
+         alt="CGM Rental — Maquinaria Pesada"
+         class="cgm-hero-img"
+         width="1920" height="730"
+         fetchpriority="high">
+    <div class="cgm-hero-overlay"></div>
+  </div>
+
+  {# ② Swiper — arranca oculto; on:init hace fade-in y oculta la imagen estática #}
+  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;transition:opacity .35s ease;">
     <div class="swiper-wrapper">
       {% for i in range(1, 5) %}
       {% set _slot = 'hero/slide-' + i|string %}
       <div class="swiper-slide">
         <img src="{{ burl(_slot) }}"
-             srcset="{{ burl_mobile(_slot) }} 800w, {{ burl(_slot) }} 1920w"
-             sizes="(max-width: 800px) 800px, 1920px"
+             srcset="{{ burl_mobile(_slot) }} 1200w, {{ burl(_slot) }} 1920w"
+             sizes="(max-width: 600px) 100vw, 1920px"
              alt="CGM Rental — Maquinaria Pesada slide {{ i }}"
              class="cgm-hero-img"
              width="1920" height="730"
-             {% if i == 1 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+             loading="lazy">
         <div class="cgm-hero-overlay"></div>
       </div>
       {% endfor %}
@@ -330,6 +343,8 @@
 {% block extra_scripts %}
 <script>
 // ── Hero Swiper ──────────────────────────────────────────────
+// El swiper arranca con opacity:0 para no bloquear el LCP (la imagen estática
+// #cgmHeroStatic es el LCP real). Al init, hace fade-in y oculta la estática.
 new Swiper('.cgm-hero-swiper', {
   loop: true,
   effect: 'fade',
@@ -339,6 +354,15 @@ new Swiper('.cgm-hero-swiper', {
   navigation: {
     prevEl: '.cgm-hero-swiper .swiper-button-prev',
     nextEl: '.cgm-hero-swiper .swiper-button-next'
+  },
+  on: {
+    init: function () {
+      // Fade-in del carrusel
+      this.el.style.opacity = '1';
+      // Oculta la imagen estática (ya no se necesita)
+      var st = document.getElementById('cgmHeroStatic');
+      if (st) st.style.display = 'none';
+    }
   }
 });
 

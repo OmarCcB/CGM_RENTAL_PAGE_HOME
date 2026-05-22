@@ -756,10 +756,10 @@ def upload():
             mobile_path = stem_b + "_mobile.webp"
             with _PILImage.open(save_path) as _img:
                 _w, _h = _img.size
-                _mh = int(800 * _h / _w) if _w > 800 else _h
-                _mw = min(_w, 800)
+                _mh = int(1200 * _h / _w) if _w > 1200 else _h
+                _mw = min(_w, 1200)
                 _mob = _img.resize((_mw, _mh), _PILImage.LANCZOS)
-                _mob.convert("RGB").save(mobile_path, "WEBP", quality=75)
+                _mob.convert("RGB").save(mobile_path, "WEBP", quality=78)
         except Exception as _e:
             current_app.logger.warning(f"banner mobile generation failed: {_e}")
 
