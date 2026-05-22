@@ -5,8 +5,11 @@
 
 {# Preload del hero slide 1 — le dice al browser que lo descargue ANTES de parsear el CSS #}
 {% block preload_lcp %}
+{# Desktop (>800px): preload imagen completa; mobile: preload versión ligera #}
 <link rel="preload" as="image" fetchpriority="high"
-      href="{{ burl('hero/slide-1') }}">
+      href="{{ burl('hero/slide-1') }}"
+      imagesrcset="{{ burl_mobile('hero/slide-1') }} 800w, {{ burl('hero/slide-1') }} 1920w"
+      imagesizes="(max-width: 800px) 800px, 1920px">
 {% endblock %}
 
 {% block content %}
@@ -16,8 +19,11 @@
   <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
       {% for i in range(1, 5) %}
+      {% set _slot = 'hero/slide-' + i|string %}
       <div class="swiper-slide">
-        <img src="{{ burl('hero/slide-' + i|string) }}"
+        <img src="{{ burl(_slot) }}"
+             srcset="{{ burl_mobile(_slot) }} 800w, {{ burl(_slot) }} 1920w"
+             sizes="(max-width: 800px) 800px, 1920px"
              alt="CGM Rental — Maquinaria Pesada slide {{ i }}"
              class="cgm-hero-img"
              width="1920" height="730"

@@ -738,6 +738,31 @@ def upload():
         save_path = os.path.join(dest_dir, filename)
         f.save(save_path)
 
+    # ── Para banners: convertir a WebP + generar versión mobile (800px) ──────
+    if dest_type == "banner":
+        try:
+            from PIL import Image as _PILImage
+            import os as _os
+            stem_b, ext_b = _os.path.splitext(save_path)
+            # Convertir a WebP si no lo es ya
+            if ext.lower() != "webp":
+                webp_path = stem_b + ".webp"
+                with _PILImage.open(save_path) as _img:
+                    _img.convert("RGB").save(webp_path, "WEBP", quality=80)
+                _os.remove(save_path)
+                save_path = webp_path
+                filename = _os.path.basename(webp_path)
+            # Generar _mobile.webp (800px ancho)
+            mobile_path = stem_b + "_mobile.webp"
+            with _PILImage.open(save_path) as _img:
+                _w, _h = _img.size
+                _mh = int(800 * _h / _w) if _w > 800 else _h
+                _mw = min(_w, 800)
+                _mob = _img.resize((_mw, _mh), _PILImage.LANCZOS)
+                _mob.convert("RGB").save(mobile_path, "WEBP", quality=75)
+        except Exception as _e:
+            current_app.logger.warning(f"banner mobile generation failed: {_e}")
+
     if dest_type == "banner":
         url = f"/static/images/banners/{filename}"
     else:

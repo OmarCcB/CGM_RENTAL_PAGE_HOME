@@ -563,6 +563,18 @@ def inject_globals():
         filename = bans.get(slot, fallback)
         return _uf("static", filename="images/banners/" + filename)
 
+    def burl_mobile(slot, fallback=None):
+        """Devuelve la URL de la versión mobile (800px) del banner para el slot dado.
+        El archivo se llama igual que el principal pero con sufijo _mobile antes de la extensión."""
+        from flask import url_for as _uf
+        import os as _os
+        if fallback is None:
+            fallback = slot + ".webp"
+        filename = bans.get(slot, fallback)
+        stem, ext = _os.path.splitext(filename)
+        mobile_filename = stem + "_mobile" + ext
+        return _uf("static", filename="images/banners/" + mobile_filename)
+
     from datetime import datetime as _dt
     return {
         "cart_count": cart_count(cc),
@@ -570,6 +582,7 @@ def inject_globals():
         "PARTNERS": PARTNERS,
         "banners": bans,
         "burl": burl,
+        "burl_mobile": burl_mobile,
         "now": _dt.now(),
         "nav_cats": get_nav_categorias(),
     }
