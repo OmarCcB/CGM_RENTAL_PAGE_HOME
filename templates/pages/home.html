@@ -16,7 +16,7 @@
 <!-- ══════════ 1. HERO ══════════ -->
 <section class="cgm-hero" aria-label="Hero principal">
 
-  {# ① Imagen estática — LCP inmediato, visible antes de que Swiper inicialice #}
+  {# ① Imagen estática — LCP inmediato, sin overlay (Swiper lo agrega al tomar control) #}
   <div id="cgmHeroStatic" style="position:absolute;inset:0;z-index:1;">
     <img src="{{ burl('hero/slide-1') }}"
          srcset="{{ burl_mobile('hero/slide-1') }} 1200w, {{ burl('hero/slide-1') }} 1920w"
@@ -25,11 +25,10 @@
          class="cgm-hero-img"
          width="1920" height="730"
          fetchpriority="high">
-    <div class="cgm-hero-overlay"></div>
   </div>
 
-  {# ② Swiper — arranca oculto; on:init hace fade-in y oculta la imagen estática #}
-  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;transition:opacity .35s ease;">
+  {# ② Swiper — arranca oculto; on:init lo muestra instantáneo y oculta la imagen estática #}
+  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;">
     <div class="swiper-wrapper">
       {% for i in range(1, 5) %}
       {% set _slot = 'hero/slide-' + i|string %}
@@ -357,11 +356,10 @@ new Swiper('.cgm-hero-swiper', {
   },
   on: {
     init: function () {
-      // Fade-in del carrusel
-      this.el.style.opacity = '1';
-      // Oculta la imagen estática (ya no se necesita)
+      // Switch instantáneo: oculta estática → muestra Swiper (sin transición = sin double overlay)
       var st = document.getElementById('cgmHeroStatic');
       if (st) st.style.display = 'none';
+      this.el.style.opacity = '1';
     }
   }
 });
