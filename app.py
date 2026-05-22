@@ -533,11 +533,19 @@ def _cache_headers(response):
     """
     path = request.path
 
-    # ── Assets estáticos: cache 1 año inmutable ──────────────────────────────
+    # ── Assets estáticos ─────────────────────────────────────────────────────
     if path.startswith('/static/'):
-        # Solo 2xx y si no tiene ya header de cache
         if response.status_code == 200 and 'Cache-Control' not in response.headers:
-            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            # CSS, JS y fuentes: nunca cambian de nombre → 1 año inmutable
+            if any(path.startswith(p) for p in ('/static/css/', '/static/js/', '/static/fonts/')):
+                response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+            # Imágenes subidas por admin (banners, productos): pueden cambiar con mismo nombre
+            # → 5 minutos. Suficiente para CDN pero el admin ve cambios rápido.
+            elif any(path.startswith(p) for p in ('/static/images/banners/', '/static/products/')):
+                response.headers['Cache-Control'] = 'public, max-age=300'
+            # Resto de imágenes estáticas (logos, íconos): 7 días
+            else:
+                response.headers['Cache-Control'] = 'public, max-age=604800'
         return response
 
     # ── Páginas HTML: cache corto en CDN, no en browser ──────────────────────
