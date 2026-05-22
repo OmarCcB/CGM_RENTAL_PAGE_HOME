@@ -838,11 +838,11 @@ def _make_country_filename(global_filename, country_code):
 # Tamaños recomendados por tipo de banner. Se derivan del filename.
 # Cada entrada: (prefijo, "ancho × alto px (descripción del formato)")
 _BANNER_SIZE_RULES = (
-    ("hero/",                          "2700 × 1000 px",  "panorámica 16:6"),
+    ("hero/",                          "1920 × 730 px",   "panorámica ~2.6:1"),
     ("categorias/",                    "1600 × 600 px",   "panorámica 8:3"),
     ("home-cards/leasing-operativo",   "1400 × 580 px",   "rectangular 8:3"),
     ("home-cards/",                    "800 × 700 px",    "casi cuadrada 1.15:1"),
-    ("otros/contacto-banner",          "2700 × 1000 px",  "panorámica 16:6"),
+    ("otros/contacto-banner",          "1920 × 730 px",   "panorámica ~2.6:1"),
     ("otros/contacto-lateral",         "1100 × 800 px",   "rectangular 1.4:1"),
     ("otros/carrito",                  "1400 × 580 px",   "rectangular 8:3"),
     ("otros/portal-bg",                "1100 × 800 px",   "rectangular 1.4:1"),
