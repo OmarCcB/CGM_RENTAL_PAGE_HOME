@@ -131,15 +131,11 @@
           </p>
 
           <form id="sfCartForm"
-                action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D41000002lCbB"
+                action="/api/guardar-cotizacion"
                 method="POST">
 
-            <!-- Campos ocultos Salesforce -->
-            <input type="hidden" name="oid"       value="00D41000002lCbB">
-            <input type="hidden" name="retURL"    value="https://cgmrental.com/{{ country_code }}/gracias/">
-            <input type="hidden" name="last_name" value="Web Lead">
-            <!-- Detalle del carrito (se llena por JS antes de enviar) -->
-            <input type="hidden" name="00NUU000001NC4j" id="sfCarritoDetalle">
+            <input type="hidden" name="pais_sitio"      value="{{ country_code }}">
+            <input type="hidden" name="detalle_equipos" id="sfCarritoDetalle">
 
             <div class="row g-3">
 
@@ -149,13 +145,13 @@
                 <div class="d-flex gap-4">
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox"
-                           id="chkAlquiler" name="00NUU000001AZFF" value="1" checked>
+                           id="chkAlquiler" name="tipo_alquiler" value="1" checked>
                     <label class="form-check-label" for="chkAlquiler" style="font-size:13px;">Alquiler</label>
                   </div>
                   {% if country_code != 'ar' %}
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox"
-                           id="chkCompra" name="00NUU000001AZK5" value="1">
+                           id="chkCompra" name="tipo_compra" value="1">
                     <label class="form-check-label" for="chkCompra" style="font-size:13px;">Compra</label>
                   </div>
                   {% endif %}
@@ -164,7 +160,7 @@
 
               <div class="col-12">
                 <label class="cgm-form-label" for="sfNombre">Nombres y Apellidos *</label>
-                <input type="text" id="sfNombre" name="company" class="cgm-form-control"
+                <input type="text" id="sfNombre" name="nombre_apellido" class="cgm-form-control"
                        placeholder="Juan Pérez" required
                        pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+"
                        title="Solo letras y espacios. Sin números ni símbolos."
@@ -173,7 +169,7 @@
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfRazon">Razón Social *</label>
-                <input type="text" id="sfRazon" name="00NUU000001uW6H" class="cgm-form-control"
+                <input type="text" id="sfRazon" name="razon_social" class="cgm-form-control"
                        placeholder="Mi Empresa S.A.C." required
                        minlength="2" autocomplete="organization">
               </div>
@@ -182,7 +178,7 @@
                 <label class="cgm-form-label" for="sfRuc">
                   {% if country_code == 'ar' %}CUIT / CUIL *{% else %}RUC / DNI *{% endif %}
                 </label>
-                <input type="text" id="sfRuc" name="00N4100000TT12H" class="cgm-form-control"
+                <input type="text" id="sfRuc" name="ruc_dni" class="cgm-form-control"
                        placeholder="{% if country_code == 'ar' %}20-12345678-9{% else %}20123456789{% endif %}"
                        maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}"
                        minlength="{% if country_code == 'ar' %}11{% else %}8{% endif %}"
@@ -193,13 +189,13 @@
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfEmail">Email *</label>
-                <input type="email" id="sfEmail" name="00NUU000001NBa5" class="cgm-form-control"
+                <input type="email" id="sfEmail" name="email" class="cgm-form-control"
                        placeholder="correo@empresa.com" required autocomplete="email">
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfCelular">Celular *</label>
-                <input type="tel" id="sfCelular" name="00NUU000001NBtR" class="cgm-form-control"
+                <input type="tel" id="sfCelular" name="celular" class="cgm-form-control"
                        placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
                        maxlength="15" minlength="7"
                        pattern="[0-9+\-() ]+"
@@ -209,7 +205,7 @@
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfPais">País *</label>
-                <select id="sfPais" name="00NUU000001uSU5" class="cgm-form-control" required>
+                <select id="sfPais" name="pais" class="cgm-form-control" required>
                   <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
                   <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
                   <option value="Otro">Otro</option>
@@ -220,7 +216,7 @@
                 <label class="cgm-form-label" for="sfDepto">
                   {% if country_code == 'ar' %}Provincia *{% else %}Departamento *{% endif %}
                 </label>
-                <select id="sfDepto" name="00NUU000001uSST" class="cgm-form-control" required>
+                <select id="sfDepto" name="departamento" class="cgm-form-control" required>
                   <option value="">Selecciona...</option>
                   {% if country_code == 'ar' %}
                     {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',

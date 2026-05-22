@@ -78,35 +78,21 @@
         <div class="cgm-contacto-card">
           <p class="cgm-contacto-card-title">Déjanos tus datos y pronto un asesor se contactará</p>
 
-          {% set _sf_debug = request.args.get('sfdebug') == '1' %}
-          {% set _sf_debug_email = request.args.get('email', '') %}
           <form id="sfContactForm"
-                action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D41000002lCbB"
+                action="/api/guardar-contacto"
                 method="POST">
 
-            <input type="hidden" name="oid"       value="00D41000002lCbB">
-            <input type="hidden" name="retURL"    value="https://cgmrental.com/{{ country_code }}/gracias/">
-            <input type="hidden" name="last_name" value="Web Lead">
-
-            {# ── MODO DEBUG SALESFORCE — activar con ?sfdebug=1&email=tu@correo.com ── #}
-            {% if _sf_debug and _sf_debug_email %}
-            <input type="hidden" name="debug"      value="1">
-            <input type="hidden" name="debugEmail" value="{{ _sf_debug_email }}">
-            {% endif %}
-
-            {# Fallback de país: hidden que siempre envía el valor del país desde la URL.
-               Se usa como respaldo si el picklist visible no coincide con el valor de Salesforce. #}
-            <input type="hidden" name="country" value="{% if country_code == 'pe' %}Perú{% elif country_code == 'ar' %}Argentina{% endif %}">
+            <input type="hidden" name="pais_sitio" value="{{ country_code }}">
 
             <!-- Tipo: Alquiler / Compra -->
             <div class="cgm-contacto-tipo mb-3">
               <label class="cgm-contacto-check-label">
-                <input type="checkbox" name="00NUU000001AZFF" value="1" id="tipoAlquiler">
+                <input type="checkbox" name="tipo_alquiler" value="1" id="tipoAlquiler">
                 Alquiler:
               </label>
               {% if country_code != 'ar' %}
               <label class="cgm-contacto-check-label ms-4">
-                <input type="checkbox" name="00NUU000001AZK5" value="1" id="tipoCompra">
+                <input type="checkbox" name="tipo_compra" value="1" id="tipoCompra">
                 Compra:
               </label>
               {% endif %}
@@ -116,7 +102,7 @@
               <!-- Nombres y Apellidos -->
               <div class="col-12">
                 <label class="cgm-contacto-field-label">Nombres y Apellidos</label>
-                <input type="text" name="company" class="cgm-contacto-input"
+                <input type="text" name="nombre_apellido" class="cgm-contacto-input"
                        placeholder="Nombres y Apellidos*" required
                        pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+"
                        title="Solo letras y espacios. Sin números ni símbolos."
@@ -125,13 +111,13 @@
               <!-- Razón Social | País -->
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Razón Social:</label>
-                <input type="text" name="00NUU000001uW6H" class="cgm-contacto-input"
+                <input type="text" name="razon_social" class="cgm-contacto-input"
                        placeholder="Razón Social*" required
                        minlength="2" autocomplete="organization">
               </div>
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">País:</label>
-                <select id="sfcPais" name="00NUU000001uSU5" class="cgm-contacto-input" required>
+                <select id="sfcPais" name="pais" class="cgm-contacto-input" required>
                   <option value="">Selecciona un país*</option>
                   <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
                   <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
@@ -143,7 +129,7 @@
                 <label class="cgm-contacto-field-label">
                   {% if country_code == 'ar' %}CUIT / CUIL:{% else %}RUC / DNI:{% endif %}
                 </label>
-                <input type="text" name="00N4100000TT12H" class="cgm-contacto-input"
+                <input type="text" name="ruc_dni" class="cgm-contacto-input"
                        placeholder="{% if country_code == 'ar' %}CUIT / CUIL*{% else %}RUC / DNI*{% endif %}"
                        maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}"
                        minlength="{% if country_code == 'ar' %}11{% else %}8{% endif %}"
@@ -155,7 +141,7 @@
                 <label class="cgm-contacto-field-label" for="sfcDepto">
                   {% if country_code == 'ar' %}Provincia:{% else %}Departamento:{% endif %}
                 </label>
-                <select name="00NUU000001uSST" id="sfcDepto" class="cgm-contacto-input" required>
+                <select name="departamento" id="sfcDepto" class="cgm-contacto-input" required>
                   <option value="">Selecciona {% if country_code == 'ar' %}una provincia{% else %}un departamento{% endif %}*</option>
                   {% if country_code == 'ar' %}
                     {% for d in ['Buenos Aires','Buenos Aires (CABA)','Catamarca','Chaco','Chubut',
@@ -178,18 +164,18 @@
               <!-- Email | Otro País -->
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Email:</label>
-                <input type="email" name="00NUU000001NBa5" class="cgm-contacto-input"
+                <input type="email" name="email" class="cgm-contacto-input"
                        placeholder="Email*" required>
               </div>
               <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Otro País:</label>
-                <input type="text" id="sfcOtroPais" name="00NUU000001uS97" class="cgm-contacto-input"
+                <input type="text" id="sfcOtroPais" name="otro_pais" class="cgm-contacto-input"
                        placeholder="Especifica si elegiste «Otro»">
               </div>
               <!-- Celular -->
               <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
-                <input type="tel" name="00NUU000001NBtR" class="cgm-contacto-input"
+                <input type="tel" name="celular" class="cgm-contacto-input"
                        placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
                        maxlength="15" minlength="7"
                        pattern="[0-9+\-() ]+"
@@ -199,7 +185,7 @@
               <!-- Equipo requerido -->
               <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
-                <input type="text" name="00NUU000001HmSf" class="cgm-contacto-input"
+                <input type="text" name="equipo_requerido" class="cgm-contacto-input"
                        placeholder="Equipo requerido*" required>
               </div>
               <!-- Política -->
@@ -256,7 +242,7 @@
 
   form.addEventListener('submit', function(e) {
     // 1) Nombres y Apellidos: solo letras, mínimo 3 chars
-    var nombre = form.querySelector('[name="company"]');
+    var nombre = form.querySelector('[name="nombre_apellido"]');
     if (nombre && nombre.value.trim().length < 3) {
       e.preventDefault();
       alert('Ingresa tu nombre y apellido completos.');
@@ -269,7 +255,7 @@
     }
 
     // 2) Celular: mínimo 7 dígitos
-    var cel = form.querySelector('[name="00NUU000001NBtR"]');
+    var cel = form.querySelector('[name="celular"]');
     if (cel) {
       var soloDigitos = cel.value.replace(/[^0-9]/g, '');
       if (soloDigitos.length < 7) {
@@ -280,7 +266,7 @@
     }
 
     // 3) RUC / DNI / CUIT: solo dígitos (y guiones para AR)
-    var ruc = form.querySelector('[name="00N4100000TT12H"]');
+    var ruc = form.querySelector('[name="ruc_dni"]');
     if (ruc && ruc.value.trim() !== '') {
       var soloRuc = ruc.value.replace(/[^0-9]/g, '');
       if (soloRuc.length < 8) {

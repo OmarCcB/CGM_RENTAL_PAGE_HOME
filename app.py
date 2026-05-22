@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 from countries import COUNTRIES, DEFAULT_COUNTRY
 from database import get_conn, init_db, init_admin_tables
 import cache as _cache
+import db_sqlserver
 
 load_dotenv()
 
@@ -485,6 +486,12 @@ with app.app_context():
     _admin_conn = get_conn()
     init_admin_tables(_admin_conn)
     _admin_conn.close()
+    # ── SQL Server: crear tablas si no existen ────────────────────────────────
+    if os.getenv("SQL_SERVER"):
+        try:
+            db_sqlserver.init_tables()
+        except Exception as _e:
+            app.logger.warning(f"SQL Server init skipped: {_e}")
 
 # ── Conexión compartida por request (una sola por request vía g) ─────────────
 @app.teardown_appcontext
@@ -1141,6 +1148,77 @@ def api_contacto():
     send_email(f"Nueva cotización de {nombre} — CGM Rental", body)
 
     return jsonify({"ok": True, "message": "Cotización enviada correctamente"})
+
+
+# ── Formulario Contacto → SQL Server (reemplaza Salesforce) ──────────────────
+@app.route("/api/guardar-contacto", methods=["POST"])
+def api_guardar_contacto():
+    data        = request.form
+    pais_sitio  = data.get("pais_sitio", "pe")
+    try:
+        conn   = db_sqlserver.get_conn()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO CGM_Contacto_Leads
+              (pais_sitio, nombre_apellido, razon_social, ruc_dni, pais,
+               departamento, otro_pais, email, celular, equipo_requerido,
+               tipo_alquiler, tipo_compra, ip_cliente)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (
+            pais_sitio,
+            data.get("nombre_apellido", "").strip(),
+            data.get("razon_social",    "").strip(),
+            data.get("ruc_dni",         "").strip(),
+            data.get("pais",            "").strip(),
+            data.get("departamento",    "").strip(),
+            data.get("otro_pais",       "").strip(),
+            data.get("email",           "").strip(),
+            data.get("celular",         "").strip(),
+            data.get("equipo_requerido","").strip(),
+            1 if data.get("tipo_alquiler") else 0,
+            1 if data.get("tipo_compra")   else 0,
+            request.remote_addr,
+        ))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        app.logger.error(f"[guardar-contacto] SQL Server error: {e}")
+    return redirect(f"/{pais_sitio}/gracias/")
+
+
+# ── Formulario Cotización (carrito) → SQL Server (reemplaza Salesforce) ───────
+@app.route("/api/guardar-cotizacion", methods=["POST"])
+def api_guardar_cotizacion():
+    data        = request.form
+    pais_sitio  = data.get("pais_sitio", "pe")
+    try:
+        conn   = db_sqlserver.get_conn()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO CGM_Cotizaciones
+              (pais_sitio, nombre_apellido, razon_social, ruc_dni, email,
+               celular, pais, departamento, tipo_alquiler, tipo_compra,
+               detalle_equipos, ip_cliente)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (
+            pais_sitio,
+            data.get("nombre_apellido", "").strip(),
+            data.get("razon_social",    "").strip(),
+            data.get("ruc_dni",         "").strip(),
+            data.get("email",           "").strip(),
+            data.get("celular",         "").strip(),
+            data.get("pais",            "").strip(),
+            data.get("departamento",    "").strip(),
+            1 if data.get("tipo_alquiler") else 0,
+            1 if data.get("tipo_compra")   else 0,
+            data.get("detalle_equipos",  "").strip(),
+            request.remote_addr,
+        ))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        app.logger.error(f"[guardar-cotizacion] SQL Server error: {e}")
+    return redirect(f"/{pais_sitio}/gracias/")
 
 
 @app.route("/api/cart/add", methods=["POST"])

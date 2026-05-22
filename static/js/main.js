@@ -280,13 +280,13 @@ function cgmToast(msg, type = 'success') {
   }
 
   // Nombres / Apellidos
-  bind('[name="company"], #sfNombre, #denNombre, #denNombreD', RE_NOMBRE);
+  bind('[name="nombre_apellido"], #sfNombre, #denNombre, #denNombreD', RE_NOMBRE);
   // Celular / Teléfono
-  bind('[name="00NUU000001NBtR"], #sfCelular', RE_TEL);
+  bind('[name="celular"], #sfCelular', RE_TEL);
   // RUC / DNI / CUIT
-  bind('[name="00N4100000TT12H"], #sfRuc', RE_RUC);
+  bind('[name="ruc_dni"], #sfRuc', RE_RUC);
   // Razón Social / Empresa
-  bind('[name="00NUU000001uW6H"], #sfRazon, #denEmpresa, #denEmpresaD', RE_EMPRESA);
+  bind('[name="razon_social"], #sfRazon, #denEmpresa, #denEmpresaD', RE_EMPRESA);
 })();
 
 /* ── Formulario proveedor AJAX ───────────────── */

@@ -25,8 +25,10 @@
   <!-- Bootstrap 5.3 — bloquea render (necesario para layout inicial) -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 
-  <!-- Swiper CSS — bloqueante para evitar flash visual en el hero carrusel -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}">
+  <!-- Swiper CSS — carga async (critical CSS inline cubre el layout inicial del hero) -->
+  <link rel="preload" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/swiper-bundle.min.css') }}"></noscript>
 
   <!-- ── Critical CSS inline (above-the-fold: header + hero + search bar) ── -->
   <style>
@@ -34,7 +36,6 @@
     :root{--cgm-verde:#02534c;--cgm-lima:#c4e76c;--cgm-blanco:#fff;--cgm-negro:#1a1a1a;--cgm-gris:#ededed;--cgm-gris-txt:#666;--cgm-topbar-h:50px;--cgm-nav-h:80px;--cgm-header-h:130px;--transition:.25s ease}
     @font-face{font-family:'CGM BOLD';src:url('/static/fonts/Estricta_Black.otf') format('opentype');font-weight:900;font-display:swap}
     @font-face{font-family:'Estricta';src:url('/static/fonts/Estricta_Bold.otf') format('opentype');font-display:swap}
-    @font-face{font-family:"bootstrap-icons";src:url("{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090") format("woff2");font-display:swap}
     /* Reset/base */
     *,*::before,*::after{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -53,10 +54,17 @@
     .cgm-hero{width:100%;height:0;padding-bottom:38%;max-height:780px;position:relative;overflow:hidden;display:flex;align-items:center}
     .cgm-hero-bg{position:absolute;inset:0;background-size:105%;background-position:center;background-repeat:no-repeat}
     .cgm-hero-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45)}
-    /* Swiper minimal para que el slide se vea sin esperar el JS */
-    .swiper{position:relative;overflow:hidden;width:100%;height:100%}
-    .swiper-wrapper{position:relative;width:100%;height:100%;display:flex}
+    /* Swiper minimal — layout + nav inline para no depender de swiper-bundle.min.css */
+    .swiper{position:relative;overflow:hidden;width:100%}
+    .cgm-hero .swiper{height:100%}
+    .swiper-wrapper{position:relative;width:100%;height:100%;display:flex;box-sizing:content-box}
     .swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative}
+    /* Thumbnail swiper — altura fija para evitar colapso antes de cargar swiper-bundle */
+    .cgm-prod-thumb-swiper{height:84px}
+    .swiper-button-prev,.swiper-button-next{position:absolute;top:50%;z-index:10;cursor:pointer;width:44px;height:44px;margin-top:-22px;color:var(--cgm-blanco);display:flex;align-items:center;justify-content:center}
+    .swiper-button-prev{left:10px}.swiper-button-next{right:10px}
+    .swiper-pagination{position:absolute;text-align:center;z-index:10;bottom:16px;width:100%}
+    .cgm-hero .swiper-pagination-bullet{background:rgba(255,255,255,.6);opacity:1;display:inline-block;border-radius:50%;box-sizing:content-box!important;padding:8px!important;background-clip:content-box!important}
     /* Search bar (above-the-fold en home) */
     .cgm-search-bar{background:var(--cgm-verde);padding:clamp(6px,1.2vw,10px) 0;position:relative}
     .cgm-search-bar::after{content:'';position:absolute;bottom:-18px;left:0;width:100%;height:18px;background:linear-gradient(to bottom,rgba(197,232,108,.85) 0%,rgba(197,232,108,0) 100%);pointer-events:none}
@@ -72,7 +80,8 @@
   <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/cgm.css') }}"></noscript>
 
   <!-- Bootstrap Icons — no crítico para primer paint; carga no-bloqueante -->
-  <link rel="preload" href="{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd6703157090"
+  <!-- IMPORTANTE: usar el hash completo exacto del archivo para que el preload y el CSS usen la misma URL (evita doble descarga) -->
+  <link rel="preload" href="{{ url_for('static', filename='fonts/bootstrap-icons.woff2') }}?dd67030699838ea613ee6dbda90effa6"
         as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"
         as="style" onload="this.onload=null;this.rel='stylesheet'">
