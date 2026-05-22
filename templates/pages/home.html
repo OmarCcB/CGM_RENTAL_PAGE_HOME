@@ -17,7 +17,12 @@
     <div class="swiper-wrapper">
       {% for i in range(1, 5) %}
       <div class="swiper-slide">
-        <div class="cgm-hero-bg" style="background-image:url('{{ burl('hero/slide-' + i|string) }}')"></div>
+        <img src="{{ burl('hero/slide-' + i|string) }}"
+             alt="CGM Rental — Maquinaria Pesada slide {{ i }}"
+             class="cgm-hero-img"
+             width="1920" height="730"
+             {% if i == 1 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+        <div class="cgm-hero-overlay"></div>
       </div>
       {% endfor %}
     </div>
