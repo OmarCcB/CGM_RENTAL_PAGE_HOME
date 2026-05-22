@@ -15,20 +15,7 @@
 
 <!-- ══════════ 1. HERO ══════════ -->
 <section class="cgm-hero" aria-label="Hero principal">
-
-  {# ① Imagen estática — LCP inmediato, sin overlay (Swiper lo agrega al tomar control) #}
-  <div id="cgmHeroStatic" style="position:absolute;inset:0;z-index:1;">
-    <img src="{{ burl('hero/slide-1') }}"
-         srcset="{{ burl_mobile('hero/slide-1') }} 1200w, {{ burl('hero/slide-1') }} 1920w"
-         sizes="(max-width: 600px) 100vw, 1920px"
-         alt="CGM Rental — Maquinaria Pesada"
-         class="cgm-hero-img"
-         width="1920" height="730"
-         fetchpriority="high">
-  </div>
-
-  {# ② Swiper — arranca oculto; on:init lo muestra instantáneo y oculta la imagen estática #}
-  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:2;">
+  <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
       {% for i in range(1, 5) %}
       {% set _slot = 'hero/slide-' + i|string %}
@@ -39,7 +26,7 @@
              alt="CGM Rental — Maquinaria Pesada slide {{ i }}"
              class="cgm-hero-img"
              width="1920" height="730"
-             loading="lazy">
+             {% if i == 1 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
         <div class="cgm-hero-overlay"></div>
       </div>
       {% endfor %}
@@ -342,8 +329,6 @@
 {% block extra_scripts %}
 <script>
 // ── Hero Swiper ──────────────────────────────────────────────
-// El swiper arranca con opacity:0 para no bloquear el LCP (la imagen estática
-// #cgmHeroStatic es el LCP real). Al init, hace fade-in y oculta la estática.
 new Swiper('.cgm-hero-swiper', {
   loop: true,
   effect: 'fade',
@@ -353,14 +338,6 @@ new Swiper('.cgm-hero-swiper', {
   navigation: {
     prevEl: '.cgm-hero-swiper .swiper-button-prev',
     nextEl: '.cgm-hero-swiper .swiper-button-next'
-  },
-  on: {
-    init: function () {
-      // Switch instantáneo: oculta estática → muestra Swiper (sin transición = sin double overlay)
-      var st = document.getElementById('cgmHeroStatic');
-      if (st) st.style.display = 'none';
-      this.el.style.opacity = '1';
-    }
   }
 });
 

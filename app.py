@@ -520,6 +520,38 @@ def _log_timing(response):
             print(f"[TIMING] {request.method} {request.path}  →  {elapsed:.0f} ms", flush=True)
     return response
 
+
+@app.after_request
+def _cache_headers(response):
+    """Añade headers de cache HTTP para mejorar TTFB en visitas repetidas.
+
+    - Archivos estáticos (CSS/JS/imágenes/fuentes): 1 año inmutable en browser.
+    - Páginas HTML GET exitosas: 30s en CDN Cloudflare (s-maxage), privado en browser.
+      Esto permite que Cloudflare sirva desde su edge (TTFB ~50ms) en lugar de
+      llegar al servidor Flask en Lima (~400ms+).
+    - Rutas de admin, carrito y POST: sin cache.
+    """
+    path = request.path
+
+    # ── Assets estáticos: cache 1 año inmutable ──────────────────────────────
+    if path.startswith('/static/'):
+        # Solo 2xx y si no tiene ya header de cache
+        if response.status_code == 200 and 'Cache-Control' not in response.headers:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        return response
+
+    # ── Páginas HTML: cache corto en CDN, no en browser ──────────────────────
+    if (request.method == 'GET'
+            and response.status_code == 200
+            and response.content_type.startswith('text/html')
+            and '/admin' not in path
+            and '/carrito' not in path
+            and 'Cache-Control' not in response.headers):
+        # s-maxage: Cloudflare cachea 30s; max-age=0: browser siempre revalida
+        response.headers['Cache-Control'] = 'public, s-maxage=30, max-age=0'
+
+    return response
+
 # ── Categorías dinámicas (desde BD) ──────────────────────────────────────────
 def get_nav_categorias():
     """Devuelve dict 'tag|unidad_slug' → [lista de filas] para el nav.
