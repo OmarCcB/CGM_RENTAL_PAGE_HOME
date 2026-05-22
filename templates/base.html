@@ -59,6 +59,10 @@
     .cgm-hero .swiper{height:100%}
     .swiper-wrapper{position:relative;width:100%;height:100%;display:flex;box-sizing:content-box}
     .swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative}
+    /* Hero fade: ocultar slides 2-4 antes de que Swiper inicialice — slide-1 visible
+       inmediatamente para LCP. Despues del init, Swiper maneja opacity via inline JS styles. */
+    .cgm-hero-swiper .swiper-slide{opacity:0}
+    .cgm-hero-swiper .swiper-slide:first-child{opacity:1}
     /* Thumbnail swiper — altura fija para evitar colapso antes de cargar swiper-bundle */
     .cgm-prod-thumb-swiper{height:84px}
     .swiper-button-prev,.swiper-button-next{position:absolute;top:50%;z-index:10;cursor:pointer;width:44px;height:44px;margin-top:-22px;color:var(--cgm-blanco);display:flex;align-items:center;justify-content:center}
