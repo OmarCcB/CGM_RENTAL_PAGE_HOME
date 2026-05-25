@@ -2,8 +2,14 @@
    CGM RENTAL — cart.js
    ═══════════════════════════════════════════════ */
 
-/* País activo (inyectado desde base.html) */
+/* País activo */
 function _cc() { return window.CGM_COUNTRY || 'pe'; }
+
+/* CSRF token helper */
+function _csrfToken() {
+  var m = document.querySelector('meta[name="csrf-token"]');
+  return m ? m.getAttribute('content') : '';
+}
 
 /* Actualizar badges (header + flotante) */
 function updateCartBadge(count) {
@@ -60,7 +66,7 @@ async function cartChangeQty(slug, delta) {
 
   await fetch('/api/cart/qty', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
     body: JSON.stringify({ slug, qty: next, country: _cc() })
   });
   if (qtyEl) qtyEl.textContent = next;
@@ -71,7 +77,7 @@ async function cartChangeQty(slug, delta) {
 
 /* Eliminar item desde el modal */
 async function cartRemoveItem(slug) {
-  const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE' });
+  const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE', headers: { 'X-CSRFToken': _csrfToken() } });
   const json = await resp.json();
   updateCartBadge(json.count);
   const el = document.getElementById(`citem-${slug}`);
@@ -86,12 +92,12 @@ async function cartRemoveItem(slug) {
 }
 
 /* Agregar al carrito */
-async function addToCart(slug, nombre, imagen = '', tipo = '') {
+async function addToCart(slug, nombre, imagen = '', tipo = '', tag = '') {
   try {
     const resp = await fetch('/api/cart/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, nombre, imagen, tipo, country: _cc() })
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
+      body: JSON.stringify({ slug, nombre, imagen, tipo, tag, country: _cc() })
     });
     const json = await resp.json();
     if (json.ok) {
@@ -108,7 +114,7 @@ async function addToCart(slug, nombre, imagen = '', tipo = '') {
 /* Cotizar: agrega al carrito y redirige a la página del carrito.
    Si el carrito estaba vacío antes del click → muestra formulario simple (?simple=1).
    Si ya tenía equipos → redirige normalmente con el stepper. */
-async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
+async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl, tag = '') {
   try {
     /* 1. Ver si el carrito estaba vacío ANTES de agregar */
     let wasEmpty = true;
@@ -121,8 +127,8 @@ async function cotizarProduct(slug, nombre, imagen, tipo, cartUrl) {
     /* 2. Agregar el equipo */
     await fetch('/api/cart/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, nombre, imagen, tipo, country: _cc() })
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
+      body: JSON.stringify({ slug, nombre, imagen, tipo, tag, country: _cc() })
     });
 
     /* 3. Redirigir según estado previo */
@@ -146,7 +152,7 @@ function closeCotizador() {
 /* Eliminar del carrito (página carrito clásica) */
 async function removeFromCart(slug) {
   try {
-    const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE' });
+    const resp = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}&country=${_cc()}`, { method: 'DELETE', headers: { 'X-CSRFToken': _csrfToken() } });
     const json = await resp.json();
     if (json.ok) {
       updateCartBadge(json.count);
@@ -164,7 +170,7 @@ async function removeFromCart(slug) {
 
 /* Limpiar carrito completo */
 async function clearCart() {
-  try { await fetch(`/api/cart?country=${_cc()}`, { method: 'DELETE' }); location.reload(); }
+  try { await fetch(`/api/cart?country=${_cc()}`, { method: 'DELETE', headers: { 'X-CSRFToken': _csrfToken() } }); location.reload(); }
   catch (err) { console.error(err); }
 }
 

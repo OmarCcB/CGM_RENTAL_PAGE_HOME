@@ -2,8 +2,7 @@
   <div style="width:100%;padding:1.5rem 1rem;">
 
     {% if country_code == 'ar' %}
-    <!-- ══ ARGENTINA ══ -->
-    <div class="cgm-footer-arg">
+       <div class="cgm-footer-arg">
 
       <div class="cgm-footer-arg__logo">
         <a href="/{{ country_code }}/">
@@ -70,11 +69,9 @@
     </div>
 
     {% else %}
-    <!-- ══ PERÚ ══ -->
-    <div class="cgm-footer-pe">
+       <div class="cgm-footer-pe">
 
-      <!-- Aside: Logo + Botones -->
-      <aside class="cgm-footer-pe__aside">
+           <aside class="cgm-footer-pe__aside">
         <a href="/{{ country_code }}/" class="cgm-footer-pe__logo">
           <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
                alt="CGM Rental">
@@ -111,8 +108,7 @@
         </div>
       </aside>
 
-      <!-- Main: Contáctanos + Sucursales -->
-      <div class="cgm-footer-pe__main">
+           <div class="cgm-footer-pe__main">
 
         <section class="cgm-footer-pe__contact">
           <h5 class="cgm-footer-title">CONTÁCTANOS</h5>
@@ -141,8 +137,7 @@
         <section class="cgm-footer-pe__sucursales">
           <div class="cgm-footer-locs-wrap">
 
-            <!-- ── columna SUCURSALES ── -->
-            <div class="cgm-footer-locs-col">
+                       <div class="cgm-footer-locs-col">
               <h5 class="cgm-footer-title cgm-footer-title--suc">SUCURSALES</h5>
               <div class="cgm-footer-pins cgm-footer-pins--3col">
                 {% for s in country.sucursales if s.tipo == 'sucursal' %}
@@ -160,8 +155,7 @@
               </div>
             </div>
 
-            <!-- ── columna PUNTOS DE ATENCIÓN ── -->
-            {% set puntos = country.sucursales | selectattr('tipo', 'equalto', 'atencion') | list %}
+                       {% set puntos = country.sucursales | selectattr('tipo', 'equalto', 'atencion') | list %}
             {% if puntos %}
             <div class="cgm-footer-locs-col cgm-footer-locs-col--atencion">
               <h5 class="cgm-footer-title cgm-footer-title--aten">PUNTOS DE ATENCIÓN</h5>
@@ -181,15 +175,14 @@
           </div>
         </section>
 
-      </div><!-- /main -->
+      </div>
 
     </div>
     {% endif %}
 
   </div>
 
-  <!-- Franja inferior -->
-  <div class="cgm-footer-bottom">
+   <div class="cgm-footer-bottom">
     <div class="container-fluid px-4">
       <div class="d-flex align-items-center justify-content-center py-3">
         <span class="cgm-footer-copy">© CGM Rental | Todos los derechos reservados</span>

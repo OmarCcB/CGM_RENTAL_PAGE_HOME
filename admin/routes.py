@@ -100,7 +100,10 @@ def auth_callback():
         flash("Tu correo no tiene permisos para acceder al panel.", "danger")
         return redirect(url_for("admin.login"))
 
+    # A01 — Prevención de session fixation: regenerar sesión tras login
+    session.clear()
     session["admin_user"] = user
+    session.permanent = True
     log_action(user.get("email", "?"), "login", "Inicio de sesión exitoso")
     flash(f"Bienvenido, {user['name']}", "success")
     return redirect(url_for("admin.dashboard"))

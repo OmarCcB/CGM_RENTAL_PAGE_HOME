@@ -1,11 +1,9 @@
 <footer class="cgm-mini-footer">
 
-  <!-- ── Banda superior: botones + redes ── -->
-  <div class="cgm-mini-footer-top">
+   <div class="cgm-mini-footer-top">
     <div class="cgm-mini-footer-inner">
 
-      <!-- Botones (imágenes) -->
-      <div class="cgm-mini-footer-btns">
+           <div class="cgm-mini-footer-btns">
         <a href="{{ country.bolsa_trabajo_url }}" target="_blank" rel="noopener" class="cgm-mini-footer-btn-link">
           <img src="{{ url_for('static', filename='images/footer/btn-bolsa-trabajo.webp') }}"
                alt="Bolsa de Trabajo" width="160" height="40" loading="lazy">
@@ -36,11 +34,9 @@
         {% endif %}
       </div>
 
-      <!-- Separador vertical -->
-      <div class="cgm-mini-footer-sep"></div>
+           <div class="cgm-mini-footer-sep"></div>
 
-      <!-- Redes sociales -->
-      <div class="cgm-mini-footer-social">
+           <div class="cgm-mini-footer-social">
         <a href="{{ country.facebook }}" target="_blank" rel="noopener" aria-label="Facebook">
           <i class="bi bi-facebook"></i>
         </a>
@@ -50,6 +46,9 @@
         <a href="{{ country.linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">
           <i class="bi bi-linkedin"></i>
         </a>
+        <a href="https://www.tiktok.com/@cgm_rental" target="_blank" rel="noopener" aria-label="TikTok">
+          <i class="bi bi-tiktok"></i>
+        </a>
         <a href="{{ country.youtube }}" target="_blank" rel="noopener" aria-label="YouTube">
           <i class="bi bi-youtube"></i>
         </a>
@@ -58,8 +57,7 @@
     </div>
   </div>
 
-  <!-- ── Banda inferior: nav links + copyright ── -->
-  <div class="cgm-mini-footer-nav">
+   <div class="cgm-mini-footer-nav">
     <div class="cgm-mini-footer-inner">
       <nav class="cgm-mini-footer-links">
         <a href="/{{ country_code }}/nosotros/">NOSOTROS</a>
@@ -78,11 +76,9 @@
         <span class="cgm-fnav-sep" aria-hidden="true">|</span>
         <a href="/{{ country_code }}/contacto/">CONTACTO</a>
       </nav>
-      <!-- Desktop: copyright dentro del flex junto a los links -->
-      <span class="cgm-mini-footer-copy cgm-copy-desktop">© CGM Rental | Todos los derechos reservados</span>
+           <span class="cgm-mini-footer-copy cgm-copy-desktop">© CGM Rental | Todos los derechos reservados</span>
     </div>
-    <!-- Mobile: copyright debajo del espacio reservado para los botones flotantes -->
-    <div class="cgm-mini-footer-copy-mobile">
+       <div class="cgm-mini-footer-copy-mobile">
       <span class="cgm-mini-footer-copy">© CGM Rental | Todos los derechos reservados</span>
     </div>
   </div>

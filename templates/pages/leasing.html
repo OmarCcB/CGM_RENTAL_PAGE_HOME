@@ -5,23 +5,22 @@
 
 {% block extra_head %}<style>
 
-/* ── SECCIÓN 1: QUÉ ES ── */
 .cgm-leasing-que-es {
   background: #fff;
-  padding: 70px 0;  /* ← espacio arriba y abajo de la sección */
+  padding: 70px 0;
 }
 .cgm-que-es-img-wrap {
   position: relative;
   border-radius: 4px;
   overflow: hidden;
   height: 100%;
-  min-height: 420px; /* ← ALTURA mínima del bloque imagen */
+  min-height: 420px;
 }
 .cgm-que-es-img-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;    /* cover=llena el espacio, contain=muestra completa */
-  object-position: center; /* ← posición de la imagen dentro del recorte */
+  object-fit: cover;
+  object-position: center;
   display: block;
 }
 .cgm-que-es-label {
@@ -49,7 +48,6 @@
   margin: 0;
 }
 
-/* ── SECCIÓN 2: CARACTERÍSTICAS ── */
 .cgm-leasing-caract {
   background: var(--cgm-verde);
   padding: 80px 0;
@@ -94,27 +92,21 @@
   padding: 0 6px;
 }
 
-/* ── SECCIÓN 3: VENTAJAS ── */
 .cgm-leasing-ventajas {
   background: #fff;
   padding: 80px 0;
 }
 
-/*
-  TIMELINE:
-  - Los laterales (Flexibilidad y Gestión): ícono arriba → línea → caja ABAJO
-  - El central (Conservación): caja ARRIBA → línea → ícono abajo
-*/
 .cgm-ventajas-timeline {
   position: relative;
   display: flex;
-  align-items: center;   /* centra verticalmente respecto a la línea */
+  align-items: center;
   justify-content: center;
   gap: 0;
    40px;
-  padding: 160px 0;      /* espacio para que quepan cajas arriba y abajo */
+  padding: 160px 0;
 }
-/* línea horizontal */
+
 .cgm-ventajas-timeline::before {
   content: '';
   position: absolute;
@@ -126,7 +118,6 @@
   z-index: 0;
 }
 
-/* columna base */
 .cgm-ventaja-col {
   flex: 1;
   display: flex;
@@ -137,7 +128,6 @@
   padding: 0 16px;
 }
 
-/* ícono círculo */
 .cgm-ventaja-icon-circle {
   width: 72px;
   height: 72px;
@@ -147,7 +137,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  position: absolute;  /* posicionado sobre la línea */
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -159,7 +149,6 @@
   opacity: .5;
 }
 
-/* caja de texto laterales → DEBAJO de la línea */
 .cgm-ventaja-box {
   background: #f0f0f0;
   border-radius: 4px;
@@ -167,9 +156,9 @@
   text-align: center;
   width: 100%;
   position: absolute;
-  top: calc(50% + 52px);  /* 52px = radio del círculo + gap */
+  top: calc(50% + 52px);
 }
-/* triángulo apuntando ARRIBA (hacia la línea) */
+
 .cgm-ventaja-box::before {
   content: '';
   position: absolute;
@@ -181,14 +170,13 @@
   border-bottom: 10px solid #f0f0f0;
 }
 
-/* caja del CENTRO → ARRIBA de la línea */
 .cgm-ventaja-col.active .cgm-ventaja-box {
   background: #eaeee8;
   border: 1px solid #c8d8c0;
   top: auto;
-  bottom: calc(50% + 52px); /* encima de la línea */
+  bottom: calc(50% + 52px);
 }
-/* triángulo apuntando ABAJO (hacia la línea) */
+
 .cgm-ventaja-col.active .cgm-ventaja-box::before {
   top: auto;
   bottom: -10px;
@@ -212,7 +200,6 @@
   margin: 0;
 }
 
-/* Sección casos con fondo imagen dividida en 2 */
 .cgm-casos-uso {
   position: relative;
   overflow: hidden;
@@ -224,12 +211,12 @@
   background-position: center;
   z-index: 0;
 }
-/* Mitad superior: overlay verde con título — ocupa 50% de la imagen */
+
 .cgm-casos-top {
   position: relative;
   z-index: 2;
   background: rgba(2,83,76,.82);
-  min-height: 300px;         /* ← misma altura que la parte de abajo */
+  min-height: 300px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -244,12 +231,11 @@
   margin: 0 0 14px;
   line-height: 1.25;
 }
-/* Mitad inferior: fondo blanco semitransparente — misma altura */
 .cgm-casos-bottom {
   position: relative;
   z-index: 2;
   background: rgba(255,255,255,.88);
-  min-height: 300px;         /* ← igual que la parte de arriba */
+  min-height: 300px;
   padding: 50px 20px 60px;
 }
 .cgm-uso-card {
@@ -292,9 +278,6 @@
 
 {% block content %}
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 0 — HERO BANNER
-══════════════════════════════════════════ -->
 <section class="cgm-page-hero" style="height:500px;">
   <div class="cgm-page-hero-bg"
        style="background-image:url('{{ url_for('static', filename='images/leasing_operativo/img_003_9202e3d7ba7d.svg') }}');
@@ -303,9 +286,6 @@
               background-color: #0a1e1c;"></div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 1 — ¿QUÉ ES EL LEASING OPERATIVO?
-══════════════════════════════════════════ -->
 <section class="cgm-leasing-que-es">
   <div class="container">
     <div class="text-center mb-5 fade-up">
@@ -314,16 +294,14 @@
     </div>
     <div class="row g-0 align-items-stretch justify-content-center fade-up">
 
-      <!-- Imagen izquierda con label -->
-      <div class="col-12 col-lg-5">
+           <div class="col-12 col-lg-5">
         <div class="cgm-que-es-img-wrap">
           <img src="{{ url_for('static', filename='images/leasing_operativo/img_004_b90268271cb3.svg') }}"
                alt="Leasing Operativo CGM Rental">
         </div>
       </div>
 
-      <!-- Texto derecha gris -->
-      <div class="col-12 col-lg-5">
+           <div class="col-12 col-lg-5">
         <div class="cgm-que-es-text">
           <p>
             El leasing operativo, también conocido como arrendamiento operativo, es un contrato mediante el
@@ -338,9 +316,6 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 2 — CARACTERÍSTICAS
-══════════════════════════════════════════ -->
 <section class="cgm-leasing-caract">
   <div class="container">
     <div class="text-center mb-5 fade-up">
@@ -392,9 +367,6 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 3 — VENTAJAS (TIMELINE 3 CARDS)
-══════════════════════════════════════════ -->
 <section class="cgm-leasing-ventajas">
   <div class="container">
 
@@ -408,11 +380,9 @@
 
     <div class="cgm-ventajas-timeline fade-up">
 
-      <!-- Flexibilidad -->
-      <div class="cgm-ventaja-col">
+           <div class="cgm-ventaja-col">
         <div class="cgm-ventaja-icon-circle">
-          <!-- ícono lupa / ajuste -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round">
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
           </svg>
         </div>
@@ -422,11 +392,9 @@
         </div>
       </div>
 
-      <!-- Conservación de Capital (activo / centro) -->
-      <div class="cgm-ventaja-col active">
+           <div class="cgm-ventaja-col active">
         <div class="cgm-ventaja-icon-circle">
-          <!-- ícono capas / stack -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="12 2 2 7 12 12 22 7 12 2"/>
             <polyline points="2 17 12 22 22 17"/>
             <polyline points="2 12 12 17 22 12"/>
@@ -438,11 +406,9 @@
         </div>
       </div>
 
-      <!-- Gestión del Activo -->
-      <div class="cgm-ventaja-col">
+           <div class="cgm-ventaja-col">
         <div class="cgm-ventaja-icon-circle">
-          <!-- ícono maletín / gestión -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <rect x="2" y="7" width="20" height="14" rx="2"/>
             <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
           </svg>
@@ -457,16 +423,11 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIÓN 4 — CASOS DE USO
-══════════════════════════════════════════ -->
 <section class="cgm-casos-uso">
-  <!-- Fondo imagen -->
-  <div class="cgm-casos-bg-img"
+   <div class="cgm-casos-bg-img"
        style="background-image:url('{{ url_for('static', filename='images/leasing_operativo/Por-que-elegir-Leasing-Operativo.png') }}')"></div>
 
-  <!-- Mitad superior: overlay verde + título -->
-  <div class="cgm-casos-top">
+   <div class="cgm-casos-top">
     <h2>
       Casos en los que una Empresa podría<br>
       Optar por el Leasing Operativo
@@ -474,8 +435,7 @@
     <div class="cgm-title-line mx-auto" style="background:var(--cgm-lima);opacity:.7;"></div>
   </div>
 
-  <!-- Mitad inferior: carousel + botón -->
-  <div class="cgm-casos-bottom">
+   <div class="cgm-casos-bottom">
     <div class="container">
       <div class="swiper cgm-uso-swiper pb-4 fade-up">
         <div class="swiper-wrapper align-items-stretch">
@@ -520,8 +480,7 @@
         <div class="swiper-pagination mt-3"></div>
       </div>
 
-      <!-- Botón CTA dentro de la sección -->
-      <div class="text-center mt-4 fade-up">
+           <div class="text-center mt-4 fade-up">
         <a href="/{{ country_code }}/contacto/?tipo=Leasing"
            class="cgm-btn cgm-btn-lima cgm-btn-lg">
           {% if country_code == 'ar' %}SOLICITÁ TU COTIZACIÓN{% else %}SOLICITA TU COTIZACIÓN{% endif %}

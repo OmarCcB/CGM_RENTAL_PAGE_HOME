@@ -1,7 +1,12 @@
 /* ═══════════════════════════════════════════════
    CGM RENTAL — main.js
-   Vanilla JS — sin jQuery
    ═══════════════════════════════════════════════ */
+
+/* ── CSRF token helper ─────────────────────────── */
+function _csrfToken() {
+  var m = document.querySelector('meta[name="csrf-token"]');
+  return m ? m.getAttribute('content') : '';
+}
 
 /* ── Header scroll compacto ─────────────────── */
 (function () {
@@ -199,7 +204,7 @@ function cgmToast(msg, type = 'success') {
     try {
       const resp = await fetch('/api/contacto', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
         body: JSON.stringify(data)
       });
       const json = await resp.json();
@@ -232,7 +237,7 @@ function cgmToast(msg, type = 'success') {
     try {
       const resp = await fetch('/api/denuncia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
         body: JSON.stringify(data)
       });
       const json = await resp.json();
@@ -303,7 +308,7 @@ function cgmToast(msg, type = 'success') {
     try {
       const resp = await fetch('/api/proveedor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfToken() },
         body: JSON.stringify(data)
       });
       const json = await resp.json();

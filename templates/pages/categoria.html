@@ -5,7 +5,6 @@
 
 {% block content %}
 
-<!-- ══════════ BANNER CATEGORÍA ══════════ -->
 <section class="cgm-page-hero">
   {% if cat_path == 'alquiler' %}
     {% set _cat_slot = 'categorias/alquiler/general' %}
@@ -25,16 +24,13 @@
   </div>
 </section>
 
-<!-- ══════════ CUERPO: SIDEBAR + PRODUCTOS ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
     <div class="row g-4">
 
-      <!-- ══ SIDEBAR FILTROS ══ -->
-      <div class="col-12 col-lg-3">
+           <div class="col-12 col-lg-3">
 
-        <!-- Toggle móvil -->
-        <button class="cgm-sidebar-toggle d-lg-none mb-2" id="sidebarToggleBtn" type="button">
+               <button class="cgm-sidebar-toggle d-lg-none mb-2" id="sidebarToggleBtn" type="button">
           <span><i class="bi bi-funnel-fill me-2"></i>FILTROS</span>
           <span class="sidebar-arrow" style="transition:transform .3s;">▼</span>
         </button>
@@ -42,8 +38,7 @@
         <div id="sidebarCollapse" class="d-none d-lg-block">
           <div class="cgm-filter-box">
 
-            <!-- ── UNIDADES ── -->
-            <div class="cgm-filter-section">
+                       <div class="cgm-filter-section">
               <div class="cgm-filter-header">Unidades</div>
               {% for u_name, u_slug in UNIDAD_NAV %}
                 {% if u_name in unidad_counts %}
@@ -56,8 +51,7 @@
               {% endfor %}
             </div>
 
-            <!-- ── ETIQUETAS ── -->
-            <div class="cgm-filter-section">
+                       <div class="cgm-filter-section">
               <div class="cgm-filter-header">Etiquetas</div>
               {% if tags == 'alquiler' %}
                 <a href="/{{ country_code }}/categoria-producto/{{ cat_path }}/"
@@ -88,8 +82,7 @@
               {% endif %}
             </div>
 
-            <!-- ── MAQUINARIA ── -->
-            {% if tipo_counts %}
+                       {% if tipo_counts %}
             <div class="cgm-filter-section">
               <div class="cgm-filter-header">Maquinaria</div>
               {% for t_name, t_cnt in tipo_counts.items() %}
@@ -117,8 +110,7 @@
         </div>
       </div>
 
-      <!-- ══ PRODUCTOS GRID ══ -->
-      <div class="col-12 col-lg-9">
+           <div class="col-12 col-lg-9">
 
         {% if products %}
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -182,13 +174,11 @@
           {% endfor %}
         </div>
 
-        <!-- ══ PAGINACIÓN ══ -->
-        {% if total_pages > 1 %}
+               {% if total_pages > 1 %}
         {% set q_tipo = request.args.get('tipo', '') %}
         {% set q_extra = ('&tipo=' + q_tipo) if q_tipo else '' %}
         <div class="d-flex justify-content-between align-items-center mt-5 flex-wrap gap-3">
-          <!-- Números + Siguiente -->
-          <div class="d-flex align-items-center gap-1">
+                   <div class="d-flex align-items-center gap-1">
             {% if page > 1 %}
             <a href="?page={{ page - 1 }}{{ q_extra }}"
                style="display:inline-flex;align-items:center;padding:6px 12px;border:1px solid #ddd;
@@ -220,8 +210,7 @@
             {% endif %}
           </div>
 
-          <!-- Showing X-Y of Z results -->
-          <span style="font-size:13px;color:#999;">
+                   <span style="font-size:13px;color:#999;">
             {% set desde = (page - 1) * 12 + 1 %}
             {% set hasta = page * 12 if page * 12 < total else total %}
             Showing {{ desde }}–{{ hasta }} of {{ total }} results
@@ -245,7 +234,6 @@
   </div>
 </section>
 
-<!-- ══════════ NUESTRAS DIVISIONES ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-4">
@@ -313,7 +301,7 @@
 
 {% block extra_scripts %}
 <script>
-// Toggle sidebar móvil
+
 (function(){
   const btn = document.getElementById('sidebarToggleBtn');
   const col = document.getElementById('sidebarCollapse');
@@ -325,7 +313,6 @@
   });
 })();
 
-// Mostrar más tipos en Maquinaria
 function toggleMasTipos(btn) {
   const extras = document.querySelectorAll('.cgm-tipo-extra');
   const expanded = btn.dataset.expanded === '1';

@@ -1,10 +1,8 @@
 <header class="cgm-header" id="cgmHeader">
-  <!-- Topbar -->
-  <div class="cgm-topbar">
+   <div class="cgm-topbar">
     <div class="container-fluid px-4">
       <div class="d-flex align-items-center justify-content-between h-100">
-        <!-- Izquierda: teléfono + email -->
-        <div class="d-flex align-items-center gap-3">
+               <div class="d-flex align-items-center gap-3">
           <a href="tel:{{ country.telefono|replace(' ','') }}" class="cgm-topbar-link">
             <i class="bi bi-whatsapp me-1"></i>{{ country.telefono }}
           </a>
@@ -14,8 +12,7 @@
           </a>
         </div>
 
-        <!-- Centro: Portal Proveedores (solo Perú) -->
-        <div class="d-flex align-items-center h-100 cgm-topbar-center-fix">
+               <div class="d-none d-xl-flex align-items-center h-100 cgm-topbar-center-fix">
           {% if country.show_portal_proveedores %}
           <a href="/{{ country_code }}/portalproveedores/">
             <img src="{{ url_for('static', filename='images/btn-portal-proveedores.webp') }}"
@@ -24,8 +21,7 @@
           {% endif %}
         </div>
 
-        <!-- Derecha: redes sociales -->
-        <div class="d-flex align-items-center gap-2">
+               <div class="d-flex align-items-center gap-2">
           <a href="{{ country.facebook }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="Facebook">
             <i class="bi bi-facebook"></i>
           </a>
@@ -35,6 +31,9 @@
           <a href="{{ country.linkedin }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="LinkedIn">
             <i class="bi bi-linkedin"></i>
           </a>
+          <a href="https://www.tiktok.com/@cgm_rental" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="TikTok">
+            <i class="bi bi-tiktok"></i>
+          </a>
           <a href="{{ country.youtube }}" target="_blank" rel="noopener" class="cgm-topbar-social" aria-label="YouTube">
             <i class="bi bi-youtube"></i>
           </a>
@@ -43,17 +42,14 @@
     </div>
   </div>
 
-  <!-- Barra principal -->
-  <nav class="cgm-main-nav navbar navbar-expand-lg">
+   <nav class="cgm-main-nav navbar navbar-expand-lg">
     <div class="container-fluid px-5" style="max-width:1400px;margin:0 auto;width:100%;">
-      <!-- Logo -->
-      <a class="navbar-brand cgm-logo" href="/{{ country_code }}/">
+           <a class="navbar-brand cgm-logo" href="/{{ country_code }}/">
         <img src="{{ url_for('static', filename='images/partners/cgm-logo.webp') }}"
              alt="CGM Rental" width="180" height="60" style="width:auto;max-height:60px">
       </a>
 
-      <!-- Hamburguesa -->
-      <button class="navbar-toggler cgm-toggler" type="button"
+           <button class="navbar-toggler cgm-toggler" type="button"
               data-bs-toggle="collapse" data-bs-target="#cgmNav"
               aria-controls="cgmNav" aria-expanded="false" aria-label="Abrir menú">
         <span class="toggler-bar"></span>
@@ -61,23 +57,18 @@
         <span class="toggler-bar"></span>
       </button>
 
-      <!-- Menú -->
-      <div class="collapse navbar-collapse" id="cgmNav">
+           <div class="collapse navbar-collapse" id="cgmNav">
         <ul class="navbar-nav mx-auto gap-lg-1">
 
-          <!-- NOSOTROS -->
-          <li class="nav-item">
+                   <li class="nav-item">
             <a class="nav-link cgm-nav-link" href="/{{ country_code }}/nosotros/">NOSOTROS</a>
           </li>
 
-
-          <!-- ALQUILER -->
-          <li class="nav-item dropdown cgm-dropdown">
+                   <li class="nav-item dropdown cgm-dropdown">
             <a class="nav-link cgm-nav-link dropdown-toggle"
                href="/{{ country_code }}/categoria-producto/alquiler/" role="button">ALQUILER</a>
             <ul class="dropdown-menu cgm-drop">
-              <!-- Construcción -->
-              <li class="dropdown-submenu">
+                           <li class="dropdown-submenu">
                 <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/construccion/">
                   Construcción <i class="bi bi-chevron-right float-end"></i>
                 </a>
@@ -91,8 +82,7 @@
                 </ul>
               </li>
 
-              <!-- Minería (solo Perú) -->
-              {% if country.show_mineria %}
+                           {% if country.show_mineria %}
               <li class="dropdown-submenu">
                 <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/mineria/">
                   Minería <i class="bi bi-chevron-right float-end"></i>
@@ -108,8 +98,7 @@
               </li>
               {% endif %}
 
-              <!-- Agrícola (solo Perú) -->
-              {% if country.show_agricola %}
+                           {% if country.show_agricola %}
               <li class="dropdown-submenu">
                 <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/agricola/">
                   Agrícola <i class="bi bi-chevron-right float-end"></i>
@@ -125,8 +114,7 @@
               </li>
               {% endif %}
 
-              <!-- Energía (solo Perú) -->
-              {% if country.show_energia %}
+                           {% if country.show_energia %}
               <li class="dropdown-submenu">
                 <a class="dropdown-item cgm-drop-item has-submenu" href="/{{ country_code }}/categoria-producto/alquiler/energia/">
                   Energía <i class="bi bi-chevron-right float-end"></i>
@@ -149,8 +137,7 @@
             </ul>
           </li>
 
-          <!-- USADOS (solo Perú) -->
-          {% if country.show_usados %}
+                   {% if country.show_usados %}
           <li class="nav-item dropdown cgm-dropdown">
             <a class="nav-link cgm-nav-link dropdown-toggle"
                href="/{{ country_code }}/categoria-producto/usados/" role="button">USADOS</a>
@@ -176,26 +163,22 @@
           </li>
           {% endif %}
 
-          <!-- CAPACITA -->
-          <li class="nav-item">
+                   <li class="nav-item">
             <a class="nav-link cgm-nav-link" href="/{{ country_code }}/capacita/">CAPACITA</a>
           </li>
 
-          <!-- BLOG -->
-          <li class="nav-item">
+                   <li class="nav-item">
             <a class="nav-link cgm-nav-link" href="/{{ country_code }}/novedades/">BLOG</a>
           </li>
 
-          <!-- CONTACTO -->
-          <li class="nav-item">
+                   <li class="nav-item">
             <a class="nav-link cgm-nav-link" href="/{{ country_code }}/contacto/">CONTACTO</a>
           </li>
 
         </ul>
-      </div><!-- /collapse -->
+      </div>
 
-      <!-- Carrito + selector de país: FUERA del collapse, dentro del container -->
-      <div class="d-flex align-items-center gap-3 ms-3 cgm-nav-actions">
+           <div class="d-flex align-items-center gap-3 ms-3 cgm-nav-actions">
         <a href="/{{ country_code }}/carrito/" class="cgm-cart-btn" aria-label="Carrito">
           <i class="bi bi-cart3"></i>
           <span class="cgm-cart-badge" id="cartBadge">{{ cart_count }}</span>
@@ -218,18 +201,11 @@
         </div>
       </div>
 
-    </div><!-- /container-fluid -->
+    </div>
   </nav>
 <script>
 (function(){
-  /* Country switch: ahora son dos botones directos (PE / AR) — sin dropdown. */
 
-  /* ─────────────────────────────────────────────────────────────
-     Rangos de pantalla
-     · Móvil   ≤ 767px  → acordeón Bootstrap (sin JS aquí)
-     · Tablet  768-991px → click para abrir/cerrar (queda fijo)
-     · Desktop ≥ 992px  → hover inmediato
-  ─────────────────────────────────────────────────────────────── */
 
   function screenMode() {
     var w = window.innerWidth;
@@ -238,14 +214,14 @@
     return 'desktop';
   }
 
-  /* ── Cierra todos los dropdowns del nav ── */
+
   function closeAllDropdowns(except) {
     document.querySelectorAll('.cgm-main-nav .cgm-dropdown, .cgm-main-nav .dropdown-submenu').forEach(function(el) {
       if (el !== except) el.classList.remove('cgm-hover');
     });
   }
 
-  /* ── DESKTOP: hover sin delay ── */
+
   document.querySelectorAll('.cgm-main-nav .cgm-dropdown').forEach(function(dd) {
     dd.addEventListener('mouseenter', function() {
       if (screenMode() !== 'desktop') return;
@@ -261,7 +237,7 @@
   document.querySelectorAll('.cgm-main-nav .dropdown-submenu').forEach(function(sub) {
     sub.addEventListener('mouseenter', function() {
       if (screenMode() !== 'desktop') return;
-      /* Cierra submenús hermanos inmediatamente */
+
       var parent = sub.closest('.cgm-drop');
       if (parent) parent.querySelectorAll('.dropdown-submenu').forEach(function(s){ s.classList.remove('cgm-hover'); });
       sub.classList.add('cgm-hover');
@@ -272,7 +248,7 @@
     });
   });
 
-  /* ── TABLET: click para abrir/cerrar (queda fijo) ── */
+
   document.querySelectorAll('.cgm-main-nav .cgm-dropdown > .cgm-nav-link').forEach(function(link) {
     link.addEventListener('click', function(e) {
       if (screenMode() !== 'tablet') return;
@@ -290,13 +266,13 @@
       e.preventDefault();
       var sub = link.closest('.dropdown-submenu');
       var isOpen = sub.classList.contains('cgm-hover');
-      /* cierra otros submenús del mismo nivel */
+
       sub.closest('.cgm-drop').querySelectorAll('.dropdown-submenu').forEach(function(s){ s.classList.remove('cgm-hover'); });
       if (!isOpen) sub.classList.add('cgm-hover');
     });
   });
 
-  /* Click fuera → cierra todo (tablet) */
+
   document.addEventListener('click', function(e) {
     if (screenMode() !== 'tablet') return;
     if (!e.target.closest('.cgm-main-nav')) closeAllDropdowns(null);

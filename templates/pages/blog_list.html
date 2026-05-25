@@ -6,7 +6,7 @@
 {% block content %}
 
 <style>
-/* ── Flechas decorativas en mobile: en parte inferior, sin difuminado (estilo Mi Cotización) ── */
+
 @media (max-width: 768px) {
   .cgm-cap-hero .blog-hero-arrow {
     height: 22% !important;
@@ -30,7 +30,6 @@
 }
 </style>
 
-<!-- ══════════ HERO ══════════ -->
 <section class="cgm-cap-hero">
   <div class="cgm-cap-hero-overlay"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
@@ -49,12 +48,10 @@
   </div>
 </section>
 
-<!-- ══════════ FILTROS + GRID ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
 
-    <!-- Filtro dropdown centrado -->
-    <div class="d-flex justify-content-center mb-5">
+       <div class="d-flex justify-content-center mb-5">
       <div class="cgm-blog-dropdown">
         <button class="cgm-blog-dropdown-btn" id="blogDropBtn">
           {{ 'Artículos de Interés' if cat_filter == 'articulos' else 'Entrevistas' if cat_filter == 'entrevistas' else 'Selecciona un tipo' }}
@@ -68,8 +65,7 @@
       </div>
     </div>
 
-    <!-- Grid de posts -->
-    {% if posts %}
+       {% if posts %}
     <div class="row g-4">
       {% for post in posts %}
       <div class="col-12 col-sm-6 col-lg-4 fade-up fade-up-delay-{{ (loop.index0 % 3) + 1 }}">
@@ -99,8 +95,7 @@
       {% endfor %}
     </div>
 
-    <!-- Paginación -->
-    {% if pages > 1 %}
+       {% if pages > 1 %}
     <nav class="cgm-pagination mt-5" aria-label="Paginación">
       {% if page > 1 %}
       <a href="/{{ country_code }}/novedades/page/{{ page - 1 }}/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}"

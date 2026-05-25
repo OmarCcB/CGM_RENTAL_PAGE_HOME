@@ -20,24 +20,13 @@
     "@type": "Brand",
     "name": {{ (product.marca or "CGM Rental") | tojson }}
   },
-  "url": {{ request.url | tojson }},
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "{% if country_code == 'ar' %}ARS{% else %}USD{% endif %}",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "Organization",
-      "name": "CGM Rental",
-      "url": "https://cgmrental.com"
-    }
-  }
+  "url": {{ canonical_url | tojson }}
 }
 </script>
 {% endblock %}
 
 {% block content %}
 
-<!-- ══════════ BREADCRUMB ══════════ -->
 <div style="background:var(--cgm-verde);padding:14px 0;">
   <div class="container">
     <nav class="cgm-breadcrumb" aria-label="breadcrumb">
@@ -50,15 +39,12 @@
   </div>
 </div>
 
-<!-- ══════════ DETALLE PRODUCTO ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="row g-5">
 
-      <!-- ── Col Izq: Galería ── -->
-      <div class="col-12 col-lg-5">
-        <!-- Imagen principal -->
-        <div style="border-radius:10px;border:1px solid #eee;overflow:hidden;
+           <div class="col-12 col-lg-5">
+               <div style="border-radius:10px;border:1px solid #eee;overflow:hidden;
                     background:#fafafa;aspect-ratio:4/3;display:flex;
                     align-items:center;justify-content:center;
                     cursor:zoom-in;position:relative;"
@@ -73,16 +59,14 @@
                       justify-content:center;font-size:80px;color:#ccc;">
             <i class="bi bi-truck"></i>
           </div>
-          <!-- Ícono lupa -->
-          <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.45);
+                   <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.45);
                       border-radius:50%;width:34px;height:34px;display:flex;
                       align-items:center;justify-content:center;pointer-events:none;">
             <i class="bi bi-zoom-in" style="color:#fff;font-size:15px;"></i>
           </div>
         </div>
 
-        <!-- Thumbnails (dinámico según imágenes reales del producto) -->
-        {% if imagenes %}
+               {% if imagenes %}
         <div class="swiper cgm-prod-thumb-swiper mt-3">
           <div class="swiper-wrapper">
             {% for img_file in imagenes %}
@@ -101,8 +85,7 @@
         </div>
         {% endif %}
 
-        <!-- Badge A SOLICITUD -->
-        {% if product.a_solicitud %}
+               {% if product.a_solicitud %}
         <div class="mb-3">
           <span style="display:inline-block;background:var(--cgm-lima);color:var(--cgm-verde);
                        font-size:12px;font-weight:700;font-family:'Estricta',sans-serif;
@@ -112,8 +95,7 @@
         </div>
         {% endif %}
 
-        <!-- Botones acción -->
-        {% if proximamente %}
+               {% if proximamente %}
         <div class="mt-4" style="background:#f8f8f8;border:2px dashed #ccc;border-radius:10px;
                                   padding:18px 20px;text-align:center;">
           <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:var(--cgm-verde);
@@ -124,23 +106,21 @@
         <div class="d-flex gap-3 mt-4">
           <button class="cgm-btn cgm-btn-lima flex-fill justify-content-center cgm-btn-clip"
                   style="font-size:13px;padding:13px 8px;"
-                  onclick="addToCart('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}')">
+                  onclick="addToCart('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}','{{ product.tags }}')">
             <i class="bi bi-cart3 me-2"></i>AÑADIR AL CARRITO
           </button>
           <button class="cgm-btn cgm-btn-verde flex-fill justify-content-center cgm-btn-clip"
                   style="font-size:13px;padding:13px 8px;"
-                  onclick="cotizarProduct('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}','/{{ country_code }}/carrito/')">
+                  onclick="cotizarProduct('{{ product.slug }}','{{ product.nombre }}','{{ product.imagen }}','{{ product.tipo }}','/{{ country_code }}/carrito/','{{ product.tags }}')">
             <i class="bi bi-envelope-fill me-2"></i>COTIZAR
           </button>
         </div>
         {% endif %}
       </div>
 
-      <!-- ── Col Der: Info ── -->
-      <div class="col-12 col-lg-7">
+           <div class="col-12 col-lg-7">
 
-        <!-- Nombre + Badge -->
-        <div class="d-flex align-items-start gap-3 mb-3 flex-wrap">
+               <div class="d-flex align-items-start gap-3 mb-3 flex-wrap">
           <h1 style="font-size:clamp(20px,2.8vw,32px);font-weight:800;
                      text-transform:uppercase;color:var(--cgm-negro);margin:0;flex:1;">
             {{ product.nombre }}
@@ -157,8 +137,7 @@
                   letter-spacing:.6px;margin-bottom:24px;">{{ product.marca }}</p>
         {% endif %}
 
-        <!-- Card: Características -->
-        {% if product.features %}
+               {% if product.features %}
         <div style="background:#f8f9fa;border-left:4px solid var(--cgm-verde);border-radius:0 10px 10px 0;
                     padding:20px 24px;margin-bottom:16px;">
           <h3 style="font-size:15px;font-weight:700;color:var(--cgm-negro);margin-bottom:16px;">
@@ -176,8 +155,7 @@
         </div>
         {% endif %}
 
-        <!-- Card: Descripción -->
-        {% if product.descripcion_texto %}
+               {% if product.descripcion_texto %}
         <div style="background:#f4f5f6;border:1px solid #e0e0e0;border-radius:10px;
                     padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);">
           <h3 style="font-size:15px;font-weight:700;color:var(--cgm-negro);margin-bottom:14px;">
@@ -209,7 +187,6 @@
   </div>
 </section>
 
-<!-- ══════════ MAQUINARIAS RELACIONADAS ══════════ -->
 {% if relacionados %}
 <section class="cgm-section" style="background:var(--cgm-gris);">
   <div class="container">
@@ -255,22 +232,19 @@
 </section>
 {% endif %}
 
-<!-- ══════════ LIGHTBOX MODAL ══════════ -->
 <div class="modal fade" id="imgLightbox" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content"
          style="background:transparent;border:none;box-shadow:none;">
       <div class="modal-body p-0 text-center" style="position:relative;">
 
-        <!-- Cerrar -->
-        <button type="button" class="btn-close btn-close-white"
+               <button type="button" class="btn-close btn-close-white"
                 data-bs-dismiss="modal" aria-label="Cerrar"
                 style="position:absolute;top:-14px;right:-14px;
                        background-color:rgba(0,0,0,.55);border-radius:50%;
                        padding:10px;opacity:1;z-index:10;"></button>
 
-        <!-- Flecha Anterior -->
-        <button onclick="lbPrev()" aria-label="Anterior"
+               <button onclick="lbPrev()" aria-label="Anterior"
                 style="position:absolute;left:-22px;top:50%;transform:translateY(-50%);
                        width:44px;height:44px;border-radius:50%;border:2px solid var(--cgm-lima);
                        background:transparent;color:var(--cgm-lima);font-size:20px;
@@ -281,13 +255,11 @@
           <i class="bi bi-chevron-left"></i>
         </button>
 
-        <!-- Imagen ampliada -->
-        <img id="lightboxImg" src="" alt=""
+               <img id="lightboxImg" src="" alt=""
              style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:8px;
                     transition:opacity .15s;">
 
-        <!-- Flecha Siguiente -->
-        <button onclick="lbNext()" aria-label="Siguiente"
+               <button onclick="lbNext()" aria-label="Siguiente"
                 style="position:absolute;right:-22px;top:50%;transform:translateY(-50%);
                        width:44px;height:44px;border-radius:50%;border:2px solid var(--cgm-lima);
                        background:transparent;color:var(--cgm-lima);font-size:20px;
@@ -298,8 +270,7 @@
           <i class="bi bi-chevron-right"></i>
         </button>
 
-        <!-- Contador -->
-        <div id="lbCounter"
+               <div id="lbCounter"
              style="position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
                     font-size:12px;color:rgba(255,255,255,.7);white-space:nowrap;"></div>
       </div>
@@ -311,20 +282,20 @@
 
 {% block extra_scripts %}
 <script>
-/* ── Lightbox ── */
-let _lbImgs = [];   // lista de src disponibles
-let _lbIdx  = 0;    // índice actual
+
+let _lbImgs = [];
+let _lbIdx  = 0;
 
 function _buildLbImgs() {
-  // Recoge todos los thumbnails cuyo slide NO esté oculto
+
   const thumbs = document.querySelectorAll('.cgm-prod-thumb-swiper .cgm-thumb-img');
   const imgs = [];
   thumbs.forEach(t => {
     const slide = t.closest('.swiper-slide');
-    if (!slide || slide.style.display === 'none') return; // onerror los ocultó
+    if (!slide || slide.style.display === 'none') return;
     imgs.push({ src: t.src, alt: t.alt });
   });
-  // Si no hay thumbnails usa la imagen principal directamente
+
   if (imgs.length === 0) {
     const main = document.getElementById('mainImg');
     if (main && main.src) imgs.push({ src: main.src, alt: main.alt });
@@ -340,7 +311,7 @@ function _lbShow() {
   setTimeout(() => { img.src = item.src; img.alt = item.alt; img.style.opacity = '1'; }, 150);
   document.getElementById('lbCounter').textContent =
     _lbImgs.length > 1 ? (_lbIdx + 1) + ' / ' + _lbImgs.length : '';
-  // sincroniza thumbnail activo en la página
+
   document.querySelectorAll('.cgm-thumb-img').forEach((t, i) => {
     t.classList.toggle('active', i === _lbIdx);
   });
@@ -350,7 +321,7 @@ function openLightbox() {
   const main = document.getElementById('mainImg');
   if (!main || !main.src) return;
   _lbImgs = _buildLbImgs();
-  // Abre en la imagen que esté activa en los thumbnails
+
   const activeThumb = document.querySelector('.cgm-thumb-img.active');
   if (activeThumb) {
     _lbIdx = _lbImgs.findIndex(i => i.src === activeThumb.src);
@@ -374,7 +345,6 @@ function lbNext() {
   _lbShow();
 }
 
-// Navegar con teclado cuando el lightbox está abierto
 document.getElementById('imgLightbox').addEventListener('keydown', function(e) {
   if (e.key === 'ArrowLeft')  lbPrev();
   if (e.key === 'ArrowRight') lbNext();

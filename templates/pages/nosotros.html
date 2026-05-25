@@ -5,7 +5,6 @@
 
 {% block content %}
 
-<!-- ══════════ BANNER ══════════ -->
 <section class="cgm-page-hero">
   <div class="cgm-page-hero-bg"
        style="background-image:url('{{ url_for('static', filename='images/nosotros/linea-de-evolucion-ar.webp') }}');
@@ -16,14 +15,12 @@
 
 </section>
 
-<!-- ══════════ 1. EVOLUCIÓN TIMELINE (imagen) ══════════ -->
 <section class="cgm-evolucion">
   <img src="{{ url_for('static', filename='images/nosotros/evolucion-timeline.jpg') }}"
        alt="Evolución CGM Rental" class="cgm-evolucion-img"
        onerror="this.parentElement.style.display='none'">
 </section>
 
-<!-- ══════════ 2. NUESTRA HISTORIA ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
@@ -76,7 +73,6 @@
 </section>
 
 {% if country_code == 'ar' %}
-<!-- ══════════ 2b. CIFRAS (solo Argentina) ══════════ -->
 <section class="cgm-section cgm-stats-section">
   <div class="container">
     <div class="text-center mb-5">
@@ -114,7 +110,6 @@
 </section>
 {% endif %}
 
-<!-- ══════════ 3. POLÍTICA INTEGRADA ══════════ -->
 <section class="cgm-section bg-white pt-0">
   <div class="container">
     <div class="text-center mb-5">
@@ -122,8 +117,7 @@
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
     <div class="cgm-politica-wrap fade-up">
-      <!-- Swiper fondo -->
-      <div class="swiper cgm-politica-swiper">
+           <div class="swiper cgm-politica-swiper">
         <div class="swiper-wrapper">
           <div class="swiper-slide cgm-politica-slide"
                style="background-image:url('{{ url_for('static', filename='images/nosotros/politica-vision.jpg') }}')">
@@ -139,8 +133,7 @@
           </div>
         </div>
       </div>
-      <!-- 4 Cards -->
-      <div class="cgm-politica-cards">
+           <div class="cgm-politica-cards">
         <div class="cgm-politica-card cgm-politica-card-active" data-politica-idx="0">
           <div class="cgm-politica-card-icon"><i class="bi bi-eye-fill"></i></div>
           <div class="cgm-politica-card-name">VISIÓN</div>
@@ -165,7 +158,6 @@
   </div>
 </section>
 
-<!-- ══════════ 3.5 ¿POR QUÉ ELEGIRNOS? ══════════ -->
 <section class="cgm-section" style="background:#f7f7f7;">
   <div class="container">
     <div class="text-center mb-5">
@@ -218,15 +210,13 @@
   </div>
 </section>
 
-<!-- ══════════ 4. UBICANOS ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="cgm-section-title fade-up">Ubicanos</h2>
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
-    <!-- Rectángulo dos colores -->
-    <div class="cgm-ubicanos-rect fade-up">
+       <div class="cgm-ubicanos-rect fade-up">
       <div class="cgm-ubicanos-rect-label">OFICINA PRINCIPAL</div>
       <div class="cgm-ubicanos-rect-info">
         <div class="cgm-ubicanos-rect-city">{{ country.ciudad_principal | default('Lima') }}</div>
@@ -239,7 +229,6 @@
 </section>
 
 {% if country.sucursales | length > 1 %}
-<!-- ══════════ 5. SUCURSALES + MAPA ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
@@ -254,22 +243,19 @@
 
     <div class="cgm-suc-mapa-layout fade-up">
 
-      <!-- Col izquierda: Piura, Trujillo, Ica -->
-      <div class="cgm-suc-col">
+           <div class="cgm-suc-col">
         {% for img in ['suc-piura', 'suc-trujillo', 'suc-ica'] %}
         <img src="{{ url_for('static', filename='images/nosotros/' + img + '.svg') }}"
              alt="{{ img }}" class="cgm-suc-svg">
         {% endfor %}
       </div>
 
-      <!-- Mapa Centro -->
-      <div class="cgm-suc-mapa-centro">
+           <div class="cgm-suc-mapa-centro">
         <img src="{{ url_for('static', filename='images/nosotros/mapa-peru.svg') }}"
              alt="Mapa Sucursales CGM Rental" class="cgm-suc-mapa-img">
       </div>
 
-      <!-- Col derecha: Pucallpa, Cusco, Arequipa -->
-      <div class="cgm-suc-col">
+           <div class="cgm-suc-col">
         {% for img in ['suc-pucallpa', 'suc-cusco', 'suc-arequipa'] %}
         <img src="{{ url_for('static', filename='images/nosotros/' + img + '.svg') }}"
              alt="{{ img }}" class="cgm-suc-svg">
@@ -281,7 +267,6 @@
 </section>
 {% endif %}
 
-<!-- ══════════ 5. SOCIOS ESTRATÉGICOS ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
@@ -316,7 +301,6 @@
   </div>
 </section>
 
-<!-- ══════════ 6. TESTIMONIOS ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
     <div class="text-center mb-5">
@@ -367,7 +351,6 @@
   </div>
 </section>
 
-<!-- Modal PDF ISO -->
 <div id="isoModalNosotros" class="cgm-iso-modal" onclick="cerrarIsoPdf(event)">
   <div class="cgm-iso-modal-box">
     <div class="cgm-iso-modal-header">
@@ -378,7 +361,6 @@
   </div>
 </div>
 
-<!-- Modal PDF Política Integrada -->
 <div id="politicaModal" class="cgm-iso-modal" onclick="cerrarPoliticaPdf(event)">
   <div class="cgm-iso-modal-box">
     <div class="cgm-iso-modal-header">
@@ -393,18 +375,18 @@
 
 {% block extra_scripts %}
 <script>
-// ── Stats: aparición + count-up al entrar en pantalla ──
+
 (function () {
   const circles = document.querySelectorAll('.cgm-stat-circle');
   if (!circles.length) return;
 
-  // Extrae el número de un texto como "+15", "+800", "+ de 1000", "+4"
+
   function parseNum(text) {
     const m = text.replace(/\s/g, '').match(/\d+/);
     return m ? parseInt(m[0], 10) : 0;
   }
 
-  // Cuenta desde 0 hasta target en ~1.2s
+
   function countUp(el, target, prefix, suffix) {
     const dur = 1200, step = 16;
     const steps = Math.ceil(dur / step);
@@ -423,12 +405,12 @@
       const circle = entry.target;
       circle.classList.add('cgm-stat-visible');
 
-      // Count-up en el número
+
       const numEl = circle.querySelector('.cgm-stat-number');
       if (numEl) {
         const original = numEl.textContent.trim();
         const target   = parseNum(original);
-        // Detectar prefijo/sufijo: "+ de X" o "+X"
+
         const prefix   = original.includes('de') ? '+ de ' : '+';
         setTimeout(() => countUp(numEl, target, prefix, ''), 200);
       }
@@ -439,7 +421,6 @@
   circles.forEach(c => obs.observe(c));
 })();
 
-// ── Política Integrada ──
 const politicaSwiper = new Swiper('.cgm-politica-swiper', {
   loop: true,
   autoplay: { delay: 3500, disableOnInteraction: false },
@@ -456,7 +437,6 @@ const politicaSwiper = new Swiper('.cgm-politica-swiper', {
   }
 });
 
-// Click en card → cambia slide
 document.querySelectorAll('.cgm-politica-card').forEach((card, i) => {
   card.addEventListener('click', function (e) {
     if (this.tagName === 'A') return;
@@ -465,7 +445,6 @@ document.querySelectorAll('.cgm-politica-card').forEach((card, i) => {
   });
 });
 
-// ── Socios Estratégicos ──
 new Swiper('.cgm-socios-swiper', {
   loop: true,
   speed: 1200,
@@ -479,10 +458,9 @@ new Swiper('.cgm-socios-swiper', {
   }
 });
 
-// ── Modal ISO PDF ──
 function abrirIsoPdf(url, titulo) {
   document.getElementById('isoModalNosotrosTitle').textContent = titulo;
-  document.getElementById('isoModalNosotrosFrame').src = url + '#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width';
+  document.getElementById('isoModalNosotrosFrame').src = url + '#view=FitH&toolbar=0&navpanes=0&scrollbar=0';
   document.getElementById('isoModalNosotros').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -493,8 +471,7 @@ function cerrarIsoPdf(e) {
   document.body.style.overflow = '';
 }
 
-// ── Modal Política Integrada PDF ──
-const _politicaPdfUrl = "{% if country_code == 'ar' %}{{ url_for('static', filename='images/docs/Politica_integrada_2026_Argentina.pdf') }}{% else %}{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}{% endif %}#toolbar=0&navpanes=0&scrollbar=0&zoom=page-width";
+const _politicaPdfUrl = "{% if country_code == 'ar' %}{{ url_for('static', filename='images/docs/Politica_integrada_2026_Argentina.pdf') }}{% else %}{{ url_for('static', filename='images/docs/Política_integrada_2026.pdf') }}{% endif %}#view=FitH&toolbar=0&navpanes=0&scrollbar=0";
 function abrirPoliticaPdf() {
   document.getElementById('politicaModalFrame').src = _politicaPdfUrl;
   document.getElementById('politicaModal').classList.add('active');
@@ -510,7 +487,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') { cerrarIsoPdf(null); cerrarPoliticaPdf(null); }
 });
 
-// ── Testimonios ──
 new Swiper('.cgm-testimonios-swiper', {
   loop: true,
   autoplay: { delay: 4500, disableOnInteraction: false },

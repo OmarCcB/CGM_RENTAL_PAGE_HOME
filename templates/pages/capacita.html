@@ -9,7 +9,6 @@
 
 {% block content %}
 
-<!-- ══════════ HERO ══════════ -->
 <section class="cgm-cap-hero">
   <div class="cgm-cap-hero-overlay"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
@@ -45,7 +44,6 @@
   </div>
 </section>
 
-<!-- ══════════ EQUIPOS ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
@@ -74,7 +72,6 @@
   </div>
 </section>
 
-<!-- ══════════ PROGRAMAS ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
     <div class="text-center mb-5">
@@ -82,16 +79,14 @@
       <div class="cgm-title-line mx-auto fade-up fade-up-delay-1"></div>
     </div>
 
-    <!-- Tabs -->
-    <ul class="cgm-cap-tabs fade-up" id="capTabs">
+       <ul class="cgm-cap-tabs fade-up" id="capTabs">
       <li class="cgm-cap-tab active" data-tab="basica">Formación Básica</li>
       <li class="cgm-cap-tab" data-tab="especializacion">Especialización</li>
       <li class="cgm-cap-tab" data-tab="perfeccionamiento">Perfeccionamiento</li>
       <li class="cgm-cap-tab" data-tab="virtual">Actualización Virtual</li>
     </ul>
 
-    <!-- Panel: Formación Básica -->
-    <div class="cgm-cap-panel active" id="panel-basica">
+       <div class="cgm-cap-panel active" id="panel-basica">
       <div class="row g-4">
         <div class="col-12 col-lg-4">
           <div class="cgm-cap-prog-info">
@@ -164,8 +159,7 @@
       </div>
     </div>
 
-    <!-- Panel: Especialización -->
-    <div class="cgm-cap-panel" id="panel-especializacion">
+       <div class="cgm-cap-panel" id="panel-especializacion">
       <div class="row g-4">
         <div class="col-12 col-lg-4">
           <div class="cgm-cap-prog-info">
@@ -235,8 +229,7 @@
       </div>
     </div>
 
-    <!-- Panel: Perfeccionamiento -->
-    <div class="cgm-cap-panel" id="panel-perfeccionamiento">
+       <div class="cgm-cap-panel" id="panel-perfeccionamiento">
       <div class="row g-4">
         <div class="col-12 col-lg-4">
           <div class="cgm-cap-prog-info">
@@ -302,8 +295,7 @@
       </div>
     </div>
 
-    <!-- Panel: Actualización Virtual -->
-    <div class="cgm-cap-panel" id="panel-virtual">
+       <div class="cgm-cap-panel" id="panel-virtual">
       <div class="row g-4">
         <div class="col-12 col-lg-4">
           <div class="cgm-cap-prog-info">
@@ -365,7 +357,6 @@
   </div>
 </section>
 
-<!-- ══════════ COMPARATIVA ══════════ -->
 <section class="cgm-section bg-white">
   <div class="container">
     <div class="text-center mb-5">
@@ -418,7 +409,6 @@
   </div>
 </section>
 
-<!-- ══════════ ¿POR QUÉ ELEGIRNOS? ══════════ -->
 <section class="cgm-section cgm-cap-why-section">
   <div class="container">
     <div class="text-center mb-5">
@@ -445,7 +435,6 @@
   </div>
 </section>
 
-<!-- ══════════ VENTAJAS ══════════ -->
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
     <div class="row g-5 align-items-center">
@@ -471,8 +460,7 @@
         <div class="cgm-cap-instalaciones">
           <h3 class="cgm-section-title text-start mb-3">Ponemos a tu disposición</h3>
           <div class="cgm-title-line left mb-4"></div>
-          <!-- Carrusel horizontal automático (2 visibles, avanza de 1 en 1) -->
-          <div class="cgm-cap-inst-wrapper">
+                   <div class="cgm-cap-inst-wrapper">
             <button class="cgm-cap-inst-arrow cgm-cap-inst-arrow--prev" id="instPrev" aria-label="Anterior">
               <i class="bi bi-chevron-left"></i>
             </button>
@@ -505,8 +493,7 @@
               <i class="bi bi-chevron-right"></i>
             </button>
           </div>
-          <!-- Puntos indicadores -->
-          <div class="cgm-cap-inst-dots" id="instDots">
+                   <div class="cgm-cap-inst-dots" id="instDots">
             <span class="cgm-cap-inst-dot active" data-idx="0"></span>
             <span class="cgm-cap-inst-dot" data-idx="1"></span>
             <span class="cgm-cap-inst-dot" data-idx="2"></span>
@@ -517,7 +504,6 @@
   </div>
 </section>
 
-<!-- ══════════ FRANJA CONTACTO CAPACITA ══════════ -->
 <div class="cgm-cap-contact-strip">
   <div class="container">
     <div class="cgm-cap-contact-strip-inner">
@@ -551,7 +537,7 @@
 
 {% block extra_scripts %}
 <script>
-// ── Tabs de programas ──
+
 document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   tab.addEventListener('click', function () {
     document.querySelectorAll('.cgm-cap-tab').forEach(t => t.classList.remove('active'));
@@ -561,7 +547,6 @@ document.querySelectorAll('.cgm-cap-tab').forEach(tab => {
   });
 });
 
-// ── Carrusel horizontal instalaciones (loop infinito hacia adelante) ──
 (function () {
   const track   = document.getElementById('instTrack');
   if (!track) return;

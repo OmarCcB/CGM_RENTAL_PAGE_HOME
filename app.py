@@ -1,7 +1,8 @@
 ﻿import os
 import json
+import logging
 import smtplib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -19,6 +20,8 @@ def _detect_country_from_ip(_ip: str = None) -> str:
 from flask import (Flask, render_template, redirect, url_for, request,
                    session, jsonify, abort, g)
 from flask_compress import Compress
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
 from dotenv import load_dotenv
 
 from countries import COUNTRIES, DEFAULT_COUNTRY
@@ -28,9 +31,47 @@ import db_sqlserver
 
 load_dotenv()
 
+# ── Security logger ──────────────────────────────────────────────────────────
+security_logger = logging.getLogger("security")
+security_logger.setLevel(logging.WARNING)
+_sec_handler = logging.StreamHandler()
+_sec_handler.setFormatter(logging.Formatter("[SECURITY] %(asctime)s  %(message)s"))
+security_logger.addHandler(_sec_handler)
+
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "cgm-dev-secret")
+
+# A02 — Secret key: no fallback inseguro en producción
+_secret = os.getenv("FLASK_SECRET_KEY")
+if not _secret:
+    if os.getenv("FLASK_DEBUG", "").lower() in ("true", "1", "yes"):
+        _secret = "cgm-dev-secret-SOLO-LOCAL"
+    else:
+        raise RuntimeError(
+            "FLASK_SECRET_KEY no está configurada. "
+            "Defínela como variable de entorno antes de iniciar la aplicación."
+        )
+app.secret_key = _secret
+
+# A07 — Session timeout: 8 horas
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
+
 Compress(app)
+
+# A08 — CSRF protection global
+csrf = CSRFProtect(app)
+
+# A04 — Rate limiting (por IP real detrás de proxy/Cloudflare)
+def _get_real_ip():
+    return (request.headers.get("CF-Connecting-IP")
+            or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.remote_addr)
+
+limiter = Limiter(
+    app=app,
+    key_func=_get_real_ip,
+    default_limits=["120 per minute"],
+    storage_uri="memory://",
+)
 
 # ── Admin blueprint ───────────────────────────────────────────────────────────
 from admin.routes import admin_bp
@@ -509,6 +550,8 @@ import time as _time
 
 @app.before_request
 def _start_timer():
+    if not request.path.startswith('/static'):
+        session.permanent = True
     g._req_start = _time.perf_counter()
 
 @app.after_request
@@ -557,8 +600,23 @@ def _cache_headers(response):
             and 'Cache-Control' not in response.headers):
         # s-maxage: Cloudflare cachea 30s; max-age=0: browser siempre revalida
         response.headers['Cache-Control'] = 'public, s-maxage=30, max-age=0'
+        response.headers['Vary'] = 'Cookie'
 
     return response
+
+
+# A05 — Security headers
+@app.after_request
+def _security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
+
 
 # ── Categorías dinámicas (desde BD) ──────────────────────────────────────────
 def get_nav_categorias():
@@ -625,6 +683,9 @@ def inject_globals():
         "burl_mobile": burl_mobile,
         "now": _dt.now(),
         "nav_cats": get_nav_categorias(),
+        # Canonical URL: usa la URL base sin querystring (evita duplicados por UTM, etc.)
+        # Las vistas pueden sobreescribir esto pasando canonical_url=... a render_template
+        "canonical_url": request.base_url,
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -648,16 +709,16 @@ def home(country):
         return redirect(f"/{DEFAULT_COUNTRY}/")
     conn = get_conn()
     # 6 productos activos de alquiler — aleatorios en Python (evita ORDER BY NEWID() que es lento)
-    show_country_filter = "AND show_arg=1" if country == 'ar' else "AND show_pe=1"
+    country_col = "show_arg" if country == 'ar' else "show_pe"
     all_featured = conn.execute(
-        f"SELECT * FROM products WHERE activo=1 AND tags LIKE '%alquiler%' {show_country_filter}"
+        f"SELECT * FROM products WHERE activo=1 AND tags LIKE ? AND {country_col}=1",
+        ('%alquiler%',)
     ).fetchall()
     import random as _random
     featured = _random.sample(all_featured, min(6, len(all_featured)))
     # Últimas 6 noticias
-    country_filter = " AND show_arg=1" if country == 'ar' else " AND show_pe=1"
     posts = conn.execute(
-        f"SELECT * FROM blog_posts WHERE activo=1{country_filter} ORDER BY fecha DESC"
+        f"SELECT * FROM blog_posts WHERE activo=1 AND {country_col}=1 ORDER BY fecha DESC"
     ).fetchall()
     conn.close()
     return render_template("pages/home.html",
@@ -757,12 +818,15 @@ def blog_post(country, slug):
 
 # Categoría con o sin prefijo de país
 @app.route("/categoria-producto/<path:cat_path>/")
+def categoria_legacy(cat_path):
+    """URL legacy sin prefijo de país → 301 a la canónica del país default."""
+    return redirect(f"/{DEFAULT_COUNTRY}/categoria-producto/{cat_path}/", code=301)
+
+
 @app.route("/<country>/categoria-producto/<path:cat_path>/")
-def categoria(country=None, cat_path=""):
-    if country is None:
-        country = DEFAULT_COUNTRY
+def categoria(country, cat_path=""):
     if country not in COUNTRIES:
-        return redirect(f"/{DEFAULT_COUNTRY}/categoria-producto/{cat_path}/")
+        return redirect(f"/{DEFAULT_COUNTRY}/categoria-producto/{cat_path}/", code=301)
     c = get_country(country)
     if cat_path in CATEGORIAS:
         tags, unidad, tipo, titulo = CATEGORIAS[cat_path]
@@ -864,12 +928,15 @@ def categoria(country=None, cat_path=""):
 
 # Producto individual
 @app.route("/producto/<slug>/")
+def producto_legacy(slug):
+    """URL legacy sin prefijo de país → 301 a la canónica del país default."""
+    return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/", code=301)
+
+
 @app.route("/<country>/producto/<slug>/")
-def producto(slug, country=None):
-    if country is None:
-        country = DEFAULT_COUNTRY
+def producto(slug, country):
     if country not in COUNTRIES:
-        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/")
+        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/", code=301)
     c = get_country(country)
     conn = get_conn()
     p = conn.execute("SELECT * FROM products WHERE slug=? AND activo=1", (slug,)).fetchone()
@@ -957,13 +1024,16 @@ def producto(slug, country=None):
 
 
 @app.route("/producto/<slug>/ficha/")
+def ficha_tecnica_legacy(slug):
+    """URL legacy sin prefijo de país → 301 a la canónica del país default."""
+    return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/ficha/", code=301)
+
+
 @app.route("/<country>/producto/<slug>/ficha/")
-def ficha_tecnica(slug, country=None):
+def ficha_tecnica(slug, country):
     import os as _os
-    if country is None:
-        country = DEFAULT_COUNTRY
     if country not in COUNTRIES:
-        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/ficha/")
+        return redirect(f"/{DEFAULT_COUNTRY}/producto/{slug}/ficha/", code=301)
     c = get_country(country)
     conn = get_conn()
     p = conn.execute("SELECT * FROM products WHERE slug=? AND activo=1", (slug,)).fetchone()
@@ -1148,6 +1218,7 @@ def sitemap():
 # ── API ────────────────────────────────────────────────────────────────────────
 
 @app.route("/api/contacto", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_contacto():
     data = request.get_json(silent=True) or request.form.to_dict()
     nombre   = data.get("nombre", "").strip()
@@ -1203,11 +1274,35 @@ def api_contacto():
     return jsonify({"ok": True, "message": "Cotización enviada correctamente"})
 
 
+# ── Helper: validar que el país del formulario coincida con el portal ─────────
+def _validar_pais_portal(pais_form, pais_sitio):
+    """Acepta solo el país del portal o 'Otro'. Devuelve None si es válido,
+    o un mensaje de error si no lo es."""
+    pais_form = (pais_form or "").strip()
+    expected = {"pe": "Perú", "ar": "Argentina"}.get(pais_sitio, "")
+    if not pais_form:
+        return "Falta el país del proyecto."
+    if pais_form != expected and pais_form != "Otro":
+        return f"El país '{pais_form}' no corresponde al portal {pais_sitio.upper()}."
+    return None
+
+
 # ── Formulario Contacto → SQL Server (reemplaza Salesforce) ──────────────────
 @app.route("/api/guardar-contacto", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_guardar_contacto():
     data        = request.form
     pais_sitio  = data.get("pais_sitio", "pe")
+
+    # Defensa server-side contra envíos cruzados (manipulación del formulario)
+    err = _validar_pais_portal(data.get("pais"), pais_sitio)
+    if err:
+        security_logger.warning(
+            f"Envío cruzado bloqueado en /api/guardar-contacto: {err} "
+            f"ip={request.remote_addr}"
+        )
+        return jsonify({"ok": False, "error": err}), 400
+
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
@@ -1241,9 +1336,27 @@ def api_guardar_contacto():
 
 # ── Formulario Cotización (carrito) → SQL Server (reemplaza Salesforce) ───────
 @app.route("/api/guardar-cotizacion", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_guardar_cotizacion():
     data        = request.form
     pais_sitio  = data.get("pais_sitio", "pe")
+
+    # Defensa server-side contra envíos cruzados
+    err = _validar_pais_portal(data.get("pais"), pais_sitio)
+    if err:
+        security_logger.warning(
+            f"Envío cruzado bloqueado en /api/guardar-cotizacion: {err} "
+            f"ip={request.remote_addr}"
+        )
+        return jsonify({"ok": False, "error": err}), 400
+
+    # Si eligió "Otro", combinamos pais + otro_pais en la columna `pais`
+    # porque la tabla de cotizaciones no tiene columna otro_pais separada.
+    pais_val = data.get("pais", "").strip()
+    otro_pais_val = data.get("otro_pais", "").strip()
+    if pais_val == "Otro" and otro_pais_val:
+        pais_val = f"Otro: {otro_pais_val}"
+
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
@@ -1260,7 +1373,7 @@ def api_guardar_cotizacion():
             data.get("ruc_dni",         "").strip(),
             data.get("email",           "").strip(),
             data.get("celular",         "").strip(),
-            data.get("pais",            "").strip(),
+            pais_val,
             data.get("departamento",    "").strip(),
             1 if data.get("tipo_alquiler") else 0,
             1 if data.get("tipo_compra")   else 0,
@@ -1281,6 +1394,7 @@ def api_cart_add():
     nombre  = data.get("nombre", "").strip()
     imagen  = data.get("imagen", "").strip()
     tipo    = data.get("tipo", "").strip()
+    tag     = data.get("tag", "").strip()
     country = data.get("country", "pe").lower()
     if not slug:
         return jsonify({"ok": False}), 400
@@ -1289,7 +1403,7 @@ def api_cart_add():
     if slug in cart:
         cart[slug]["qty"] += 1
     else:
-        cart[slug] = {"slug": slug, "nombre": nombre, "imagen": imagen, "tipo": tipo, "qty": 1}
+        cart[slug] = {"slug": slug, "nombre": nombre, "imagen": imagen, "tipo": tipo, "tag": tag, "qty": 1}
     session[key] = cart
     session.modified = True
     return jsonify({"ok": True, "count": cart_count(country)})
@@ -1331,6 +1445,7 @@ def api_cart():
 
 
 @app.route("/api/denuncia", methods=["POST"])
+@limiter.limit("3 per minute")
 def api_denuncia():
     data = request.get_json(silent=True) or request.form.to_dict()
 
@@ -1407,6 +1522,7 @@ def api_denuncia():
 
 
 @app.route("/api/proveedor", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_proveedor():
     data        = request.get_json(silent=True) or request.form.to_dict()
     ruc         = data.get("ruc", "").strip()

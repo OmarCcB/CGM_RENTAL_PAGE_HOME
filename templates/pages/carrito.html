@@ -3,7 +3,6 @@
 
 {% block content %}
 
-<!-- ── Hero simple (vacío) — visible por defecto ── -->
 <section id="heroEmpty" class="cgm-cotiz-hero-empty">
   <div class="cgm-cotiz-hero-overlay"></div>
   <img src="{{ url_for('static', filename='images/blog/flecha.svg') }}"
@@ -16,7 +15,6 @@
   </div>
 </section>
 
-<!-- ── Hero con pasos (con equipos) — oculto por defecto ── -->
 <section id="heroFull" class="cgm-page-hero cgm-carrito-hero" style="display:none;background:var(--cgm-verde);">
   <div class="cgm-page-hero-overlay" style="background:linear-gradient(135deg, rgba(2,60,54,.95) 0%, rgba(2,83,76,.75) 100%);"></div>
   <div class="cgm-page-hero-content" style="flex-direction:column;gap:20px;">
@@ -43,8 +41,7 @@
 <section class="cgm-section bg-cgm-gris">
   <div class="container">
 
-    <!-- ── VACÍO ── -->
-    <div id="cartEmpty" {% if cart %}style="display:none;"{% endif %} class="text-center py-5">
+       <div id="cartEmpty" {% if cart %}style="display:none;"{% endif %} class="text-center py-5">
       <i class="bi bi-cart-x" style="font-size:80px;color:#ddd;"></i>
       <h3 style="font-size:22px;color:#999;margin-top:20px;">Tu carrito está vacío</h3>
       <p style="color:#bbb;font-size:14px;margin-bottom:24px;">
@@ -55,12 +52,10 @@
       </a>
     </div>
 
-    <!-- ── CON ITEMS: 2 columnas ── -->
-    {% if cart %}
+       {% if cart %}
     <div class="row g-4">
 
-      <!-- Columna izquierda: tabla de equipos -->
-      <div class="col-12 col-lg-6">
+           <div class="col-12 col-lg-6">
         <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06);">
           <div style="padding:18px 24px;border-bottom:1px solid #eee;
                       display:flex;justify-content:space-between;align-items:center;">
@@ -82,7 +77,7 @@
             </thead>
             <tbody>
               {% for slug, item in cart.items() %}
-              <tr id="cart-row-{{ slug }}">
+              <tr id="cart-row-{{ slug }}" data-tag="{{ item.tag | default('') }}">
                 <td style="padding:10px 16px;vertical-align:middle;">
                   <div style="display:flex;align-items:center;gap:12px;">
                     <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
@@ -120,8 +115,7 @@
         </div>
       </div>
 
-      <!-- Columna derecha: formulario Salesforce -->
-      <div class="col-12 col-lg-6">
+           <div class="col-12 col-lg-6">
         <div style="background:#fff;border-radius:10px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
           <h2 class="cgm-section-title" style="font-size:20px;margin-bottom:4px;">
             {% if country_code == 'ar' %}Solicitá{% else %}Solicita{% endif %} tu <span style="color:var(--cgm-lima);">Cotización</span>
@@ -133,14 +127,13 @@
           <form id="sfCartForm"
                 action="/api/guardar-cotizacion"
                 method="POST">
-
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio"      value="{{ country_code }}">
             <input type="hidden" name="detalle_equipos" id="sfCarritoDetalle">
 
             <div class="row g-3">
 
-              <!-- Alquiler / Compra -->
-              <div class="col-12">
+                           <div class="col-12">
                 <label class="cgm-form-label">Tipo de operación</label>
                 <div class="d-flex gap-4">
                   <div class="form-check">
@@ -204,17 +197,20 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfPais">País *</label>
+                <label class="cgm-form-label" for="sfPais">País del proyecto *</label>
                 <select id="sfPais" name="pais" class="cgm-form-control" required>
-                  <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
-                  <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
+                  {% if country_code == 'ar' %}
+                  <option value="Argentina" selected>Argentina</option>
+                  {% else %}
+                  <option value="Perú" selected>Perú</option>
+                  {% endif %}
                   <option value="Otro">Otro</option>
                 </select>
               </div>
 
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-6" id="sfDeptoWrap">
                 <label class="cgm-form-label" for="sfDepto">
-                  {% if country_code == 'ar' %}Provincia *{% else %}Departamento *{% endif %}
+                  {% if country_code == 'ar' %}Provincia del proyecto *{% else %}Departamento del proyecto *{% endif %}
                 </label>
                 <select id="sfDepto" name="departamento" class="cgm-form-control" required>
                   <option value="">Selecciona...</option>
@@ -235,6 +231,18 @@
                     {% endfor %}
                   {% endif %}
                 </select>
+              </div>
+
+              <div class="col-12 col-sm-6" id="sfOtroPaisWrap" style="display:none;">
+                <label class="cgm-form-label" for="sfOtroPais">Otro país *</label>
+                <input type="text" id="sfOtroPais" name="otro_pais" class="cgm-form-control"
+                       placeholder="Especifica el país" minlength="2" maxlength="60" disabled>
+              </div>
+
+              <div class="col-12 col-sm-6" id="sfCiudadWrap" style="display:none;">
+                <label class="cgm-form-label" for="sfCiudad">Ciudad / Región del proyecto *</label>
+                <input type="text" id="sfCiudad" name="departamento" class="cgm-form-control"
+                       placeholder="Ciudad o región del proyecto" minlength="2" maxlength="80" disabled>
               </div>
 
               <div class="col-12">
@@ -259,13 +267,12 @@
         </div>
       </div>
 
-    </div><!-- /row -->
+    </div>
     {% endif %}
 
   </div>
 </section>
 
-<!-- ── Modal de éxito ── -->
 <div id="sfSuccessModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.80);
      z-index:9999;align-items:center;justify-content:center;">
   <div style="text-align:center;padding:40px;">
@@ -279,8 +286,79 @@
 
 {% block extra_scripts %}
 <script>
+/* ── Toggle "Otro país": muestra/oculta otro_pais y reemplaza dropdown depto por input ciudad ── */
+(function () {
+  var selPais     = document.getElementById('sfPais');
+  var selDepto    = document.getElementById('sfDepto');
+  var inpOtroPais = document.getElementById('sfOtroPais');
+  var inpCiudad   = document.getElementById('sfCiudad');
+  var wrapDepto   = document.getElementById('sfDeptoWrap');
+  var wrapOtro    = document.getElementById('sfOtroPaisWrap');
+  var wrapCiudad  = document.getElementById('sfCiudadWrap');
+  if (!selPais) return;
+
+  function syncPais() {
+    var esOtro = (selPais.value === 'Otro');
+    if (esOtro) {
+      /* Mostrar otro_pais + ciudad, ocultar dropdown depto */
+      if (wrapDepto)  wrapDepto.style.display  = 'none';
+      if (selDepto)   { selDepto.disabled = true;  selDepto.required = false; }
+      if (wrapOtro)   wrapOtro.style.display   = '';
+      if (inpOtroPais){ inpOtroPais.disabled = false; inpOtroPais.required = true; }
+      if (wrapCiudad) wrapCiudad.style.display = '';
+      if (inpCiudad)  { inpCiudad.disabled = false; inpCiudad.required = true; }
+    } else {
+      /* País propio: dropdown depto visible, ocultar otro_pais y ciudad */
+      if (wrapDepto)  wrapDepto.style.display  = '';
+      if (selDepto)   { selDepto.disabled = false; selDepto.required = true; }
+      if (wrapOtro)   wrapOtro.style.display   = 'none';
+      if (inpOtroPais){ inpOtroPais.disabled = true; inpOtroPais.required = false; inpOtroPais.value = ''; }
+      if (wrapCiudad) wrapCiudad.style.display = 'none';
+      if (inpCiudad)  { inpCiudad.disabled = true; inpCiudad.required = false; inpCiudad.value = ''; }
+    }
+  }
+  selPais.addEventListener('change', syncPais);
+  syncPais();
+})();
+
+/* ── Tipo de operación: exclusión mutua + detección automática ── */
+(function () {
+  var chkAlq = document.getElementById('chkAlquiler');
+  var chkCom = document.getElementById('chkCompra');
+  if (!chkAlq) return;
+
+  /* Exclusión mutua: marcar uno desmarca el otro */
+  chkAlq.addEventListener('change', function () {
+    if (this.checked && chkCom) chkCom.checked = false;
+  });
+  if (chkCom) {
+    chkCom.addEventListener('change', function () {
+      if (this.checked) chkAlq.checked = false;
+    });
+  }
+
+  /* Auto-detección según los ítems del carrito */
+  var rows = document.querySelectorAll('#cartTable tbody tr[data-tag]');
+  var tags = Array.from(rows).map(function (r) {
+    return (r.getAttribute('data-tag') || '').toLowerCase();
+  }).filter(Boolean);
+
+  if (tags.length === 0) return;          /* carrito vacío o sin tags → sin cambios */
+  var soloAlquiler = tags.every(function (t) { return t === 'alquiler'; });
+  var soloUsados   = tags.every(function (t) { return t === 'usados'; });
+
+  if (soloAlquiler) {
+    chkAlq.checked = true;
+    if (chkCom) { chkCom.checked = false; chkCom.disabled = true; }
+  } else if (soloUsados && chkCom) {
+    chkAlq.checked = false; chkAlq.disabled = true;
+    chkCom.checked = true;
+  }
+  /* Si hay mezcla de tags se dejan ambos habilitados (caso inusual) */
+})();
+
 document.getElementById('sfCartForm').addEventListener('submit', function(e) {
-  // 1) Nombres y Apellidos
+
   var nombre = document.getElementById('sfNombre');
   if (nombre && nombre.value.trim().length < 3) {
     e.preventDefault();
@@ -293,7 +371,7 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     nombre.focus(); return;
   }
 
-  // 2) Celular: mínimo 7 dígitos
+
   var cel = document.getElementById('sfCelular');
   if (cel) {
     var soloDigitos = cel.value.replace(/[^0-9]/g, '');
@@ -304,7 +382,7 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     }
   }
 
-  // 3) RUC / DNI / CUIT
+
   var ruc = document.getElementById('sfRuc');
   if (ruc && ruc.value.trim() !== '') {
     var soloRuc = ruc.value.replace(/[^0-9]/g, '');
@@ -315,14 +393,14 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     }
   }
 
-  // 4) Validar política
+
   if (!document.getElementById('sfPolitica').checked) {
     e.preventDefault();
     alert('Debes aceptar la política de privacidad.');
     return;
   }
 
-  // 5) Validar al menos un tipo de operación (Alquiler o Compra)
+
   var chkAlq = document.getElementById('chkAlquiler');
   var chkCom = document.getElementById('chkCompra');
   var alquiler = chkAlq && chkAlq.checked;
@@ -334,7 +412,25 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     return;
   }
 
-  // 6) Validar que el carrito no esté vacío
+  /* Validar que los equipos del carrito coincidan con el tipo seleccionado */
+  var tagRows = document.querySelectorAll('#cartTable tbody tr[data-tag]');
+  var tagsMismatch = false;
+  tagRows.forEach(function (r) {
+    var t = (r.getAttribute('data-tag') || '').toLowerCase();
+    if (!t) return;
+    if (alquiler && !compra && t === 'usados') tagsMismatch = true;
+    if (compra && !alquiler && t === 'alquiler') tagsMismatch = true;
+  });
+  if (tagsMismatch) {
+    e.preventDefault();
+    if (alquiler) {
+      alert('Tu carrito contiene equipos de USADOS. Selecciona "Compra" como tipo de operación o retira esos equipos.');
+    } else {
+      alert('Tu carrito contiene equipos de ALQUILER. Selecciona "Alquiler" como tipo de operación o retira esos equipos.');
+    }
+    return;
+  }
+
   var rowsCheck = document.querySelectorAll('#cartTable tbody tr');
   if (rowsCheck.length === 0) {
     e.preventDefault();
@@ -342,7 +438,7 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
     return;
   }
 
-  // Empaquetar carrito en el campo oculto
+
   const rows = document.querySelectorAll('#cartTable tbody tr');
   const items = [];
   rows.forEach(row => {
@@ -352,13 +448,11 @@ document.getElementById('sfCartForm').addEventListener('submit', function(e) {
   });
   document.getElementById('sfCarritoDetalle').value = items.join('<br>');
 
-  // Mostrar modal de éxito y dejar que el form envíe
+
   const modal = document.getElementById('sfSuccessModal');
   modal.style.display = 'flex';
 });
 
-/* ── Hero: si viene de COTIZAR con carrito vacío (?simple=1) → banner simple
-         Si viene directo a /carrito/ → banner con stepper (independiente del estado) ── */
 const isSimple = new URLSearchParams(window.location.search).get('simple') === '1';
 document.getElementById('heroEmpty').style.display = isSimple ? '' : 'none';
 document.getElementById('heroFull').style.display  = isSimple ? 'none' : '';

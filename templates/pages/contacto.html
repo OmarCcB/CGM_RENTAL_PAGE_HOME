@@ -5,7 +5,6 @@
 
 {% block content %}
 
-<!-- ══════════ BANNER ══════════ -->
 <section class="cgm-page-hero">
   <div class="cgm-page-hero-bg"
        style="background-image:url('{{ burl('otros/contacto-banner') }}')"></div>
@@ -18,7 +17,6 @@
   </div>
 </section>
 
-<!-- ══════════ TÍTULO ══════════ -->
 <section class="cgm-section-sm bg-white text-center">
   <div class="container">
     <h1 class="cgm-contacto-title fade-up">
@@ -27,20 +25,17 @@
   </div>
 </section>
 
-<!-- ══════════ SECCIÓN PRINCIPAL ══════════ -->
 <section class="cgm-section-sm bg-white">
   <div class="container">
     <div class="cgm-contacto-section">
-      <!-- Imagen de fondo -->
-      <div class="cgm-contacto-bg"
+           <div class="cgm-contacto-bg"
            style="background-image:url('{{ burl('otros/contacto-lateral') }}')"></div>
       <div class="cgm-contacto-overlay"></div>
 
   <div class="container cgm-contacto-inner">
     <div class="row g-5 align-items-start">
 
-      <!-- Col Izq: Datos de contacto -->
-      <div class="col-12 col-lg-5 cgm-contacto-info fade-up">
+           <div class="col-12 col-lg-5 cgm-contacto-info fade-up">
         <ul class="list-unstyled cgm-contacto-list">
           <li>
             <i class="bi bi-geo-alt-fill cgm-contacto-icon"></i>
@@ -73,19 +68,17 @@
         </ul>
       </div>
 
-      <!-- Col Der: Formulario -->
-      <div class="col-12 col-lg-7 fade-up fade-up-delay-2">
+           <div class="col-12 col-lg-7 fade-up fade-up-delay-2">
         <div class="cgm-contacto-card">
           <p class="cgm-contacto-card-title">Déjanos tus datos y pronto un asesor se contactará</p>
 
           <form id="sfContactForm"
                 action="/api/guardar-contacto"
                 method="POST">
-
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio" value="{{ country_code }}">
 
-            <!-- Tipo: Alquiler / Compra -->
-            <div class="cgm-contacto-tipo mb-3">
+                       <div class="cgm-contacto-tipo mb-3">
               <label class="cgm-contacto-check-label">
                 <input type="checkbox" name="tipo_alquiler" value="1" id="tipoAlquiler">
                 Alquiler:
@@ -99,8 +92,7 @@
             </div>
 
             <div class="row g-3">
-              <!-- Nombres y Apellidos -->
-              <div class="col-12">
+                           <div class="col-12">
                 <label class="cgm-contacto-field-label">Nombres y Apellidos</label>
                 <input type="text" name="nombre_apellido" class="cgm-contacto-input"
                        placeholder="Nombres y Apellidos*" required
@@ -108,24 +100,24 @@
                        title="Solo letras y espacios. Sin números ni símbolos."
                        minlength="3" autocomplete="name">
               </div>
-              <!-- Razón Social | País -->
-              <div class="col-12 col-sm-6">
+                           <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Razón Social:</label>
                 <input type="text" name="razon_social" class="cgm-contacto-input"
                        placeholder="Razón Social*" required
                        minlength="2" autocomplete="organization">
               </div>
               <div class="col-12 col-sm-6">
-                <label class="cgm-contacto-field-label">País:</label>
+                <label class="cgm-contacto-field-label">País del proyecto:</label>
                 <select id="sfcPais" name="pais" class="cgm-contacto-input" required>
-                  <option value="">Selecciona un país*</option>
-                  <option value="Perú" {% if country_code == 'pe' %}selected{% endif %}>Perú</option>
-                  <option value="Argentina" {% if country_code == 'ar' %}selected{% endif %}>Argentina</option>
+                  {% if country_code == 'ar' %}
+                  <option value="Argentina" selected>Argentina</option>
+                  {% else %}
+                  <option value="Perú" selected>Perú</option>
+                  {% endif %}
                   <option value="Otro">Otro</option>
                 </select>
               </div>
-              <!-- Identificación fiscal | División geográfica (adaptado por país) -->
-              <div class="col-12 col-sm-6">
+                           <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">
                   {% if country_code == 'ar' %}CUIT / CUIL:{% else %}RUC / DNI:{% endif %}
                 </label>
@@ -137,9 +129,9 @@
                        title="{% if country_code == 'ar' %}Solo números y guiones. Formato: XX-XXXXXXXX-X{% else %}Solo números. 8 dígitos para DNI, 11 para RUC.{% endif %}"
                        inputmode="numeric" autocomplete="off" required>
               </div>
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-6" id="sfcDeptoWrap">
                 <label class="cgm-contacto-field-label" for="sfcDepto">
-                  {% if country_code == 'ar' %}Provincia:{% else %}Departamento:{% endif %}
+                  {% if country_code == 'ar' %}Provincia del proyecto:{% else %}Departamento del proyecto:{% endif %}
                 </label>
                 <select name="departamento" id="sfcDepto" class="cgm-contacto-input" required>
                   <option value="">Selecciona {% if country_code == 'ar' %}una provincia{% else %}un departamento{% endif %}*</option>
@@ -161,8 +153,13 @@
                   {% endif %}
                 </select>
               </div>
-              <!-- Email | Otro País -->
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-6" id="sfcCiudadWrap" style="display:none;">
+                <label class="cgm-contacto-field-label" for="sfcCiudad">Ciudad / Región del proyecto:</label>
+                <input type="text" id="sfcCiudad" name="departamento" class="cgm-contacto-input"
+                       placeholder="Ciudad o región donde se ejecuta el proyecto*"
+                       minlength="2" maxlength="80" disabled>
+              </div>
+                           <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Email:</label>
                 <input type="email" name="email" class="cgm-contacto-input"
                        placeholder="Email*" required>
@@ -172,8 +169,7 @@
                 <input type="text" id="sfcOtroPais" name="otro_pais" class="cgm-contacto-input"
                        placeholder="Especifica si elegiste «Otro»">
               </div>
-              <!-- Celular -->
-              <div class="col-12">
+                           <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
                 <input type="tel" name="celular" class="cgm-contacto-input"
                        placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
@@ -182,22 +178,19 @@
                        title="Solo números. Puede incluir +, espacios o guiones."
                        inputmode="tel" autocomplete="tel" required>
               </div>
-              <!-- Equipo requerido -->
-              <div class="col-12">
+                           <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
                 <input type="text" name="equipo_requerido" class="cgm-contacto-input"
                        placeholder="Equipo requerido*" required>
               </div>
-              <!-- Política -->
-              <div class="col-12">
+                           <div class="col-12">
                 <p class="cgm-contacto-obligatorio">(*) Campos obligatorios</p>
                 <label class="cgm-contacto-politica">
                   <input type="checkbox" id="sfcPolitica" required>
                   <span>Acepto las Políticas de Privacidad y Términos y Condiciones de CGM Rental. Autorizo realizar actividades de prospección comercial y marketing descritas en las Políticas de Privacidad</span>
                 </label>
               </div>
-              <!-- Botón -->
-              <div class="col-12 text-end">
+                           <div class="col-12 text-end">
                 <button type="submit" class="cgm-btn cgm-btn-lima">
                   SOLICITAR INFORMACIÓN
                 </button>
@@ -208,8 +201,8 @@
       </div>
 
     </div>
-    </div><!-- /cgm-contacto-section -->
-  </div><!-- /container -->
+    </div>
+  </div>
 </section>
 
 {% endblock %}
@@ -223,16 +216,57 @@
   var selPais     = document.getElementById('sfcPais');
   var inpOtroPais = document.getElementById('sfcOtroPais');
 
-  // "Otro País" se hace obligatorio solo si País = "Otro"
+  /* Exclusión mutua: marcar uno desmarca el otro */
+  if (chkAlq) {
+    chkAlq.addEventListener('change', function () {
+      if (this.checked && chkCom) chkCom.checked = false;
+    });
+  }
+  if (chkCom) {
+    chkCom.addEventListener('change', function () {
+      if (this.checked && chkAlq) chkAlq.checked = false;
+    });
+  }
+
+  var selDepto       = document.getElementById('sfcDepto');
+  var inpCiudad      = document.getElementById('sfcCiudad');
+  var wrapDepto      = document.getElementById('sfcDeptoWrap');
+  var wrapCiudad     = document.getElementById('sfcCiudadWrap');
+
   function syncOtroPais() {
     if (!selPais || !inpOtroPais) return;
-    if (selPais.value === 'Otro') {
+    var esOtro = (selPais.value === 'Otro');
+
+    /* Otro país: visible y requerido cuando se elige "Otro" */
+    if (esOtro) {
       inpOtroPais.required = true;
       inpOtroPais.placeholder = 'Especifica el país*';
     } else {
       inpOtroPais.required = false;
       inpOtroPais.value = '';
       inpOtroPais.placeholder = 'Especifica si elegiste «Otro»';
+    }
+
+    /* Toggle: departamento dropdown vs ciudad input */
+    if (selDepto && inpCiudad && wrapDepto && wrapCiudad) {
+      if (esOtro) {
+        /* Otro país → ocultar dropdown, mostrar input texto libre */
+        wrapDepto.style.display = 'none';
+        selDepto.disabled = true;
+        selDepto.required = false;
+        wrapCiudad.style.display = '';
+        inpCiudad.disabled = false;
+        inpCiudad.required = true;
+      } else {
+        /* País propio → mostrar dropdown, ocultar input */
+        wrapDepto.style.display = '';
+        selDepto.disabled = false;
+        selDepto.required = true;
+        wrapCiudad.style.display = 'none';
+        inpCiudad.disabled = true;
+        inpCiudad.required = false;
+        inpCiudad.value = '';
+      }
     }
   }
   if (selPais) {
@@ -241,7 +275,7 @@
   }
 
   form.addEventListener('submit', function(e) {
-    // 1) Nombres y Apellidos: solo letras, mínimo 3 chars
+
     var nombre = form.querySelector('[name="nombre_apellido"]');
     if (nombre && nombre.value.trim().length < 3) {
       e.preventDefault();
@@ -254,7 +288,7 @@
       nombre.focus(); return;
     }
 
-    // 2) Celular: mínimo 7 dígitos
+
     var cel = form.querySelector('[name="celular"]');
     if (cel) {
       var soloDigitos = cel.value.replace(/[^0-9]/g, '');
@@ -265,7 +299,7 @@
       }
     }
 
-    // 3) RUC / DNI / CUIT: solo dígitos (y guiones para AR)
+
     var ruc = form.querySelector('[name="ruc_dni"]');
     if (ruc && ruc.value.trim() !== '') {
       var soloRuc = ruc.value.replace(/[^0-9]/g, '');
@@ -276,13 +310,13 @@
       }
     }
 
-    // 4) Política de privacidad
+
     if (!document.getElementById('sfcPolitica').checked) {
       e.preventDefault();
       alert('Debes aceptar la política de privacidad.');
       return;
     }
-    // 5) Al menos un tipo de operación (Alquiler o Compra) seleccionado
+
     var alquiler = chkAlq && chkAlq.checked;
     var compra   = chkCom && chkCom.checked;
     if (!alquiler && !compra) {

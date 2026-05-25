@@ -16,8 +16,7 @@
 
         <div style="background:#fff;border-radius:10px;padding:36px;box-shadow:0 4px 24px rgba(0,0,0,.06);">
 
-          <!-- Cabecera -->
-          <div class="text-center mb-4">
+                   <div class="text-center mb-4">
             <div style="width:72px;height:72px;background:var(--cgm-gris);border-radius:50%;
                         display:flex;align-items:center;justify-content:center;
                         font-size:32px;color:var(--cgm-verde);margin:0 auto 16px;">
@@ -32,8 +31,7 @@
             </p>
           </div>
 
-          <!-- Aviso éxito -->
-          <div id="denunciaSuccess" style="display:none;background:#e8f5e9;border-left:4px solid var(--cgm-lima);
+                   <div id="denunciaSuccess" style="display:none;background:#e8f5e9;border-left:4px solid var(--cgm-lima);
                padding:20px;border-radius:6px;text-align:center;margin-bottom:20px;">
             <i class="bi bi-check-circle-fill" style="font-size:36px;color:var(--cgm-verde);"></i>
             <h4 style="color:var(--cgm-verde);margin:12px 0 6px;">Denuncia enviada exitosamente</h4>
@@ -42,11 +40,9 @@
             </p>
           </div>
 
-          <!-- Formulario -->
-          <form id="cgmDenunciaForm" novalidate>
+                   <form id="cgmDenunciaForm" novalidate>
 
-            <!-- Sección: Datos del denunciante -->
-            <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
+                       <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
               <div style="font-family:'CGM BOLD',sans-serif;font-size:13px;color:var(--cgm-verde);
                           letter-spacing:.06em;margin-bottom:14px;">
                 <i class="bi bi-person-fill me-2"></i>DATOS DEL DENUNCIANTE
@@ -70,8 +66,7 @@
               </div>
             </div>
 
-            <!-- Sección: Datos del denunciado -->
-            <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
+                       <div style="background:var(--cgm-gris);border-radius:8px;padding:18px 20px;margin-bottom:24px;">
               <div style="font-family:'CGM BOLD',sans-serif;font-size:13px;color:var(--cgm-verde);
                           letter-spacing:.06em;margin-bottom:14px;">
                 <i class="bi bi-person-dash-fill me-2"></i>DATOS DEL DENUNCIADO
@@ -90,8 +85,7 @@
               </div>
             </div>
 
-            <!-- Tipo de denuncia + descripción -->
-            <div class="row g-3 mb-4">
+                       <div class="row g-3 mb-4">
               <div class="col-12">
                 <label class="cgm-form-label" for="denTipo">Tipo de denuncia *</label>
                 <select id="denTipo" name="form_fields[field_16ea685]"
@@ -140,20 +134,20 @@ document.getElementById('cgmDenunciaForm').addEventListener('submit', async func
   const form = this;
   const btn  = document.getElementById('denunciaSubmitBtn');
 
-  // Validar campos requeridos (required, pattern, minlength)
+
   if (!form.checkValidity()) {
     form.reportValidity();
     return;
   }
 
-  // Validar nombre del denunciado: solo letras
+
   var nombreD = document.getElementById('denNombreD');
   if (nombreD && /[0-9@#$%^&*]/.test(nombreD.value)) {
     alert('El nombre del denunciado no puede contener números ni símbolos especiales.');
     nombreD.focus(); return;
   }
 
-  // Validar email del denunciante si fue ingresado
+
   var emailDen = document.getElementById('denEmail');
   if (emailDen && emailDen.value.trim() !== '') {
     var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -177,9 +171,10 @@ document.getElementById('cgmDenunciaForm').addEventListener('submit', async func
   };
 
   try {
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const resp = await fetch('/api/denuncia', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfMeta ? csrfMeta.getAttribute('content') : '' },
       body: JSON.stringify(data)
     });
     const json = await resp.json();

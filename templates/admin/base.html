@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Panel Admin{% endblock %} – CGM Rental</title>
-  <!-- Bootstrap 5 — servido localmente (sin latencia CDN) -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <!-- Bootstrap 5 -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <!-- Bootstrap Icons — servido localmente -->
+  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}">
   <!-- Admin CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
@@ -152,6 +153,29 @@ function showToast(msg, type) {
     showToast({{ msg|tojson }}, {{ cat|tojson }});
   {% endfor %}
 {% endwith %}
+
+// CSRF: inyectar hidden field en todos los forms y header en fetch
+(function(){
+  var tk = document.querySelector('meta[name="csrf-token"]');
+  if (!tk) return;
+  var val = tk.getAttribute('content');
+  document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function(f){
+    if (!f.querySelector('[name="csrf_token"]')) {
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'csrf_token'; inp.value = val;
+      f.prepend(inp);
+    }
+  });
+  var _fetch = window.fetch;
+  window.fetch = function(url, opts) {
+    opts = opts || {};
+    if (opts.method && opts.method.toUpperCase() !== 'GET') {
+      opts.headers = opts.headers || {};
+      if (!opts.headers['X-CSRFToken']) opts.headers['X-CSRFToken'] = val;
+    }
+    return _fetch.call(this, url, opts);
+  };
+})();
 </script>
 </body>
 </html>
