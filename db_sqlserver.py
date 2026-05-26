@@ -56,8 +56,7 @@ def init_tables():
         equipo_requerido NVARCHAR(500) NULL,
         tipo_alquiler    BIT           DEFAULT 0,
         tipo_compra      BIT           DEFAULT 0,
-        ip_cliente       VARCHAR(50)   NULL,
-        sf_enviado       BIT           DEFAULT 1
+        sf_enviado       BIT           DEFAULT 0
     )
     """)
 
@@ -81,8 +80,7 @@ def init_tables():
         tipo_alquiler    BIT           DEFAULT 0,
         tipo_compra      BIT           DEFAULT 0,
         detalle_equipos  NVARCHAR(MAX) NULL,
-        ip_cliente       VARCHAR(50)   NULL,
-        sf_enviado       BIT           DEFAULT 1
+        sf_enviado       BIT           DEFAULT 0
     )
     """)
 

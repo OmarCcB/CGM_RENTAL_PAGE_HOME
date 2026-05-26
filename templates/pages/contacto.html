@@ -164,10 +164,10 @@
                 <input type="email" name="email" class="cgm-contacto-input"
                        placeholder="Email*" required>
               </div>
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-6" id="sfcOtroPaisWrap" style="display:none;">
                 <label class="cgm-contacto-field-label">Otro País:</label>
                 <input type="text" id="sfcOtroPais" name="otro_pais" class="cgm-contacto-input"
-                       placeholder="Especifica si elegiste «Otro»">
+                       placeholder="Especifica el país*">
               </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
@@ -190,6 +190,22 @@
                   <span>Acepto las Políticas de Privacidad y Términos y Condiciones de CGM Rental. Autorizo realizar actividades de prospección comercial y marketing descritas en las Políticas de Privacidad</span>
                 </label>
               </div>
+
+              {# Honeypot anti-bot: invisible para humanos, bots automáticos lo llenan #}
+              <div style="position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden" aria-hidden="true">
+                <label>Website (deja vacío)</label>
+                <input type="text" name="website" tabindex="-1" autocomplete="off">
+              </div>
+
+              {# Cloudflare Turnstile (captcha invisible) #}
+              {% if CF_TURNSTILE_SITE_KEY %}
+              <div class="col-12 d-flex justify-content-end">
+                <div class="cf-turnstile"
+                     data-sitekey="{{ CF_TURNSTILE_SITE_KEY }}"
+                     data-theme="dark"></div>
+              </div>
+              {% endif %}
+
                            <div class="col-12 text-end">
                 <button type="submit" class="cgm-btn cgm-btn-lima">
                   SOLICITAR INFORMACIÓN
@@ -232,19 +248,20 @@
   var inpCiudad      = document.getElementById('sfcCiudad');
   var wrapDepto      = document.getElementById('sfcDeptoWrap');
   var wrapCiudad     = document.getElementById('sfcCiudadWrap');
+  var wrapOtroPais   = document.getElementById('sfcOtroPaisWrap');
 
   function syncOtroPais() {
     if (!selPais || !inpOtroPais) return;
     var esOtro = (selPais.value === 'Otro');
 
-    /* Otro país: visible y requerido cuando se elige "Otro" */
+    /* Otro país: visible y requerido SOLO cuando se elige "Otro" */
     if (esOtro) {
+      if (wrapOtroPais) wrapOtroPais.style.display = '';
       inpOtroPais.required = true;
-      inpOtroPais.placeholder = 'Especifica el país*';
     } else {
+      if (wrapOtroPais) wrapOtroPais.style.display = 'none';
       inpOtroPais.required = false;
       inpOtroPais.value = '';
-      inpOtroPais.placeholder = 'Especifica si elegiste «Otro»';
     }
 
     /* Toggle: departamento dropdown vs ciudad input */

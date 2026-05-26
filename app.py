@@ -1,7 +1,10 @@
 ﻿import os
+import re
 import json
 import logging
 import smtplib
+import urllib.request
+import urllib.parse
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -686,6 +689,8 @@ def inject_globals():
         # Canonical URL: usa la URL base sin querystring (evita duplicados por UTM, etc.)
         # Las vistas pueden sobreescribir esto pasando canonical_url=... a render_template
         "canonical_url": request.base_url,
+        # Cloudflare Turnstile site key (para inyectar en formularios)
+        "CF_TURNSTILE_SITE_KEY": CF_TURNSTILE_SITE_KEY,
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1287,30 +1292,136 @@ def _validar_pais_portal(pais_form, pais_sitio):
     return None
 
 
-# ── Formulario Contacto → SQL Server (reemplaza Salesforce) ──────────────────
+# ── Anti-spam: Cloudflare Turnstile (captcha invisible) ──────────────────────
+CF_TURNSTILE_SITE_KEY = os.getenv("CF_TURNSTILE_SITE_KEY", "")
+CF_TURNSTILE_SECRET   = os.getenv("CF_TURNSTILE_SECRET", "")
+
+def _validar_turnstile(token, ip=None):
+    """Verifica el token Turnstile contra la API de Cloudflare.
+    Devuelve True si Cloudflare confirma que es humano, False si es bot o falla.
+    Si no está configurado (variables vacías), permite el request (modo dev)."""
+    if not CF_TURNSTILE_SECRET:
+        app.logger.warning("Turnstile no configurado (CF_TURNSTILE_SECRET vacía) — permitiendo")
+        return True
+    if not token:
+        return False
+    try:
+        body = urllib.parse.urlencode({
+            "secret":   CF_TURNSTILE_SECRET,
+            "response": token,
+            "remoteip": ip or "",
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+            data=body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        return bool(result.get("success", False))
+    except Exception as e:
+        app.logger.error(f"Error verificando Turnstile: {e}")
+        return False  # En caso de error de red, rechaza (fail-closed)
+
+
+# ── Anti-spam: validación de contenido (anti-phishing / anti-bot) ─────────────
+_SPAM_URL_RE = re.compile(
+    r"(https?://|www\.|telegra\.ph|t\.me/|\.com/|\.net/|\.org/|\.ru/|\.cn/)",
+    re.IGNORECASE,
+)
+_SPAM_KEYWORDS = {
+    "crypto", "refund", "compensation", "inheritance", "bitcoin", "btc",
+    "trx", "usdt", "ethereum", "lottery", "casino", "viagra", "loan",
+    "investment opportunity", "make money", "click here", "telegra",
+}
+
+def _validar_lead_contenido(data):
+    """Validación server-side estricta del contenido del lead.
+    Devuelve None si está OK, o un mensaje de error."""
+    nombre = (data.get("nombre_apellido") or "").strip()
+    ruc    = (data.get("ruc_dni") or "").strip()
+    email  = (data.get("email") or "").strip()
+    cel    = (data.get("celular") or "").strip()
+    equipo = (data.get("equipo_requerido") or "").strip()
+    razon  = (data.get("razon_social") or "").strip()
+    otro_p = (data.get("otro_pais") or "").strip()
+
+    # 1. Nombre: solo letras y separadores razonables, 3-100 chars
+    if not nombre or len(nombre) < 3 or len(nombre) > 100:
+        return "Nombre fuera de rango."
+    if not re.match(r"^[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+$", nombre):
+        return "Nombre contiene caracteres no permitidos."
+
+    # 2. RUC/DNI: solo dígitos (o guiones para CUIT argentino)
+    if ruc and not re.match(r"^[\d\-]{6,15}$", ruc):
+        return "Documento de identidad inválido."
+
+    # 3. Email: formato razonable
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$", email):
+        return "Email inválido."
+
+    # 4. Celular: 7-15 dígitos
+    cel_digits = re.sub(r"[^\d]", "", cel)
+    if not (7 <= len(cel_digits) <= 15):
+        return "Celular inválido."
+
+    # 5. Detección de URLs en campos donde no deberían existir
+    for valor in (nombre, equipo, razon, otro_p):
+        if _SPAM_URL_RE.search(valor):
+            return "Contenido no permitido (URLs detectadas)."
+
+    # 6. Detección de keywords típicas de spam/phishing
+    blob = " ".join([nombre, equipo, razon, otro_p]).lower()
+    for kw in _SPAM_KEYWORDS:
+        if kw in blob:
+            return "Contenido bloqueado por filtro anti-spam."
+
+    return None
+
+
+# ── Formulario Contacto → guardar lead en SQL Server (Azure) ─────────────────
 @app.route("/api/guardar-contacto", methods=["POST"])
 @limiter.limit("5 per minute")
 def api_guardar_contacto():
     data        = request.form
     pais_sitio  = data.get("pais_sitio", "pe")
 
+    # Anti-spam capa 1: Honeypot (campo oculto que humanos nunca llenan)
+    if data.get("website", "").strip():
+        security_logger.warning(f"Honeypot activado en guardar-contacto ip={_get_real_ip()}")
+        # Devuelve 200 (engaño): el bot piensa que pasó pero no se guardó nada
+        return redirect(f"/{pais_sitio}/gracias/")
+
+    # Anti-spam capa 2: Cloudflare Turnstile
+    cf_token = data.get("cf-turnstile-response", "")
+    if not _validar_turnstile(cf_token, _get_real_ip()):
+        security_logger.warning(f"Turnstile falló en guardar-contacto ip={_get_real_ip()}")
+        return jsonify({"ok": False, "error": "Verificación de seguridad fallida. Recarga la página e intenta de nuevo."}), 403
+
+    # Anti-spam capa 3: validación de contenido (formato + URLs + keywords)
+    err = _validar_lead_contenido(data)
+    if err:
+        security_logger.warning(f"Lead bloqueado por contenido en guardar-contacto: {err}")
+        return jsonify({"ok": False, "error": err}), 400
+
     # Defensa server-side contra envíos cruzados (manipulación del formulario)
     err = _validar_pais_portal(data.get("pais"), pais_sitio)
     if err:
         security_logger.warning(
-            f"Envío cruzado bloqueado en /api/guardar-contacto: {err} "
-            f"ip={request.remote_addr}"
+            f"Envío cruzado bloqueado en /api/guardar-contacto: {err}"
         )
         return jsonify({"ok": False, "error": err}), 400
 
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
+        # sf_enviado=0 al crear: queda pendiente de procesar/derivar al CRM,
+        # se actualiza a 1 manualmente cuando el lead es atendido.
         cursor.execute("""
             INSERT INTO CGM_Contacto_Leads
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, pais,
                departamento, otro_pais, email, celular, equipo_requerido,
-               tipo_alquiler, tipo_compra, ip_cliente)
+               tipo_alquiler, tipo_compra, sf_enviado)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
@@ -1325,7 +1436,7 @@ def api_guardar_contacto():
             data.get("equipo_requerido","").strip(),
             1 if data.get("tipo_alquiler") else 0,
             1 if data.get("tipo_compra")   else 0,
-            request.remote_addr,
+            0,  # sf_enviado: pendiente
         ))
         conn.commit()
         conn.close()
@@ -1334,29 +1445,93 @@ def api_guardar_contacto():
     return redirect(f"/{pais_sitio}/gracias/")
 
 
-# ── Formulario Cotización (carrito) → SQL Server (reemplaza Salesforce) ───────
+# ── Formulario Cotización (carrito) → guardar lead en SQL Server (Azure) ──────
+# Soporta flujo dual: si el carrito es mixto (alquiler + usados), envía solo
+# los equipos del tipo indicado en `tipo_envio` y deja los otros en la session
+# para una segunda cotización.
 @app.route("/api/guardar-cotizacion", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("8 per minute")
 def api_guardar_cotizacion():
     data        = request.form
     pais_sitio  = data.get("pais_sitio", "pe")
+
+    # Anti-spam capa 1: Honeypot
+    if data.get("website", "").strip():
+        security_logger.warning(f"Honeypot activado en guardar-cotizacion ip={_get_real_ip()}")
+        return jsonify({"ok": True, "redirect": f"/{pais_sitio}/gracias/"}), 200
+
+    # Anti-spam capa 2: Cloudflare Turnstile
+    cf_token = data.get("cf-turnstile-response", "")
+    if not _validar_turnstile(cf_token, _get_real_ip()):
+        security_logger.warning(f"Turnstile falló en guardar-cotizacion ip={_get_real_ip()}")
+        return jsonify({"ok": False, "error": "Verificación de seguridad fallida. Recarga la página e intenta de nuevo."}), 403
+
+    # Anti-spam capa 3: validación de contenido
+    err = _validar_lead_contenido(data)
+    if err:
+        security_logger.warning(f"Lead bloqueado por contenido en guardar-cotizacion: {err}")
+        return jsonify({"ok": False, "error": err}), 400
 
     # Defensa server-side contra envíos cruzados
     err = _validar_pais_portal(data.get("pais"), pais_sitio)
     if err:
         security_logger.warning(
-            f"Envío cruzado bloqueado en /api/guardar-cotizacion: {err} "
-            f"ip={request.remote_addr}"
+            f"Envío cruzado bloqueado en /api/guardar-cotizacion: {err}"
         )
         return jsonify({"ok": False, "error": err}), 400
 
-    # Si eligió "Otro", combinamos pais + otro_pais en la columna `pais`
-    # porque la tabla de cotizaciones no tiene columna otro_pais separada.
+    # ── Mitigación #2: Idempotency token (evita duplicados por reintento) ──────
+    submission_id = (data.get("submission_id") or "").strip()
+    if submission_id:
+        seen = session.get("_cotiz_submissions", [])
+        if submission_id in seen:
+            app.logger.info(f"[guardar-cotizacion] Submission duplicado ignorado: {submission_id}")
+            return jsonify({"ok": True, "duplicate": True, "mensaje": "Cotización ya recibida."}), 200
+
+    # ── Mitigación #7: Validar tipo_envio y que existan equipos del tipo ───────
+    tipo_envio = (data.get("tipo_envio") or "").strip().lower()
+    if tipo_envio not in ("alquiler", "compra", "usados", ""):
+        return jsonify({"ok": False, "error": "Tipo de operación inválido."}), 400
+
+    # Normalizar: "compra" en el form = "usados" en el tag de productos
+    tag_target = "usados" if tipo_envio == "compra" else (tipo_envio or "alquiler")
+
+    # Leer carrito de la session y filtrar por tag
+    cart_key = _cart_key(pais_sitio)
+    cart = session.get(cart_key, {})
+    items_envio = {slug: item for slug, item in cart.items()
+                   if (item.get("tag") or "").lower() == tag_target}
+
+    if not items_envio:
+        # Si no quedan equipos del tipo, podría ser carrito vacío o desincronización
+        if not cart:
+            return jsonify({
+                "ok": False,
+                "error": "Tu carrito está vacío. Agrega equipos antes de cotizar.",
+                "cart_vacio": True,
+            }), 400
+        return jsonify({
+            "ok": False,
+            "error": f"No tienes equipos de tipo '{tag_target}' en el carrito.",
+        }), 400
+
+    # Construir detalle_equipos solo con los equipos del tipo enviado
+    detalle = " | ".join([f"{item.get('qty', 1)} x {item.get('nombre', slug)}"
+                          for slug, item in items_envio.items()])
+
+    # Si eligió "Otro", combinamos pais + otro_pais
     pais_val = data.get("pais", "").strip()
     otro_pais_val = data.get("otro_pais", "").strip()
     if pais_val == "Otro" and otro_pais_val:
         pais_val = f"Otro: {otro_pais_val}"
 
+    # Flags tipo_alquiler / tipo_compra según el tipo enviado
+    is_alquiler = 1 if tag_target == "alquiler" else 0
+    is_compra   = 1 if tag_target == "usados"   else 0
+
+    # ── Mitigación #3: try/finally para garantizar consistencia ────────────────
+    insert_ok = False
+    conn = None
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
@@ -1364,7 +1539,7 @@ def api_guardar_cotizacion():
             INSERT INTO CGM_Cotizaciones
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, email,
                celular, pais, departamento, tipo_alquiler, tipo_compra,
-               detalle_equipos, ip_cliente)
+               detalle_equipos, sf_enviado)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
@@ -1375,16 +1550,52 @@ def api_guardar_cotizacion():
             data.get("celular",         "").strip(),
             pais_val,
             data.get("departamento",    "").strip(),
-            1 if data.get("tipo_alquiler") else 0,
-            1 if data.get("tipo_compra")   else 0,
-            data.get("detalle_equipos",  "").strip(),
-            request.remote_addr,
+            is_alquiler,
+            is_compra,
+            detalle,
+            0,  # sf_enviado: pendiente
         ))
         conn.commit()
-        conn.close()
+        insert_ok = True
+        app.logger.info(f"[guardar-cotizacion] Lead OK tipo={tag_target} equipos={len(items_envio)}")
     except Exception as e:
         app.logger.error(f"[guardar-cotizacion] SQL Server error: {e}")
-    return redirect(f"/{pais_sitio}/gracias/")
+        return jsonify({
+            "ok": False,
+            "error": "No pudimos guardar tu cotización en este momento. Por favor intenta nuevamente.",
+        }), 500
+    finally:
+        if conn:
+            try: conn.close()
+            except Exception: pass
+
+    # ── Si el INSERT fue OK, limpiamos del carrito los equipos enviados ────────
+    if insert_ok:
+        try:
+            for slug in items_envio.keys():
+                cart.pop(slug, None)
+            session[cart_key] = cart
+            # Registrar submission_id como procesado (mitigación #2)
+            if submission_id:
+                seen = session.get("_cotiz_submissions", [])
+                seen.append(submission_id)
+                # Limitar tamaño (últimos 20)
+                session["_cotiz_submissions"] = seen[-20:]
+            session.modified = True
+        except Exception as e:
+            # Si la limpieza falla, el lead está guardado pero el carrito queda igual.
+            # Loguear para diagnosticar pero no fallar la respuesta al usuario.
+            app.logger.error(f"[guardar-cotizacion] No se pudo limpiar session: {e}")
+
+    # Respuesta JSON: indica si quedan más equipos pendientes en el carrito
+    cart_restante = session.get(cart_key, {})
+    return jsonify({
+        "ok": True,
+        "mensaje": f"Cotización de {'alquiler' if tag_target == 'alquiler' else 'compra'} enviada correctamente.",
+        "cart_restante": cart_restante,
+        "tipos_restantes": sorted({(it.get("tag") or "").lower()
+                                    for it in cart_restante.values() if it.get("tag")}),
+    }), 200
 
 
 @app.route("/api/cart/add", methods=["POST"])

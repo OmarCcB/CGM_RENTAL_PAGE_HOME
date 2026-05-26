@@ -83,6 +83,11 @@
   <noscript><link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.min.css') }}"></noscript>
 
   {% block extra_head %}{% endblock %}
+
+  <!-- Cloudflare Turnstile (anti-spam) — solo se carga si hay site key -->
+  {% if CF_TURNSTILE_SITE_KEY %}
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  {% endif %}
 </head>
 <body>
 

@@ -67,7 +67,13 @@
               <i class="bi bi-trash me-1"></i>Vaciar
             </button>
           </div>
-          <table class="table mb-0" id="cartTable">
+          {# Calcular si el carrito es mixto (tiene alquiler Y usados) #}
+          {% set tags_carrito = cart.values() | map(attribute='tag') | select | map('lower') | list %}
+          {% set hay_alquiler = 'alquiler' in tags_carrito %}
+          {% set hay_usados   = 'usados'   in tags_carrito %}
+          {% set carrito_mixto = hay_alquiler and hay_usados %}
+
+          <table class="table mb-0" id="cartTable" data-mixto="{{ '1' if carrito_mixto else '0' }}">
             <thead style="background:var(--cgm-gris);">
               <tr>
                 <th style="font-size:11px;font-weight:700;color:#999;letter-spacing:.5px;padding:10px 20px;">EQUIPO</th>
@@ -76,34 +82,105 @@
               </tr>
             </thead>
             <tbody>
-              {% for slug, item in cart.items() %}
-              <tr id="cart-row-{{ slug }}" data-tag="{{ item.tag | default('') }}">
-                <td style="padding:10px 16px;vertical-align:middle;">
-                  <div style="display:flex;align-items:center;gap:12px;">
-                    <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
-                         alt="{{ item.nombre }}"
-                         style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
-                         onerror="this.style.display='none'">
-                    <div>
-                      <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
-                      <a href="/{{ country_code }}/producto/{{ slug }}/"
-                         style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
+              {% if carrito_mixto %}
+                {# ── GRUPO ALQUILER ── #}
+                <tr class="cart-group-header" data-grupo="alquiler" id="grupoHeaderAlquiler">
+                  <td colspan="3" class="cart-group-header-cell">
+                    <span class="cart-group-indicator"></span>
+                    <span class="cart-group-label">ALQUILER</span>
+                    <small class="cart-group-hint">(click para seleccionar)</small>
+                  </td>
+                </tr>
+                {% for slug, item in cart.items() if (item.tag or '')|lower == 'alquiler' %}
+                <tr id="cart-row-{{ slug }}" data-tag="alquiler" class="cart-item-row">
+                  <td style="padding:10px 16px;vertical-align:middle;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
+                           alt="{{ item.nombre }}"
+                           style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
+                           onerror="this.style.display='none'">
+                      <div>
+                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <a href="/{{ country_code }}/producto/{{ slug }}/"
+                           style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td style="text-align:center;vertical-align:middle;">
-                  <span style="background:var(--cgm-gris);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;">
-                    {{ item.qty }}
-                  </span>
-                </td>
-                <td style="vertical-align:middle;text-align:center;">
-                  <button onclick="removeFromCart('{{ slug }}')"
-                          style="background:none;border:none;color:#e53935;font-size:17px;cursor:pointer;padding:4px;">
-                    <i class="bi bi-x-circle"></i>
-                  </button>
-                </td>
-              </tr>
-              {% endfor %}
+                  </td>
+                  <td style="text-align:center;vertical-align:middle;">
+                    <span style="background:var(--cgm-gris);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;">{{ item.qty }}</span>
+                  </td>
+                  <td style="vertical-align:middle;text-align:center;">
+                    <button onclick="removeFromCart('{{ slug }}')"
+                            style="background:none;border:none;color:#e53935;font-size:17px;cursor:pointer;padding:4px;">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+
+                {# ── GRUPO USADOS ── #}
+                <tr class="cart-group-header" data-grupo="usados" id="grupoHeaderUsados">
+                  <td colspan="3" class="cart-group-header-cell">
+                    <span class="cart-group-indicator"></span>
+                    <span class="cart-group-label">USADOS</span>
+                    <small class="cart-group-hint">(click para seleccionar)</small>
+                  </td>
+                </tr>
+                {% for slug, item in cart.items() if (item.tag or '')|lower == 'usados' %}
+                <tr id="cart-row-{{ slug }}" data-tag="usados" class="cart-item-row">
+                  <td style="padding:10px 16px;vertical-align:middle;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
+                           alt="{{ item.nombre }}"
+                           style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
+                           onerror="this.style.display='none'">
+                      <div>
+                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <a href="/{{ country_code }}/producto/{{ slug }}/"
+                           style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align:center;vertical-align:middle;">
+                    <span style="background:var(--cgm-gris);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;">{{ item.qty }}</span>
+                  </td>
+                  <td style="vertical-align:middle;text-align:center;">
+                    <button onclick="removeFromCart('{{ slug }}')"
+                            style="background:none;border:none;color:#e53935;font-size:17px;cursor:pointer;padding:4px;">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                {# ── Carrito puro un tipo: lista normal ── #}
+                {% for slug, item in cart.items() %}
+                <tr id="cart-row-{{ slug }}" data-tag="{{ item.tag | default('') }}" class="cart-item-row">
+                  <td style="padding:10px 16px;vertical-align:middle;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <img src="{{ url_for('static', filename='products/' + slug + '/1.webp') }}"
+                           alt="{{ item.nombre }}"
+                           style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
+                           onerror="this.style.display='none'">
+                      <div>
+                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <a href="/{{ country_code }}/producto/{{ slug }}/"
+                           style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align:center;vertical-align:middle;">
+                    <span style="background:var(--cgm-gris);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:700;">{{ item.qty }}</span>
+                  </td>
+                  <td style="vertical-align:middle;text-align:center;">
+                    <button onclick="removeFromCart('{{ slug }}')"
+                            style="background:none;border:none;color:#e53935;font-size:17px;cursor:pointer;padding:4px;">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% endif %}
             </tbody>
           </table>
           <div style="padding:14px 20px;border-top:1px solid #eee;text-align:center;">
@@ -130,6 +207,8 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio"      value="{{ country_code }}">
             <input type="hidden" name="detalle_equipos" id="sfCarritoDetalle">
+            <input type="hidden" name="tipo_envio"      id="sfTipoEnvio" value="alquiler">
+            <input type="hidden" name="submission_id"   id="sfSubmissionId" value="">
 
             <div class="row g-3">
 
@@ -254,6 +333,21 @@
                 </div>
               </div>
 
+              {# Honeypot anti-bot: invisible para humanos #}
+              <div style="position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden" aria-hidden="true">
+                <label>Website (deja vacío)</label>
+                <input type="text" name="website" tabindex="-1" autocomplete="off">
+              </div>
+
+              {# Cloudflare Turnstile (captcha invisible) #}
+              {% if CF_TURNSTILE_SITE_KEY %}
+              <div class="col-12 d-flex justify-content-center">
+                <div class="cf-turnstile"
+                     data-sitekey="{{ CF_TURNSTILE_SITE_KEY }}"
+                     data-theme="light"></div>
+              </div>
+              {% endif %}
+
               <div class="col-12">
                 <button type="submit" class="cgm-btn cgm-btn-lima w-100 justify-content-center"
                         style="font-size:14px;padding:14px;">
@@ -321,137 +415,244 @@
   syncPais();
 })();
 
-/* ── Tipo de operación: exclusión mutua + detección automática ── */
+/* ══════════════════════════════════════════════════════════════════════════
+ * CARRITO COTIZACIÓN — FLUJO DUAL (alquiler + usados)
+ * ════════════════════════════════════════════════════════════════════════ */
 (function () {
-  var chkAlq = document.getElementById('chkAlquiler');
-  var chkCom = document.getElementById('chkCompra');
-  if (!chkAlq) return;
+  /* ── Referencias DOM ────────────────────────────────────────────────── */
+  var form         = document.getElementById('sfCartForm');
+  var btnSubmit    = form ? form.querySelector('button[type="submit"]') : null;
+  var chkAlq       = document.getElementById('chkAlquiler');
+  var chkCom       = document.getElementById('chkCompra');
+  var hiddenTipo   = document.getElementById('sfTipoEnvio');
+  var hiddenSubId  = document.getElementById('sfSubmissionId');
+  var hiddenDetalle= document.getElementById('sfCarritoDetalle');
+  var cartTable    = document.getElementById('cartTable');
+  var headerAlq    = document.getElementById('grupoHeaderAlquiler');
+  var headerUsa    = document.getElementById('grupoHeaderUsados');
+  var politica     = document.getElementById('sfPolitica');
 
-  /* Exclusión mutua: marcar uno desmarca el otro */
-  chkAlq.addEventListener('change', function () {
-    if (this.checked && chkCom) chkCom.checked = false;
-  });
-  if (chkCom) {
-    chkCom.addEventListener('change', function () {
-      if (this.checked) chkAlq.checked = false;
+  if (!form || !cartTable) return;
+
+  var esMixto = cartTable.getAttribute('data-mixto') === '1';
+
+  /* ── Estado único centralizado (mitigación #15) ────────────────────── */
+  function detectarTipoInicial() {
+    var rows = cartTable.querySelectorAll('tr.cart-item-row[data-tag]');
+    var tags = Array.from(rows).map(function (r) {
+      return (r.getAttribute('data-tag') || '').toLowerCase();
+    }).filter(Boolean);
+    if (tags.length === 0) return 'alquiler';
+    if (tags.indexOf('alquiler') !== -1) return 'alquiler';
+    if (tags.indexOf('usados')   !== -1) return 'compra';
+    return 'alquiler';
+  }
+  var tipoActivo = detectarTipoInicial();  // 'alquiler' o 'compra'
+
+  /* ── renderizar(): aplica el estado a TODA la UI atómicamente ─────── */
+  function renderizar() {
+    /* Headers (solo en carrito mixto) */
+    if (headerAlq) headerAlq.classList.toggle('cart-group-active', tipoActivo === 'alquiler');
+    if (headerUsa) headerUsa.classList.toggle('cart-group-active', tipoActivo === 'compra');
+
+    /* Filas de equipos: opacidad reducida si no son del tipo activo */
+    var rows = cartTable.querySelectorAll('tr.cart-item-row');
+    rows.forEach(function (r) {
+      var tag = (r.getAttribute('data-tag') || '').toLowerCase();
+      var activo = (tipoActivo === 'alquiler' && tag === 'alquiler') ||
+                   (tipoActivo === 'compra'   && tag === 'usados');
+      r.classList.toggle('cart-item-inactive', !activo && esMixto);
     });
+
+    /* Checkboxes del formulario */
+    if (chkAlq) chkAlq.checked = (tipoActivo === 'alquiler');
+    if (chkCom) chkCom.checked = (tipoActivo === 'compra');
+
+    /* Hidden input que el backend lee */
+    if (hiddenTipo) hiddenTipo.value = tipoActivo;
   }
 
-  /* Auto-detección según los ítems del carrito */
-  var rows = document.querySelectorAll('#cartTable tbody tr[data-tag]');
-  var tags = Array.from(rows).map(function (r) {
-    return (r.getAttribute('data-tag') || '').toLowerCase();
-  }).filter(Boolean);
-
-  if (tags.length === 0) return;          /* carrito vacío o sin tags → sin cambios */
-  var soloAlquiler = tags.every(function (t) { return t === 'alquiler'; });
-  var soloUsados   = tags.every(function (t) { return t === 'usados'; });
-
-  if (soloAlquiler) {
-    chkAlq.checked = true;
-    if (chkCom) { chkCom.checked = false; chkCom.disabled = true; }
-  } else if (soloUsados && chkCom) {
-    chkAlq.checked = false; chkAlq.disabled = true;
-    chkCom.checked = true;
+  /* ── cambiarTipo(): único entry point para mutar el estado ──────────── */
+  function cambiarTipo(nuevo) {
+    if (nuevo !== 'alquiler' && nuevo !== 'compra') return;
+    if (nuevo === tipoActivo) return;
+    tipoActivo = nuevo;
+    renderizar();
   }
-  /* Si hay mezcla de tags se dejan ambos habilitados (caso inusual) */
+
+  /* ── Click en headers (solo si carrito mixto) cambia el tipo activo ── */
+  if (esMixto) {
+    if (headerAlq) {
+      headerAlq.style.cursor = 'pointer';
+      headerAlq.addEventListener('click', function () { cambiarTipo('alquiler'); });
+    }
+    if (headerUsa) {
+      headerUsa.style.cursor = 'pointer';
+      headerUsa.addEventListener('click', function () { cambiarTipo('compra'); });
+    }
+  } else {
+    /* Carrito puro un tipo → bloqueamos checkboxes (no editable) */
+    if (chkAlq && tipoActivo === 'alquiler' && chkCom) {
+      chkCom.disabled = true;
+    }
+    if (chkCom && tipoActivo === 'compra' && chkAlq) {
+      chkAlq.disabled = true;
+    }
+  }
+
+  /* Sync checkboxes manuales con cambiarTipo (mantiene estado único) */
+  if (chkAlq) chkAlq.addEventListener('change', function () {
+    if (this.checked) cambiarTipo('alquiler');
+    else renderizar();  /* no permite desmarcar → re-renderiza */
+  });
+  if (chkCom) chkCom.addEventListener('change', function () {
+    if (this.checked) cambiarTipo('compra');
+    else renderizar();
+  });
+
+  /* Render inicial */
+  renderizar();
+
+  /* ── Pre-llenado desde sessionStorage (mitigación #6) ────────────────── */
+  var STORAGE_KEY = 'cgm_cotiz_prefill_' + (document.querySelector('input[name="pais_sitio"]').value || 'pe');
+  try {
+    var raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var prefill = JSON.parse(raw);
+      var setVal = function (id, val) {
+        var el = document.getElementById(id);
+        if (el && val) el.value = val;
+      };
+      setVal('sfNombre',   prefill.nombre_apellido);
+      setVal('sfRazon',    prefill.razon_social);
+      setVal('sfRuc',      prefill.ruc_dni);
+      setVal('sfEmail',    prefill.email);
+      setVal('sfCelular',  prefill.celular);
+      var sp = document.getElementById('sfPais');
+      if (sp && prefill.pais) { sp.value = prefill.pais; sp.dispatchEvent(new Event('change')); }
+      setVal('sfDepto',    prefill.departamento);
+      setVal('sfOtroPais', prefill.otro_pais);
+      setVal('sfCiudad',   prefill.ciudad);
+    }
+  } catch (e) { /* sessionStorage no disponible, no pasa nada */ }
+
+  /* ── Generar submission_id único (mitigación #2: idempotency) ─────── */
+  function nuevoSubmissionId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'sub-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+  if (hiddenSubId) hiddenSubId.value = nuevoSubmissionId();
+
+  /* ── Submit AJAX con todas las mitigaciones ──────────────────────── */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    /* Validaciones cliente (mantengo las existentes) */
+    var nombre = document.getElementById('sfNombre');
+    if (nombre && nombre.value.trim().length < 3) {
+      alert('Ingresa tu nombre y apellido completos.'); nombre.focus(); return;
+    }
+    if (nombre && /[0-9@#$%^&*]/.test(nombre.value)) {
+      alert('El nombre no puede contener números ni símbolos especiales.'); nombre.focus(); return;
+    }
+    var cel = document.getElementById('sfCelular');
+    if (cel) {
+      var soloDigitos = cel.value.replace(/[^0-9]/g, '');
+      if (soloDigitos.length < 7) { alert('Celular inválido (mínimo 7 dígitos).'); cel.focus(); return; }
+    }
+    var ruc = document.getElementById('sfRuc');
+    if (ruc && ruc.value.trim() !== '') {
+      var soloRuc = ruc.value.replace(/[^0-9]/g, '');
+      if (soloRuc.length < 8) { alert('Ingresa un RUC, DNI o CUIT válido.'); ruc.focus(); return; }
+    }
+    if (politica && !politica.checked) {
+      alert('Debes aceptar la política de privacidad.'); return;
+    }
+
+    /* Construir detalle_equipos solo con los del tipo activo */
+    var tagDeseado = (tipoActivo === 'compra') ? 'usados' : 'alquiler';
+    var rowsActivas = cartTable.querySelectorAll('tr.cart-item-row[data-tag="' + tagDeseado + '"]');
+    if (rowsActivas.length === 0) {
+      alert('No hay equipos del tipo seleccionado en el carrito.'); return;
+    }
+    var items = [];
+    rowsActivas.forEach(function (row) {
+      var n = row.querySelector('td:first-child div');
+      var q = row.querySelector('td:nth-child(2) span');
+      if (n) items.push((q ? q.textContent.trim() : '1') + ' x ' + n.textContent.trim().toUpperCase());
+    });
+    if (hiddenDetalle) hiddenDetalle.value = items.join('<br>');
+
+    /* Mitigación #1: deshabilitar botón + spinner */
+    var btnOriginalHtml = btnSubmit ? btnSubmit.innerHTML : '';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Enviando...';
+    }
+
+    /* AJAX submit */
+    var formData = new FormData(form);
+    fetch('/api/guardar-cotizacion', {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    .then(function (resp) { return resp.json().then(function (j) { return { status: resp.status, body: j }; }); })
+    .then(function (res) {
+      if (!res.body.ok) {
+        /* Mitigación #4: si session expiró o carrito vacío inesperado */
+        if (res.body.cart_vacio) {
+          alert('Tu carrito está vacío o la sesión expiró. Vuelve a agregar equipos.');
+          setTimeout(function () { window.location.reload(); }, 1500);
+          return;
+        }
+        alert(res.body.error || 'No pudimos enviar tu cotización.');
+        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
+        return;
+      }
+
+      /* Éxito */
+      var cartRest = res.body.cart_restante || {};
+      var hayMas   = Object.keys(cartRest).length > 0;
+      var tiposRestantes = res.body.tipos_restantes || [];
+
+      /* Guardar datos personales en sessionStorage para el siguiente envío */
+      try {
+        var prefillData = {
+          nombre_apellido: document.getElementById('sfNombre') ? document.getElementById('sfNombre').value : '',
+          razon_social:    document.getElementById('sfRazon')  ? document.getElementById('sfRazon').value  : '',
+          ruc_dni:         document.getElementById('sfRuc')    ? document.getElementById('sfRuc').value    : '',
+          email:           document.getElementById('sfEmail')  ? document.getElementById('sfEmail').value  : '',
+          celular:         document.getElementById('sfCelular')? document.getElementById('sfCelular').value: '',
+          pais:            document.getElementById('sfPais')   ? document.getElementById('sfPais').value   : '',
+          departamento:    document.getElementById('sfDepto')  ? document.getElementById('sfDepto').value  : '',
+          otro_pais:       document.getElementById('sfOtroPais')? document.getElementById('sfOtroPais').value: '',
+          ciudad:          document.getElementById('sfCiudad') ? document.getElementById('sfCiudad').value : '',
+        };
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(prefillData));
+      } catch (e) { /* ignorar si sessionStorage está bloqueado */ }
+
+      if (!hayMas) {
+        /* Carrito vacío → redirigir a gracias */
+        sessionStorage.removeItem(STORAGE_KEY);
+        window.location.href = '/{{ country_code }}/gracias/';
+        return;
+      }
+
+      /* Mitigación #5: re-fetch del carrito (reload de la página recarga todo) */
+      /* Mostramos toast y recargamos para reflejar el carrito actualizado */
+      alert(res.body.mensaje + ' Continuemos con la siguiente cotización.');
+      window.location.reload();
+    })
+    .catch(function (err) {
+      console.error('Error al enviar cotización:', err);
+      alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
+      /* Reset Turnstile para que el siguiente intento sea válido */
+      if (window.turnstile) { try { turnstile.reset(); } catch(e) {} }
+    });
+  });
 })();
-
-document.getElementById('sfCartForm').addEventListener('submit', function(e) {
-
-  var nombre = document.getElementById('sfNombre');
-  if (nombre && nombre.value.trim().length < 3) {
-    e.preventDefault();
-    alert('Ingresa tu nombre y apellido completos.');
-    nombre.focus(); return;
-  }
-  if (nombre && /[0-9@#$%^&*]/.test(nombre.value)) {
-    e.preventDefault();
-    alert('El nombre no puede contener números ni símbolos especiales.');
-    nombre.focus(); return;
-  }
-
-
-  var cel = document.getElementById('sfCelular');
-  if (cel) {
-    var soloDigitos = cel.value.replace(/[^0-9]/g, '');
-    if (soloDigitos.length < 7) {
-      e.preventDefault();
-      alert('Ingresa un número de celular válido (mínimo 7 dígitos).');
-      cel.focus(); return;
-    }
-  }
-
-
-  var ruc = document.getElementById('sfRuc');
-  if (ruc && ruc.value.trim() !== '') {
-    var soloRuc = ruc.value.replace(/[^0-9]/g, '');
-    if (soloRuc.length < 8) {
-      e.preventDefault();
-      alert('Ingresa un RUC, DNI o CUIT válido.');
-      ruc.focus(); return;
-    }
-  }
-
-
-  if (!document.getElementById('sfPolitica').checked) {
-    e.preventDefault();
-    alert('Debes aceptar la política de privacidad.');
-    return;
-  }
-
-
-  var chkAlq = document.getElementById('chkAlquiler');
-  var chkCom = document.getElementById('chkCompra');
-  var alquiler = chkAlq && chkAlq.checked;
-  var compra   = chkCom && chkCom.checked;
-  if (!alquiler && !compra) {
-    e.preventDefault();
-    alert('Selecciona al menos un tipo de operación: Alquiler o Compra.');
-    if (chkAlq) chkAlq.focus();
-    return;
-  }
-
-  /* Validar que los equipos del carrito coincidan con el tipo seleccionado */
-  var tagRows = document.querySelectorAll('#cartTable tbody tr[data-tag]');
-  var tagsMismatch = false;
-  tagRows.forEach(function (r) {
-    var t = (r.getAttribute('data-tag') || '').toLowerCase();
-    if (!t) return;
-    if (alquiler && !compra && t === 'usados') tagsMismatch = true;
-    if (compra && !alquiler && t === 'alquiler') tagsMismatch = true;
-  });
-  if (tagsMismatch) {
-    e.preventDefault();
-    if (alquiler) {
-      alert('Tu carrito contiene equipos de USADOS. Selecciona "Compra" como tipo de operación o retira esos equipos.');
-    } else {
-      alert('Tu carrito contiene equipos de ALQUILER. Selecciona "Alquiler" como tipo de operación o retira esos equipos.');
-    }
-    return;
-  }
-
-  var rowsCheck = document.querySelectorAll('#cartTable tbody tr');
-  if (rowsCheck.length === 0) {
-    e.preventDefault();
-    alert('Tu carrito está vacío. Agrega al menos un equipo antes de cotizar.');
-    return;
-  }
-
-
-  const rows = document.querySelectorAll('#cartTable tbody tr');
-  const items = [];
-  rows.forEach(row => {
-    const nombre = row.querySelector('td:first-child div')?.textContent?.trim();
-    const qty    = row.querySelector('td:nth-child(2) span')?.textContent?.trim();
-    if (nombre) items.push(`${qty || 1} x ${nombre.toUpperCase()}`);
-  });
-  document.getElementById('sfCarritoDetalle').value = items.join('<br>');
-
-
-  const modal = document.getElementById('sfSuccessModal');
-  modal.style.display = 'flex';
-});
 
 const isSimple = new URLSearchParams(window.location.search).get('simple') === '1';
 document.getElementById('heroEmpty').style.display = isSimple ? '' : 'none';
