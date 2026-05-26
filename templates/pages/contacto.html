@@ -177,12 +177,39 @@
               </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
-                <input type="tel" name="celular" class="cgm-contacto-input"
-                       placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
-                       maxlength="15" minlength="7"
-                       pattern="[0-9+\-() ]+"
-                       title="Solo números. Puede incluir +, espacios o guiones."
-                       inputmode="tel" autocomplete="tel" required>
+                <div class="cgm-cel-wrap">
+                  {# Custom dropdown con buscador y banderas SVG #}
+                  <div class="cgm-pais-picker" id="sfcPaisPicker">
+                    <input type="hidden" name="codigo_pais_iso" class="cgm-pais-input" value="{{ PAIS_CELULAR_DEFAULT }}" required>
+                    <button type="button" class="cgm-pais-trigger">
+                      {% set pdef = (PAISES_CELULAR | selectattr('iso','equalto', PAIS_CELULAR_DEFAULT) | first) %}
+                      <img class="cgm-pais-flag" src="https://flagcdn.com/w40/{{ PAIS_CELULAR_DEFAULT|lower }}.png" alt="" width="24" height="18">
+                      <span class="cgm-pais-code">{{ pdef.code if pdef else '+51' }}</span>
+                      <i class="cgm-pais-caret bi bi-chevron-down"></i>
+                    </button>
+                    <div class="cgm-pais-dropdown" hidden>
+                      <input type="text" class="cgm-pais-search" placeholder="Buscar país..." autocomplete="off">
+                      <ul class="cgm-pais-list">
+                        {% for p in PAISES_CELULAR %}
+                        <li class="cgm-pais-item"
+                            data-iso="{{ p.iso }}"
+                            data-code="{{ p.code }}"
+                            data-min="{{ p.min }}"
+                            data-max="{{ p.max }}"
+                            data-name="{{ p.name }}"
+                            data-search="{{ (p.name ~ ' ' ~ p.code)|lower }}">
+                          <img src="https://flagcdn.com/w40/{{ p.iso|lower }}.png" alt="" loading="lazy" width="24" height="18">
+                          <span class="cgm-pais-item-code">{{ p.code }}</span>
+                          <span class="cgm-pais-item-name">{{ p.name }}</span>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                  <input type="tel" id="sfcCelular" name="celular" class="cgm-contacto-input cgm-cel-numero"
+                         placeholder="Número" inputmode="numeric" autocomplete="tel" required>
+                </div>
+              </div>
               </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
@@ -258,7 +285,43 @@
   /* Aplicar filtros por campo */
   filtrarInput(form.querySelector('[name="nombre_apellido"]'), /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
   filtrarInput(form.querySelector('[name="email"]'),           /[^A-Za-z0-9._@]/g);
-  filtrarInput(form.querySelector('[name="celular"]'),         /[^0-9+\-() ]/g);
+  filtrarInput(form.querySelector('[name="celular"]'),         /[^0-9]/g);
+
+  /* ── Picker de código de país (dropdown custom con buscador y banderas) ── */
+  var picker     = document.getElementById('sfcPaisPicker');
+  var inpCelTel  = document.getElementById('sfcCelular');
+  function aplicarValidacionCelular(minD, maxD) {
+    if (!inpCelTel) return;
+    inpCelTel.setAttribute('maxlength', maxD);
+    inpCelTel.setAttribute('minlength', minD);
+    inpCelTel.setAttribute('pattern', '[0-9]{' + minD + ',' + maxD + '}');
+    inpCelTel.placeholder = (minD === maxD) ? minD + ' dígitos' : minD + ' a ' + maxD + ' dígitos';
+    inpCelTel.title = (minD === maxD) ? 'Exactamente ' + minD + ' dígitos.' : 'Entre ' + minD + ' y ' + maxD + ' dígitos.';
+    if (inpCelTel.value.length > maxD) inpCelTel.value = inpCelTel.value.slice(0, maxD);
+  }
+  if (picker && typeof initPaisPicker === 'function') {
+    initPaisPicker(picker, function (item) {
+      var minD = parseInt(item.getAttribute('data-min'), 10) || 6;
+      var maxD = parseInt(item.getAttribute('data-max'), 10) || 15;
+      aplicarValidacionCelular(minD, maxD);
+    });
+    /* Aplicar validación inicial según el item seleccionado por default */
+    var defIso = picker.querySelector('.cgm-pais-input').value;
+    var defItem = picker.querySelector('.cgm-pais-item[data-iso="' + defIso + '"]');
+    if (defItem) {
+      aplicarValidacionCelular(
+        parseInt(defItem.getAttribute('data-min'), 10) || 6,
+        parseInt(defItem.getAttribute('data-max'), 10) || 15
+      );
+    }
+  }
+  /* Truncar al escribir si el valor excede el max del país actual */
+  if (inpCelTel) {
+    inpCelTel.addEventListener('input', function () {
+      var maxD = parseInt(inpCelTel.getAttribute('maxlength'), 10) || 15;
+      if (this.value.length > maxD) this.value = this.value.slice(0, maxD);
+    });
+  }
   {% if country_code == 'ar' %}
   filtrarInput(form.querySelector('[name="ruc_dni"]'),         /[^0-9\-]/g);
   {% else %}
@@ -343,12 +406,22 @@
 
 
     var cel = form.querySelector('[name="celular"]');
-    if (cel) {
+    if (cel && picker) {
       var soloDigitos = cel.value.replace(/[^0-9]/g, '');
-      if (soloDigitos.length < 7) {
-        e.preventDefault();
-        alert('Ingresa un número de celular válido (mínimo 7 dígitos).');
-        cel.focus(); return;
+      var selIso = picker.querySelector('.cgm-pais-input').value;
+      var selItem = picker.querySelector('.cgm-pais-item[data-iso="' + selIso + '"]');
+      if (selItem) {
+        var minD = parseInt(selItem.getAttribute('data-min'), 10) || 6;
+        var maxD = parseInt(selItem.getAttribute('data-max'), 10) || 15;
+        var pais = selItem.getAttribute('data-name') || '';
+        if (soloDigitos.length < minD || soloDigitos.length > maxD) {
+          e.preventDefault();
+          var msg = (minD === maxD)
+            ? 'El celular para ' + pais + ' debe tener exactamente ' + minD + ' dígitos.'
+            : 'El celular para ' + pais + ' debe tener entre ' + minD + ' y ' + maxD + ' dígitos.';
+          alert(msg);
+          cel.focus(); return;
+        }
       }
     }
 

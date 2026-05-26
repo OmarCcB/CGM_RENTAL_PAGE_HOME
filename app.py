@@ -31,6 +31,7 @@ from countries import COUNTRIES, DEFAULT_COUNTRY
 from database import get_conn, init_db, init_admin_tables
 import cache as _cache
 import db_sqlserver
+from pais_codigos import PAISES_CELULAR, PAISES_POR_ISO, validar_celular, codigo_default
 
 load_dotenv()
 
@@ -691,6 +692,9 @@ def inject_globals():
         "canonical_url": request.base_url,
         # Cloudflare Turnstile site key (para inyectar en formularios)
         "CF_TURNSTILE_SITE_KEY": CF_TURNSTILE_SITE_KEY,
+        # Códigos telefónicos de todos los países (para selector de celular)
+        "PAISES_CELULAR": PAISES_CELULAR,
+        "PAIS_CELULAR_DEFAULT": codigo_default(cc),
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1361,10 +1365,15 @@ def _validar_lead_contenido(data):
     if not re.match(r"^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$", email):
         return "Email inválido. Solo se permiten letras, números, puntos, guión bajo y @."
 
-    # 4. Celular: 7-15 dígitos
+    # 4. Celular: valida dígitos según el código de país seleccionado (ISO)
     cel_digits = re.sub(r"[^\d]", "", cel)
-    if not (7 <= len(cel_digits) <= 15):
-        return "Celular inválido."
+    iso_pais = (data.get("codigo_pais_iso") or "").strip().upper()
+    if not iso_pais:
+        # Fallback al portal si no se envió código (por compatibilidad)
+        iso_pais = "PE" if (data.get("pais_sitio") or "pe").lower() != "ar" else "AR"
+    err_cel = validar_celular(iso_pais, cel_digits)
+    if err_cel:
+        return err_cel
 
     # 5. Otro país: solo letras y espacios (como nombre)
     if otro_p and not re.match(r"^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$", otro_p):
@@ -1391,6 +1400,153 @@ def _validar_lead_contenido(data):
             return "Contenido bloqueado por filtro anti-spam."
 
     return None
+
+
+# ── Mapeo unidad → sector_producto ───────────────────────────────────────────
+_UNIDAD_TO_SECTOR = {
+    "Construcción":    "CONSTRUCCIÓN",
+    "Mediana Minería": "MINERÍA",
+    "Agrícola":        "AGRÍCOLA",
+    "Energía":         "ENERGÍA",
+}
+
+def _sector_desde_carrito(items_envio):
+    """Determina sector_producto mayoritario de los ítems del carrito.
+    Suma qty por sector; el mayor gana. Empate exacto → None."""
+    if not items_envio:
+        return None
+    slugs = list(items_envio.keys())
+    try:
+        conn_sq = get_conn()
+        placeholders = ",".join(["?"] * len(slugs))
+        rows = conn_sq.execute(
+            f"SELECT slug, unidad FROM products WHERE slug IN ({placeholders})",
+            slugs
+        ).fetchall()
+        conn_sq.close()
+    except Exception:
+        return None
+    unidad_map = {r["slug"]: (r["unidad"] or "") for r in rows}
+    conteo = {}
+    for slug, item in items_envio.items():
+        # Tomar la primera unidad (puede ser pipe-separada, ej: "Construcción|Agrícola")
+        u = (unidad_map.get(slug, "").split("|")[0]).strip()
+        sector = _UNIDAD_TO_SECTOR.get(u)
+        if sector:
+            conteo[sector] = conteo.get(sector, 0) + item.get("qty", 1)
+    if not conteo:
+        return None
+    max_qty = max(conteo.values())
+    ganadores = [s for s, q in conteo.items() if q == max_qty]
+    return ganadores[0] if len(ganadores) == 1 else None
+
+
+# Tabla de keywords para detección de sector (módulo-nivel: se crea una sola vez).
+# Frases específicas van antes que sus sub-palabras para que se consuman primero.
+_SECTOR_MATCH_TABLE = [
+        # ── AGRÍCOLA ─────────────────────────────────────────────────────────
+        ("tractor agricola",     "AGRÍCOLA"),
+        ("tractor agrícola",     "AGRÍCOLA"),
+        ("tractor agric",        "AGRÍCOLA"),   # cubre cualquier variante
+        ("agricola",             "AGRÍCOLA"),
+        ("agrícola",             "AGRÍCOLA"),
+        ("atomizador",           "AGRÍCOLA"),
+        ("cosechadora",          "AGRÍCOLA"),
+        ("sembradora",           "AGRÍCOLA"),
+        ("irrigacion",           "AGRÍCOLA"),
+        ("irrigación",           "AGRÍCOLA"),
+        ("riego",                "AGRÍCOLA"),
+        # ── MINERÍA ──────────────────────────────────────────────────────────
+        ("topador",              "MINERÍA"),
+        ("mineria",              "MINERÍA"),
+        ("minería",              "MINERÍA"),
+        ("minero",               "MINERÍA"),
+        ("minera",               "MINERÍA"),
+        # "mina" NO incluido: es substring de "iluminacion" → falso positivo MINERÍA
+        ("perforadora",          "MINERÍA"),
+        ("perforador",           "MINERÍA"),
+        # ── ENERGÍA ──────────────────────────────────────────────────────────
+        ("grupo electrogeno",    "ENERGÍA"),
+        ("grupo electrógeno",    "ENERGÍA"),
+        ("planta electrica",     "ENERGÍA"),
+        ("planta eléctrica",     "ENERGÍA"),
+        ("generador",            "ENERGÍA"),
+        ("electrogeno",          "ENERGÍA"),
+        ("electrógeno",          "ENERGÍA"),
+        ("turbina",              "ENERGÍA"),
+        # ── CONSTRUCCIÓN ─────────────────────────────────────────────────────
+        ("tractor de orugas",    "CONSTRUCCIÓN"),
+        ("tractor orugas",       "CONSTRUCCIÓN"),
+        ("excavadora",           "CONSTRUCCIÓN"),
+        ("cargador frontal",     "CONSTRUCCIÓN"),
+        ("cargador",             "CONSTRUCCIÓN"),
+        ("motoniveladora",       "CONSTRUCCIÓN"),
+        ("niveladora",           "CONSTRUCCIÓN"),
+        ("retroexcavadora",      "CONSTRUCCIÓN"),
+        ("minicargador",         "CONSTRUCCIÓN"),
+        ("rodillo compactador",  "CONSTRUCCIÓN"),
+        ("rodillo",              "CONSTRUCCIÓN"),
+        ("compactador",          "CONSTRUCCIÓN"),
+        ("compactadora",         "CONSTRUCCIÓN"),
+        ("aplanadora",           "CONSTRUCCIÓN"),
+        ("aplanador",            "CONSTRUCCIÓN"),
+        ("aplana",               "CONSTRUCCIÓN"),
+        ("micropavimentadora",   "CONSTRUCCIÓN"),
+        ("pavimentadora",        "CONSTRUCCIÓN"),
+        ("autohormigonera",      "CONSTRUCCIÓN"),
+        ("hormigonera",          "CONSTRUCCIÓN"),
+        ("camion cisterna",      "CONSTRUCCIÓN"),
+        ("cisterna",             "CONSTRUCCIÓN"),
+        ("camion volquete",      "CONSTRUCCIÓN"),
+        ("volquete",             "CONSTRUCCIÓN"),
+        ("camion grua",          "CONSTRUCCIÓN"),
+        ("camion",               "CONSTRUCCIÓN"),
+        ("camión",               "CONSTRUCCIÓN"),
+        ("grua",                 "CONSTRUCCIÓN"),
+        ("grúa",                 "CONSTRUCCIÓN"),
+        ("compresora",           "CONSTRUCCIÓN"),
+        ("torre de iluminacion", "CONSTRUCCIÓN"),
+        ("iluminacion",          "CONSTRUCCIÓN"),
+        ("iluminación",          "CONSTRUCCIÓN"),
+        ("martillo hidraulico",  "CONSTRUCCIÓN"),
+        ("martillo",             "CONSTRUCCIÓN"),
+        ("tren de chancado",     "CONSTRUCCIÓN"),
+        ("chancadora",           "CONSTRUCCIÓN"),
+        ("chancado",             "CONSTRUCCIÓN"),
+        ("zaranda",              "CONSTRUCCIÓN"),
+        ("faja transportadora",  "CONSTRUCCIÓN"),
+        ("bulldozer",            "CONSTRUCCIÓN"),
+        ("plancha compactadora", "CONSTRUCCIÓN"),
+        ("plancha",              "CONSTRUCCIÓN"),
+        ("aditamento",           "CONSTRUCCIÓN"),
+]
+
+
+def _detectar_sector_equipo(texto):
+    """Detecta sector_producto por keyword matching sobre equipo_requerido (texto libre).
+
+    Limpia conectores (y, o, e, comas) para tratar cada equipo por separado.
+    Cada keyword suma 1 voto a su sector; se consume para evitar doble-conteo.
+    Gana el sector con más votos. Empate → None.
+    """
+    if not texto:
+        return None
+    t = texto.lower()
+    t = re.sub(r'\b(y|o|e)\b|[,;/]', ' ', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+
+    conteo = {}
+    for keyword, sector in _SECTOR_MATCH_TABLE:
+        if keyword in t:
+            conteo[sector] = conteo.get(sector, 0) + 1
+            # Consumir el match para no contar términos superpuestos
+            t = t.replace(keyword, ' ')
+
+    if not conteo:
+        return None
+    max_v = max(conteo.values())
+    ganadores = [s for s, v in conteo.items() if v == max_v]
+    return ganadores[0] if len(ganadores) == 1 else None
 
 
 # ── Formulario Contacto → guardar lead en SQL Server (Azure) ─────────────────
@@ -1429,14 +1585,22 @@ def api_guardar_contacto():
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
+        # Código telefónico del país (ej. "+51") deducido del ISO seleccionado
+        iso_pais_form = (data.get("codigo_pais_iso") or "").strip().upper()
+        pais_obj = PAISES_POR_ISO.get(iso_pais_form)
+        codigo_pais_val = pais_obj["code"] if pais_obj else ""
+        # Celular se guarda solo con dígitos (sin código de país); el código va aparte
+        cel_digits_clean = re.sub(r"[^\d]", "", data.get("celular", ""))
+
         # sf_enviado=0 al crear: queda pendiente de procesar/derivar al CRM,
         # se actualiza a 1 manualmente cuando el lead es atendido.
+        # sector_producto: NULL por ahora (se popula manualmente o vía otro proceso)
         cursor.execute("""
             INSERT INTO CGM_Contacto_Leads
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, pais,
-               departamento, otro_pais, email, celular, equipo_requerido,
-               tipo_alquiler, tipo_compra, sf_enviado)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+               departamento, otro_pais, email, codigo_pais, celular,
+               equipo_requerido, sector_producto, tipo_alquiler, tipo_compra, sf_enviado)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
             data.get("nombre_apellido", "").strip(),
@@ -1446,8 +1610,10 @@ def api_guardar_contacto():
             data.get("departamento",    "").strip(),
             data.get("otro_pais",       "").strip(),
             data.get("email",           "").strip(),
-            data.get("celular",         "").strip(),
+            codigo_pais_val,
+            cel_digits_clean,
             data.get("equipo_requerido","").strip(),
+            _detectar_sector_equipo(data.get("equipo_requerido", "")),
             1 if data.get("tipo_alquiler") else 0,
             1 if data.get("tipo_compra")   else 0,
             0,  # sf_enviado: pendiente
@@ -1543,6 +1709,16 @@ def api_guardar_cotizacion():
     is_alquiler = 1 if tag_target == "alquiler" else 0
     is_compra   = 1 if tag_target == "usados"   else 0
 
+    # Código telefónico del país (ej. "+51") deducido del ISO seleccionado
+    iso_pais_form = (data.get("codigo_pais_iso") or "").strip().upper()
+    pais_obj = PAISES_POR_ISO.get(iso_pais_form)
+    codigo_pais_val = pais_obj["code"] if pais_obj else ""
+    # Celular solo con dígitos (el código de país va aparte)
+    cel_digits_clean = re.sub(r"[^\d]", "", data.get("celular", ""))
+
+    # Sector del producto: mayoría de unidades del carrito
+    sector_producto_val = _sector_desde_carrito(items_envio)
+
     # ── Mitigación #3: try/finally para garantizar consistencia ────────────────
     insert_ok = False
     conn = None
@@ -1552,22 +1728,24 @@ def api_guardar_cotizacion():
         cursor.execute("""
             INSERT INTO CGM_Cotizaciones
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, email,
-               celular, pais, departamento, tipo_alquiler, tipo_compra,
-               detalle_equipos, sf_enviado)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+               codigo_pais, celular, pais, departamento, tipo_alquiler,
+               tipo_compra, detalle_equipos, sector_producto, sf_enviado)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
             data.get("nombre_apellido", "").strip(),
             data.get("razon_social",    "").strip(),
             data.get("ruc_dni",         "").strip(),
             data.get("email",           "").strip(),
-            data.get("celular",         "").strip(),
+            codigo_pais_val,
+            cel_digits_clean,
             pais_val,
             data.get("departamento",    "").strip(),
             is_alquiler,
             is_compra,
             detalle,
-            0,  # sf_enviado: pendiente
+            sector_producto_val,
+            0,     # sf_enviado: pendiente
         ))
         conn.commit()
         insert_ok = True

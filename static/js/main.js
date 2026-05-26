@@ -8,6 +8,71 @@ function _csrfToken() {
   return m ? m.getAttribute('content') : '';
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   Country code picker (dropdown custom con buscador y banderas SVG)
+   ──────────────────────────────────────────────────────────────────
+   Recibe el contenedor `.cgm-pais-picker` y opcionalmente un callback
+   `onChange(itemEl)` que se invoca al elegir un país.
+   ══════════════════════════════════════════════════════════════════ */
+function initPaisPicker(picker, onChange) {
+  if (!picker) return;
+  var input       = picker.querySelector('.cgm-pais-input');
+  var trigger     = picker.querySelector('.cgm-pais-trigger');
+  var dropdown    = picker.querySelector('.cgm-pais-dropdown');
+  var searchInp   = picker.querySelector('.cgm-pais-search');
+  var listEl      = picker.querySelector('.cgm-pais-list');
+  var items       = listEl ? listEl.querySelectorAll('.cgm-pais-item') : [];
+  var triggerFlag = picker.querySelector('.cgm-pais-trigger .cgm-pais-flag');
+  var triggerCode = picker.querySelector('.cgm-pais-trigger .cgm-pais-code');
+
+  if (!trigger || !dropdown) return;
+
+  function open() {
+    dropdown.hidden = false;
+    if (searchInp) {
+      searchInp.value = '';
+      items.forEach(function (it) { it.style.display = ''; });
+      setTimeout(function () { searchInp.focus(); }, 50);
+    }
+  }
+  function close() { dropdown.hidden = true; }
+
+  trigger.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (dropdown.hidden) open(); else close();
+  });
+
+  if (searchInp) {
+    searchInp.addEventListener('input', function () {
+      var q = this.value.toLowerCase().trim();
+      items.forEach(function (it) {
+        var data = it.getAttribute('data-search') || '';
+        it.style.display = (!q || data.indexOf(q) >= 0) ? '' : 'none';
+      });
+    });
+  }
+
+  items.forEach(function (item) {
+    item.addEventListener('click', function () {
+      var iso = this.getAttribute('data-iso');
+      if (input) input.value = iso;
+      if (triggerFlag) triggerFlag.src = 'https://flagcdn.com/w40/' + iso.toLowerCase() + '.png';
+      if (triggerCode) triggerCode.textContent = this.getAttribute('data-code') || '';
+      close();
+      if (typeof onChange === 'function') onChange(this);
+    });
+  });
+
+  /* Cerrar al hacer click fuera */
+  document.addEventListener('click', function (e) {
+    if (!picker.contains(e.target)) close();
+  });
+  /* Cerrar con ESC */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.keyCode === 27) close();
+  });
+}
+
 /* ── Header scroll compacto ─────────────────── */
 (function () {
   const header = document.getElementById('cgmHeader');

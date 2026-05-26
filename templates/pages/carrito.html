@@ -100,7 +100,7 @@
                            style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
                            onerror="this.style.display='none'">
                       <div>
-                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <div class="cgm-item-nombre" style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
                         <a href="/{{ country_code }}/producto/{{ slug }}/"
                            style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
                       </div>
@@ -135,7 +135,7 @@
                            style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
                            onerror="this.style.display='none'">
                       <div>
-                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <div class="cgm-item-nombre" style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
                         <a href="/{{ country_code }}/producto/{{ slug }}/"
                            style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
                       </div>
@@ -163,7 +163,7 @@
                            style="width:52px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #eee;flex-shrink:0;"
                            onerror="this.style.display='none'">
                       <div>
-                        <div style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
+                        <div class="cgm-item-nombre" style="font-weight:700;color:var(--cgm-negro);font-size:13px;">{{ item.nombre }}</div>
                         <a href="/{{ country_code }}/producto/{{ slug }}/"
                            style="font-size:11px;color:var(--cgm-verde);">Ver ficha técnica</a>
                       </div>
@@ -270,12 +270,39 @@
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfCelular">Celular *</label>
-                <input type="tel" id="sfCelular" name="celular" class="cgm-form-control"
-                       placeholder="{% if country_code == 'ar' %}1112345678{% else %}999999999{% endif %}"
-                       maxlength="15" minlength="7"
-                       pattern="[0-9]+"
-                       title="Solo números. Sin espacios, guiones, ni símbolos."
-                       inputmode="numeric" autocomplete="tel" required>
+                <div class="cgm-cel-wrap">
+                  {# Custom dropdown con buscador y banderas SVG #}
+                  <div class="cgm-pais-picker" id="sfPaisPicker">
+                    <input type="hidden" name="codigo_pais_iso" class="cgm-pais-input" value="{{ PAIS_CELULAR_DEFAULT }}" required>
+                    <button type="button" class="cgm-pais-trigger">
+                      {% set pdef = (PAISES_CELULAR | selectattr('iso','equalto', PAIS_CELULAR_DEFAULT) | first) %}
+                      <img class="cgm-pais-flag" src="https://flagcdn.com/w40/{{ PAIS_CELULAR_DEFAULT|lower }}.png" alt="" width="24" height="18">
+                      <span class="cgm-pais-code">{{ pdef.code if pdef else '+51' }}</span>
+                      <i class="cgm-pais-caret bi bi-chevron-down"></i>
+                    </button>
+                    <div class="cgm-pais-dropdown" hidden>
+                      <input type="text" class="cgm-pais-search" placeholder="Buscar país..." autocomplete="off">
+                      <ul class="cgm-pais-list">
+                        {% for p in PAISES_CELULAR %}
+                        <li class="cgm-pais-item"
+                            data-iso="{{ p.iso }}"
+                            data-code="{{ p.code }}"
+                            data-min="{{ p.min }}"
+                            data-max="{{ p.max }}"
+                            data-name="{{ p.name }}"
+                            data-search="{{ (p.name ~ ' ' ~ p.code)|lower }}">
+                          <img src="https://flagcdn.com/w40/{{ p.iso|lower }}.png" alt="" loading="lazy" width="24" height="18">
+                          <span class="cgm-pais-item-code">{{ p.code }}</span>
+                          <span class="cgm-pais-item-name">{{ p.name }}</span>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                  <input type="tel" id="sfCelular" name="celular" class="cgm-form-control cgm-cel-numero"
+                         placeholder="Número" inputmode="numeric" autocomplete="tel" required>
+                </div>
+              </div>
               </div>
 
               <div class="col-12 col-sm-6">
@@ -385,10 +412,122 @@
   </div>
 </div>
 
+<!-- ── Modal cotización parcial: carrito mixto (alquiler + usados) ── -->
+<div id="sfMidModal" style="display:none;position:fixed;inset:0;z-index:10000;
+     align-items:center;justify-content:center;
+     background:rgba(2,40,36,.88);backdrop-filter:blur(5px);">
+  <div style="background:#fff;border-radius:18px;max-width:440px;width:92%;
+              overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.45);
+              animation:sfMidIn .3s cubic-bezier(.34,1.56,.64,1);">
+
+    <!-- Cabecera verde -->
+    <div style="background:var(--cgm-verde);padding:32px 32px 24px;text-align:center;">
+      <div style="width:68px;height:68px;border-radius:50%;background:var(--cgm-lima);
+                  display:flex;align-items:center;justify-content:center;
+                  margin:0 auto 14px;font-size:34px;color:var(--cgm-verde);
+                  font-family:'CGM BOLD',sans-serif;">✓</div>
+      <h2 style="color:#fff;font-family:'CGM BOLD',sans-serif;font-size:20px;
+                 margin:0 0 5px;letter-spacing:.5px;">¡Cotización enviada!</h2>
+      <p id="sfMidTipoLabel"
+         style="color:var(--cgm-lima);font-size:12px;font-weight:700;
+                margin:0;letter-spacing:1px;text-transform:uppercase;"></p>
+    </div>
+
+    <!-- Cuerpo -->
+    <div style="padding:26px 28px 28px;">
+
+      <!-- Barra de progreso 2 pasos -->
+      <div style="display:flex;align-items:flex-start;gap:0;margin-bottom:22px;">
+        <!-- Paso 1 (done) -->
+        <div style="flex:1;text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;
+                      background:var(--cgm-lima);color:var(--cgm-verde);
+                      display:flex;align-items:center;justify-content:center;
+                      margin:0 auto 6px;font-weight:900;font-size:16px;">✓</div>
+          <div id="sfMidStep1"
+               style="font-size:10px;font-weight:700;color:var(--cgm-verde);
+                      letter-spacing:.5px;text-transform:uppercase;"></div>
+        </div>
+        <!-- Línea -->
+        <div style="height:3px;flex:2;background:linear-gradient(to right,var(--cgm-lima),var(--cgm-verde));
+                    margin-top:16px;border-radius:2px;"></div>
+        <!-- Paso 2 (pendiente) -->
+        <div style="flex:1;text-align:center;">
+          <div style="width:36px;height:36px;border-radius:50%;
+                      background:var(--cgm-verde);color:#fff;
+                      display:flex;align-items:center;justify-content:center;
+                      margin:0 auto 6px;font-weight:900;font-size:15px;
+                      border:2px solid var(--cgm-lima);">2</div>
+          <div id="sfMidStep2"
+               style="font-size:10px;font-weight:700;color:var(--cgm-verde);
+                      letter-spacing:.5px;text-transform:uppercase;"></div>
+        </div>
+      </div>
+
+      <!-- Aviso equipos pendientes -->
+      <div style="background:#f0faf8;border:1.5px solid var(--cgm-lima);
+                  border-radius:12px;padding:14px 16px;margin-bottom:22px;
+                  display:flex;align-items:center;gap:12px;">
+        <i class="bi bi-cart3"
+           style="font-size:26px;color:var(--cgm-verde);flex-shrink:0;"></i>
+        <p id="sfMidPendMsg"
+           style="margin:0;font-size:13px;color:var(--cgm-negro);line-height:1.5;"></p>
+      </div>
+
+      <!-- CTA -->
+      <button onclick="sfMidContinuar()"
+              style="width:100%;padding:15px;border:none;border-radius:10px;
+                     background:var(--cgm-verde);color:#fff;cursor:pointer;
+                     font-family:'CGM BOLD',sans-serif;font-size:14px;
+                     letter-spacing:.5px;display:flex;align-items:center;
+                     justify-content:center;gap:10px;
+                     transition:background .2s,transform .15s;">
+        <i class="bi bi-arrow-right-circle-fill" style="font-size:18px;"></i>
+        <span id="sfMidBtnLabel">Continuar con siguiente cotización</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes sfMidIn {
+  from { opacity:0; transform:scale(.85) translateY(20px); }
+  to   { opacity:1; transform:scale(1)  translateY(0);     }
+}
+</style>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+/* ── Modal cotización parcial (carrito mixto) ─────────────────────────────── */
+var _sfMidReloading = false;
+function sfMidContinuar() {
+  if (_sfMidReloading) return;
+  _sfMidReloading = true;
+  window.location.reload();
+}
+function mostrarModalMixto(tipoEnviado, tiposRestantes) {
+  var modal = document.getElementById('sfMidModal');
+  if (!modal) { window.location.reload(); return; }
+
+  var labelEnv  = (tipoEnviado === 'compra' || tipoEnviado === 'usados') ? 'USADOS' : 'ALQUILER';
+  var tagRest   = (tiposRestantes && tiposRestantes.length) ? tiposRestantes[0] : '';
+  var labelPend = (tagRest === 'usados') ? 'USADOS' : (tagRest === 'alquiler' ? 'ALQUILER' : 'PENDIENTE');
+
+  document.getElementById('sfMidTipoLabel').textContent  = labelEnv + ' — enviada correctamente';
+  document.getElementById('sfMidStep1').textContent      = labelEnv;
+  document.getElementById('sfMidStep2').textContent      = labelPend;
+  document.getElementById('sfMidPendMsg').innerHTML      =
+    'Aún tienes equipos de <strong style="color:var(--cgm-verde);">' + labelPend + '</strong> '
+    + 'en tu carrito. Completa la segunda cotización para finalizar.';
+  document.getElementById('sfMidBtnLabel').textContent   = 'Cotizar ' + labelPend;
+
+  _sfMidReloading = false;
+  modal.style.display = 'flex';
+}
+
 /* ── Toggle "Otro país": muestra/oculta otro_pais y reemplaza dropdown depto por input ciudad ── */
 (function () {
   var selPais     = document.getElementById('sfPais');
@@ -463,6 +602,41 @@
   filtrarInput(document.getElementById('sfNombre'),    /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
   filtrarInput(document.getElementById('sfEmail'),     /[^A-Za-z0-9._@]/g);
   filtrarInput(document.getElementById('sfCelular'),   /[^0-9]/g);
+
+  /* ── Picker de código de país (dropdown custom con buscador y banderas) ── */
+  var pickerCart   = document.getElementById('sfPaisPicker');
+  var inpCelCart   = document.getElementById('sfCelular');
+  function aplicarValidacionCelCart(minD, maxD) {
+    if (!inpCelCart) return;
+    inpCelCart.setAttribute('maxlength', maxD);
+    inpCelCart.setAttribute('minlength', minD);
+    inpCelCart.setAttribute('pattern', '[0-9]{' + minD + ',' + maxD + '}');
+    inpCelCart.placeholder = (minD === maxD) ? minD + ' dígitos' : minD + ' a ' + maxD + ' dígitos';
+    inpCelCart.title = (minD === maxD) ? 'Exactamente ' + minD + ' dígitos.' : 'Entre ' + minD + ' y ' + maxD + ' dígitos.';
+    if (inpCelCart.value.length > maxD) inpCelCart.value = inpCelCart.value.slice(0, maxD);
+  }
+  if (pickerCart && typeof initPaisPicker === 'function') {
+    initPaisPicker(pickerCart, function (item) {
+      var minD = parseInt(item.getAttribute('data-min'), 10) || 6;
+      var maxD = parseInt(item.getAttribute('data-max'), 10) || 15;
+      aplicarValidacionCelCart(minD, maxD);
+    });
+    /* Aplicar validación inicial según el item default */
+    var defIso = pickerCart.querySelector('.cgm-pais-input').value;
+    var defItem = pickerCart.querySelector('.cgm-pais-item[data-iso="' + defIso + '"]');
+    if (defItem) {
+      aplicarValidacionCelCart(
+        parseInt(defItem.getAttribute('data-min'), 10) || 6,
+        parseInt(defItem.getAttribute('data-max'), 10) || 15
+      );
+    }
+  }
+  if (inpCelCart) {
+    inpCelCart.addEventListener('input', function () {
+      var maxD = parseInt(inpCelCart.getAttribute('maxlength'), 10) || 15;
+      if (this.value.length > maxD) this.value = this.value.slice(0, maxD);
+    });
+  }
   {% if country_code == 'ar' %}
   filtrarInput(document.getElementById('sfRuc'),       /[^0-9\-]/g);
   {% else %}
@@ -593,9 +767,21 @@
       nombre.focus(); return;
     }
     var cel = document.getElementById('sfCelular');
-    if (cel) {
+    if (cel && pickerCart) {
       var soloDigitos = cel.value.replace(/[^0-9]/g, '');
-      if (soloDigitos.length < 7) { alert('Celular inválido (mínimo 7 dígitos).'); cel.focus(); return; }
+      var selIso = pickerCart.querySelector('.cgm-pais-input').value;
+      var selItem = pickerCart.querySelector('.cgm-pais-item[data-iso="' + selIso + '"]');
+      if (selItem) {
+        var minD = parseInt(selItem.getAttribute('data-min'), 10) || 6;
+        var maxD = parseInt(selItem.getAttribute('data-max'), 10) || 15;
+        var pais = selItem.getAttribute('data-name') || '';
+        if (soloDigitos.length < minD || soloDigitos.length > maxD) {
+          var msg = (minD === maxD)
+            ? 'El celular para ' + pais + ' debe tener exactamente ' + minD + ' dígitos.'
+            : 'El celular para ' + pais + ' debe tener entre ' + minD + ' y ' + maxD + ' dígitos.';
+          alert(msg); cel.focus(); return;
+        }
+      }
     }
     /* Email: solo letras, números, puntos, guión bajo y @ */
     var emailF = document.getElementById('sfEmail');
@@ -620,7 +806,7 @@
     }
     var items = [];
     rowsActivas.forEach(function (row) {
-      var n = row.querySelector('td:first-child div');
+      var n = row.querySelector('.cgm-item-nombre');
       var q = row.querySelector('td:nth-child(2) span');
       if (n) items.push((q ? q.textContent.trim() : '1') + ' x ' + n.textContent.trim().toUpperCase());
     });
@@ -683,9 +869,8 @@
       }
 
       /* Mitigación #5: re-fetch del carrito (reload de la página recarga todo) */
-      /* Mostramos toast y recargamos para reflejar el carrito actualizado */
-      alert(res.body.mensaje + ' Continuemos con la siguiente cotización.');
-      window.location.reload();
+      /* Mostramos modal decorado y esperamos que el usuario presione Continuar */
+      mostrarModalMixto(tipoActivo, res.body.tipos_restantes || []);
     })
     .catch(function (err) {
       console.error('Error al enviar cotización:', err);

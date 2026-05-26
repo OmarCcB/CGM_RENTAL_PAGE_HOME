@@ -42,9 +42,9 @@ def init_tables():
         WHERE TABLE_NAME = 'CGM_Contacto_Leads'
     )
     CREATE TABLE CGM_Contacto_Leads (
-        id               INT          IDENTITY(1,1) PRIMARY KEY,
-        fecha_envio      DATETIME2    DEFAULT GETDATE(),
-        pais_sitio       VARCHAR(10)  NULL,
+        id               INT           IDENTITY(1,1) PRIMARY KEY,
+        fecha_envio      DATETIME2     DEFAULT GETDATE(),
+        pais_sitio       VARCHAR(10)   NULL,
         nombre_apellido  NVARCHAR(200) NULL,
         razon_social     NVARCHAR(200) NULL,
         ruc_dni          VARCHAR(20)   NULL,
@@ -52,8 +52,10 @@ def init_tables():
         departamento     NVARCHAR(100) NULL,
         otro_pais        NVARCHAR(100) NULL,
         email            NVARCHAR(200) NULL,
+        codigo_pais      VARCHAR(8)    NULL,
         celular          VARCHAR(30)   NULL,
         equipo_requerido NVARCHAR(500) NULL,
+        sector_producto  NVARCHAR(100) NULL,
         tipo_alquiler    BIT           DEFAULT 0,
         tipo_compra      BIT           DEFAULT 0,
         sf_enviado       BIT           DEFAULT 0
@@ -67,19 +69,21 @@ def init_tables():
         WHERE TABLE_NAME = 'CGM_Cotizaciones'
     )
     CREATE TABLE CGM_Cotizaciones (
-        id               INT          IDENTITY(1,1) PRIMARY KEY,
-        fecha_envio      DATETIME2    DEFAULT GETDATE(),
-        pais_sitio       VARCHAR(10)  NULL,
+        id               INT           IDENTITY(1,1) PRIMARY KEY,
+        fecha_envio      DATETIME2     DEFAULT GETDATE(),
+        pais_sitio       VARCHAR(10)   NULL,
         nombre_apellido  NVARCHAR(200) NULL,
         razon_social     NVARCHAR(200) NULL,
         ruc_dni          VARCHAR(20)   NULL,
         email            NVARCHAR(200) NULL,
+        codigo_pais      VARCHAR(8)    NULL,
         celular          VARCHAR(30)   NULL,
         pais             NVARCHAR(100) NULL,
         departamento     NVARCHAR(100) NULL,
         tipo_alquiler    BIT           DEFAULT 0,
         tipo_compra      BIT           DEFAULT 0,
         detalle_equipos  NVARCHAR(MAX) NULL,
+        sector_producto  NVARCHAR(100) NULL,
         sf_enviado       BIT           DEFAULT 0
     )
     """)
