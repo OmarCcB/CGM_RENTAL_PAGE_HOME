@@ -96,8 +96,8 @@
                 <label class="cgm-contacto-field-label">Nombres y Apellidos</label>
                 <input type="text" name="nombre_apellido" class="cgm-contacto-input"
                        placeholder="Nombres y Apellidos*" required
-                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+"
-                       title="Solo letras y espacios. Sin números ni símbolos."
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y espacios. Sin números, puntos, guiones ni símbolos."
                        minlength="3" autocomplete="name">
               </div>
                            <div class="col-12 col-sm-6">
@@ -162,12 +162,18 @@
                            <div class="col-12 col-sm-6">
                 <label class="cgm-contacto-field-label">Email:</label>
                 <input type="email" name="email" class="cgm-contacto-input"
-                       placeholder="Email*" required>
+                       placeholder="Email*" required
+                       pattern="[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}"
+                       title="Solo letras, números, puntos, guión bajo y @"
+                       maxlength="80">
               </div>
               <div class="col-12 col-sm-6" id="sfcOtroPaisWrap" style="display:none;">
                 <label class="cgm-contacto-field-label">Otro País:</label>
                 <input type="text" id="sfcOtroPais" name="otro_pais" class="cgm-contacto-input"
-                       placeholder="Especifica el país*">
+                       placeholder="Especifica el país*"
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y espacios."
+                       minlength="2" maxlength="60">
               </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Celular:</label>
@@ -181,7 +187,10 @@
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
                 <input type="text" name="equipo_requerido" class="cgm-contacto-input"
-                       placeholder="Equipo requerido*" required>
+                       placeholder="Equipo requerido*" required
+                       pattern="[A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y números."
+                       minlength="3" maxlength="200">
               </div>
                            <div class="col-12">
                 <p class="cgm-contacto-obligatorio">(*) Campos obligatorios</p>
@@ -231,6 +240,32 @@
   var chkCom      = document.getElementById('tipoCompra');
   var selPais     = document.getElementById('sfcPais');
   var inpOtroPais = document.getElementById('sfcOtroPais');
+
+  /* ── Filtro en tiempo real: elimina caracteres no permitidos al escribir ── */
+  function filtrarInput(el, regexProhibidos) {
+    if (!el) return;
+    el.addEventListener('input', function () {
+      var pos = this.selectionStart;
+      var oldLen = this.value.length;
+      var newVal = this.value.replace(regexProhibidos, '');
+      if (newVal !== this.value) {
+        this.value = newVal;
+        var delta = oldLen - newVal.length;
+        try { this.setSelectionRange(pos - delta, pos - delta); } catch (e) {}
+      }
+    });
+  }
+  /* Aplicar filtros por campo */
+  filtrarInput(form.querySelector('[name="nombre_apellido"]'), /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(form.querySelector('[name="email"]'),           /[^A-Za-z0-9._@]/g);
+  filtrarInput(form.querySelector('[name="celular"]'),         /[^0-9+\-() ]/g);
+  {% if country_code == 'ar' %}
+  filtrarInput(form.querySelector('[name="ruc_dni"]'),         /[^0-9\-]/g);
+  {% else %}
+  filtrarInput(form.querySelector('[name="ruc_dni"]'),         /[^0-9]/g);
+  {% endif %}
+  filtrarInput(inpOtroPais, /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(form.querySelector('[name="equipo_requerido"]'), /[^A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ ]/g);
 
   /* Exclusión mutua: marcar uno desmarca el otro */
   if (chkAlq) {
@@ -299,9 +334,10 @@
       alert('Ingresa tu nombre y apellido completos.');
       nombre.focus(); return;
     }
-    if (nombre && /[0-9@#$%^&*]/.test(nombre.value)) {
+    /* Solo letras y espacios — sin números, puntos, guiones, símbolos ni emojis */
+    if (nombre && !/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$/.test(nombre.value.trim())) {
       e.preventDefault();
-      alert('El nombre no puede contener números ni símbolos especiales.');
+      alert('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
       nombre.focus(); return;
     }
 
@@ -314,6 +350,14 @@
         alert('Ingresa un número de celular válido (mínimo 7 dígitos).');
         cel.focus(); return;
       }
+    }
+
+    /* Email: solo letras, números, puntos, guión bajo y @ */
+    var emailF = form.querySelector('[name="email"]');
+    if (emailF && !/^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/.test(emailF.value.trim())) {
+      e.preventDefault();
+      alert('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
+      emailF.focus(); return;
     }
 
 

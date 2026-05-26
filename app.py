@@ -1346,31 +1346,45 @@ def _validar_lead_contenido(data):
     razon  = (data.get("razon_social") or "").strip()
     otro_p = (data.get("otro_pais") or "").strip()
 
-    # 1. Nombre: solo letras y separadores razonables, 3-100 chars
+    # 1. Nombre: SOLO letras y espacios, 3-100 chars
+    # No se permiten números, puntos, guiones, símbolos, emojis ni caracteres especiales
     if not nombre or len(nombre) < 3 or len(nombre) > 100:
-        return "Nombre fuera de rango."
-    if not re.match(r"^[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+$", nombre):
-        return "Nombre contiene caracteres no permitidos."
+        return "Nombre fuera de rango (entre 3 y 100 caracteres)."
+    if not re.match(r"^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$", nombre):
+        return "El nombre solo puede contener letras y espacios."
 
     # 2. RUC/DNI: solo dígitos (o guiones para CUIT argentino)
     if ruc and not re.match(r"^[\d\-]{6,15}$", ruc):
         return "Documento de identidad inválido."
 
-    # 3. Email: formato razonable
-    if not re.match(r"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$", email):
-        return "Email inválido."
+    # 3. Email: solo letras, números, puntos, guión bajo y @ (sin guiones, +, etc.)
+    if not re.match(r"^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$", email):
+        return "Email inválido. Solo se permiten letras, números, puntos, guión bajo y @."
 
     # 4. Celular: 7-15 dígitos
     cel_digits = re.sub(r"[^\d]", "", cel)
     if not (7 <= len(cel_digits) <= 15):
         return "Celular inválido."
 
-    # 5. Detección de URLs en campos donde no deberían existir
+    # 5. Otro país: solo letras y espacios (como nombre)
+    if otro_p and not re.match(r"^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$", otro_p):
+        return "El campo 'Otro país' solo puede contener letras y espacios."
+
+    # 6. Razón social: bloquear emojis y caracteres no imprimibles
+    # (acepta letras, números, puntos, comas, ampersand, paréntesis, guiones — típicos en nombres de empresa)
+    if razon and not re.match(r"^[A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ .,&\-()/'\"]+$", razon):
+        return "Razón social contiene caracteres no permitidos."
+
+    # 6b. Equipo requerido: solo letras, números y espacios (si está presente)
+    if equipo and not re.match(r"^[A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ ]+$", equipo):
+        return "El equipo requerido solo puede contener letras y números."
+
+    # 7. Detección de URLs en campos donde no deberían existir
     for valor in (nombre, equipo, razon, otro_p):
         if _SPAM_URL_RE.search(valor):
             return "Contenido no permitido (URLs detectadas)."
 
-    # 6. Detección de keywords típicas de spam/phishing
+    # 8. Detección de keywords típicas de spam/phishing
     blob = " ".join([nombre, equipo, razon, otro_p]).lower()
     for kw in _SPAM_KEYWORDS:
         if kw in blob:

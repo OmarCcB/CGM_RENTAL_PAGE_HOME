@@ -234,8 +234,8 @@
                 <label class="cgm-form-label" for="sfNombre">Nombres y Apellidos *</label>
                 <input type="text" id="sfNombre" name="nombre_apellido" class="cgm-form-control"
                        placeholder="Juan Pérez" required
-                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ .\-']+"
-                       title="Solo letras y espacios. Sin números ni símbolos."
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y espacios. Sin números, puntos, guiones ni símbolos."
                        minlength="3" autocomplete="name">
               </div>
 
@@ -262,17 +262,20 @@
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfEmail">Email *</label>
                 <input type="email" id="sfEmail" name="email" class="cgm-form-control"
-                       placeholder="correo@empresa.com" required autocomplete="email">
+                       placeholder="correo@empresa.com" required autocomplete="email"
+                       pattern="[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}"
+                       title="Solo letras, números, puntos, guión bajo y @"
+                       maxlength="80">
               </div>
 
               <div class="col-12 col-sm-6">
                 <label class="cgm-form-label" for="sfCelular">Celular *</label>
                 <input type="tel" id="sfCelular" name="celular" class="cgm-form-control"
-                       placeholder="{% if country_code == 'ar' %}+54 9 11 1234-5678{% else %}999 999 999{% endif %}"
+                       placeholder="{% if country_code == 'ar' %}1112345678{% else %}999999999{% endif %}"
                        maxlength="15" minlength="7"
-                       pattern="[0-9+\-() ]+"
-                       title="Solo números. Puede incluir +, espacios o guiones."
-                       inputmode="tel" autocomplete="tel" required>
+                       pattern="[0-9]+"
+                       title="Solo números. Sin espacios, guiones, ni símbolos."
+                       inputmode="numeric" autocomplete="tel" required>
               </div>
 
               <div class="col-12 col-sm-6">
@@ -315,13 +318,19 @@
               <div class="col-12 col-sm-6" id="sfOtroPaisWrap" style="display:none;">
                 <label class="cgm-form-label" for="sfOtroPais">Otro país *</label>
                 <input type="text" id="sfOtroPais" name="otro_pais" class="cgm-form-control"
-                       placeholder="Especifica el país" minlength="2" maxlength="60" disabled>
+                       placeholder="Especifica el país" minlength="2" maxlength="60"
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y espacios."
+                       disabled>
               </div>
 
               <div class="col-12 col-sm-6" id="sfCiudadWrap" style="display:none;">
                 <label class="cgm-form-label" for="sfCiudad">Ciudad / Región del proyecto *</label>
                 <input type="text" id="sfCiudad" name="departamento" class="cgm-form-control"
-                       placeholder="Ciudad o región del proyecto" minlength="2" maxlength="80" disabled>
+                       placeholder="Ciudad o región del proyecto" minlength="2" maxlength="80"
+                       pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
+                       title="Solo letras y espacios."
+                       disabled>
               </div>
 
               <div class="col-12">
@@ -435,6 +444,32 @@
   if (!form || !cartTable) return;
 
   var esMixto = cartTable.getAttribute('data-mixto') === '1';
+
+  /* ── Filtro en tiempo real: elimina caracteres no permitidos al escribir ── */
+  function filtrarInput(el, regexProhibidos) {
+    if (!el) return;
+    el.addEventListener('input', function () {
+      var pos = this.selectionStart;
+      var oldLen = this.value.length;
+      var newVal = this.value.replace(regexProhibidos, '');
+      if (newVal !== this.value) {
+        this.value = newVal;
+        var delta = oldLen - newVal.length;
+        try { this.setSelectionRange(pos - delta, pos - delta); } catch (e) {}
+      }
+    });
+  }
+  /* Aplicar filtros por campo */
+  filtrarInput(document.getElementById('sfNombre'),    /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(document.getElementById('sfEmail'),     /[^A-Za-z0-9._@]/g);
+  filtrarInput(document.getElementById('sfCelular'),   /[^0-9]/g);
+  {% if country_code == 'ar' %}
+  filtrarInput(document.getElementById('sfRuc'),       /[^0-9\-]/g);
+  {% else %}
+  filtrarInput(document.getElementById('sfRuc'),       /[^0-9]/g);
+  {% endif %}
+  filtrarInput(document.getElementById('sfOtroPais'),  /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(document.getElementById('sfCiudad'),    /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
 
   /* ── Estado único centralizado (mitigación #15) ────────────────────── */
   function detectarTipoInicial() {
@@ -552,13 +587,21 @@
     if (nombre && nombre.value.trim().length < 3) {
       alert('Ingresa tu nombre y apellido completos.'); nombre.focus(); return;
     }
-    if (nombre && /[0-9@#$%^&*]/.test(nombre.value)) {
-      alert('El nombre no puede contener números ni símbolos especiales.'); nombre.focus(); return;
+    /* Solo letras y espacios — sin números, puntos, guiones, símbolos ni emojis */
+    if (nombre && !/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$/.test(nombre.value.trim())) {
+      alert('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
+      nombre.focus(); return;
     }
     var cel = document.getElementById('sfCelular');
     if (cel) {
       var soloDigitos = cel.value.replace(/[^0-9]/g, '');
       if (soloDigitos.length < 7) { alert('Celular inválido (mínimo 7 dígitos).'); cel.focus(); return; }
+    }
+    /* Email: solo letras, números, puntos, guión bajo y @ */
+    var emailF = document.getElementById('sfEmail');
+    if (emailF && !/^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/.test(emailF.value.trim())) {
+      alert('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
+      emailF.focus(); return;
     }
     var ruc = document.getElementById('sfRuc');
     if (ruc && ruc.value.trim() !== '') {
