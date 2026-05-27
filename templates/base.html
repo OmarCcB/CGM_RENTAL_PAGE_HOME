@@ -12,6 +12,48 @@
   <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="canonical" href="{{ canonical_url }}">
+
+  <!-- Organization Schema — aparece en TODAS las páginas para que Google reconozca CGM Rental como entidad/marca y considere mostrar sitelinks -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://cgmrental.com/#organization",
+    "name": "CGM Rental",
+    "alternateName": "CGM Rental {{ country.nombre }}",
+    "url": "https://cgmrental.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.url_root }}static/images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png",
+      "width": 192,
+      "height": 192
+    },
+    "image": "{{ request.url_root }}static/images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png",
+    "description": "Empresa líder en alquiler de maquinaria pesada para construcción, minería, agricultura y energía en Latinoamérica. Más de 15 años de trayectoria.",
+    "foundingDate": "2010",
+    "sameAs": [
+      {{ country.facebook   | tojson }},
+      {{ country.instagram  | tojson }},
+      {{ country.linkedin   | tojson }},
+      {{ country.youtube    | tojson }}
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": {{ country.telefono | tojson }},
+      "contactType": "customer service",
+      "email": {{ country.email | tojson }},
+      "areaServed": {{ (country.code | upper) | tojson }},
+      "availableLanguage": ["es"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": {{ country.direccion | tojson }},
+      "addressLocality": {{ country.ciudad_principal | tojson }},
+      "addressCountry": {{ (country.code | upper) | tojson }}
+    }
+  }
+  </script>
+
   {% block json_ld %}{% endblock %}
   <link rel="icon" href="{{ url_for('static', filename='images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-32x32.png') }}" type="image/png" sizes="32x32">
   <link rel="icon" href="{{ url_for('static', filename='images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png') }}" type="image/png" sizes="192x192">

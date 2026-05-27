@@ -12,15 +12,22 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": {{ product.nombre | tojson }},
+  "@type": "Service",
+  "name": {{ ("Alquiler de " ~ product.nombre) | tojson }},
+  "serviceType": "Alquiler de Maquinaria Pesada",
+  "category": {{ ((product.unidad or "Maquinaria Pesada").split("|")[0].strip()) | tojson }},
   "image": {% if product.imagen %}"{{ request.url_root }}static/products/{{ product.imagen }}"{% else %}null{% endif %},
   "description": {{ (product.descripcion_texto or product.descripcion or (product.nombre ~ ' disponible para alquiler en ' ~ country.nombre)) | tojson }},
-  "brand": {
-    "@type": "Brand",
-    "name": {{ (product.marca or "CGM Rental") | tojson }}
+  "url": {{ canonical_url | tojson }},
+  "provider": {
+    "@type": "Organization",
+    "name": "CGM Rental",
+    "url": "https://cgmrental.com"
   },
-  "url": {{ canonical_url | tojson }}
+  "areaServed": {
+    "@type": "Country",
+    "name": {{ country.nombre | tojson }}
+  }
 }
 </script>
 {% endblock %}
