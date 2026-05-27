@@ -1,6 +1,7 @@
 ﻿import os
 import re
 import json
+import unicodedata
 import logging
 import smtplib
 import urllib.request
@@ -1402,6 +1403,17 @@ def _validar_lead_contenido(data):
     return None
 
 
+# ── Normalización de texto para BD ───────────────────────────────────────────
+def _normalizar(texto):
+    """Convierte texto a MAYÚSCULAS sin tildes ni diacríticos para guardar en BD.
+    Ej: 'García Ñúñez' → 'GARCIA NUNEZ'  |  '' / None → se devuelve tal cual."""
+    if not texto:
+        return texto
+    nfkd = unicodedata.normalize('NFD', str(texto))
+    sin_acento = ''.join(c for c in nfkd if unicodedata.category(c) != 'Mn')
+    return sin_acento.upper()
+
+
 # ── Mapeo unidad → sector_producto ───────────────────────────────────────────
 _UNIDAD_TO_SECTOR = {
     "Construcción":    "CONSTRUCCIÓN",
@@ -1603,16 +1615,16 @@ def api_guardar_contacto():
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
-            data.get("nombre_apellido", "").strip(),
-            data.get("razon_social",    "").strip(),
-            data.get("ruc_dni",         "").strip(),
-            data.get("pais",            "").strip(),
-            data.get("departamento",    "").strip(),
-            data.get("otro_pais",       "").strip(),
-            data.get("email",           "").strip(),
+            _normalizar(data.get("nombre_apellido", "").strip()),
+            _normalizar(data.get("razon_social",    "").strip()),
+            _normalizar(data.get("ruc_dni",         "").strip()),
+            _normalizar(data.get("pais",            "").strip()),
+            _normalizar(data.get("departamento",    "").strip()),
+            _normalizar(data.get("otro_pais",       "").strip()),
+            data.get("email",           "").strip(),   # email: se guarda tal cual
             codigo_pais_val,
             cel_digits_clean,
-            data.get("equipo_requerido","").strip(),
+            _normalizar(data.get("equipo_requerido","").strip()),
             _detectar_sector_equipo(data.get("equipo_requerido", "")),
             1 if data.get("tipo_alquiler") else 0,
             1 if data.get("tipo_compra")   else 0,
@@ -1733,17 +1745,17 @@ def api_guardar_cotizacion():
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
-            data.get("nombre_apellido", "").strip(),
-            data.get("razon_social",    "").strip(),
-            data.get("ruc_dni",         "").strip(),
-            data.get("email",           "").strip(),
+            _normalizar(data.get("nombre_apellido", "").strip()),
+            _normalizar(data.get("razon_social",    "").strip()),
+            _normalizar(data.get("ruc_dni",         "").strip()),
+            data.get("email",           "").strip(),   # email: se guarda tal cual
             codigo_pais_val,
             cel_digits_clean,
-            pais_val,
-            data.get("departamento",    "").strip(),
+            _normalizar(pais_val),
+            _normalizar(data.get("departamento",    "").strip()),
             is_alquiler,
             is_compra,
-            detalle,
+            _normalizar(detalle),
             sector_producto_val,
             0,     # sf_enviado: pendiente
         ))
