@@ -3,6 +3,27 @@
 {% block title %}Contacto — CGM Rental | {{ country.nombre }}{% endblock %}
 {% block meta_desc %}Contáctanos para cotizar alquiler de maquinaria pesada en {{ country.nombre }}. CGM Rental.{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Razón social: transición suave entre estado habilitado/deshabilitado */
+  #sfcRazon {
+    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+  }
+  #sfcRazon[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.75;
+    border-color: #d1d5db !important;
+  }
+  #sfcRazonAsterisk {
+    color: #dc2626;
+    transition: opacity 0.2s ease;
+  }
+  #sfcRazonAsterisk.cgm-hidden { opacity: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <section class="cgm-page-hero">
@@ -74,7 +95,8 @@
 
           <form id="sfContactForm"
                 action="/api/guardar-contacto"
-                method="POST">
+                method="POST"
+                novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio" value="{{ country_code }}">
 
@@ -101,7 +123,9 @@
                        minlength="3" autocomplete="name">
               </div>
                            <div class="col-12 col-sm-6">
-                <label class="cgm-contacto-field-label" id="sfcRazonLabel">Razón Social:</label>
+                <label class="cgm-contacto-field-label" id="sfcRazonLabel">
+                  Razón Social <span id="sfcRazonAsterisk">*</span>
+                </label>
                 <input type="text" name="razon_social" id="sfcRazon" class="cgm-contacto-input"
                        placeholder="Razón Social*"
                        minlength="2" autocomplete="organization">
@@ -243,7 +267,7 @@
               {% endif %}
 
                            <div class="col-12 text-end">
-                <button type="submit" class="cgm-btn cgm-btn-lima">
+                <button type="submit" id="sfcSubmitBtn" class="cgm-btn cgm-btn-lima">
                   SOLICITAR INFORMACIÓN
                 </button>
               </div>
@@ -284,6 +308,7 @@
   }
   /* Aplicar filtros por campo */
   filtrarInput(form.querySelector('[name="nombre_apellido"]'), /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(form.querySelector('[name="razon_social"]'),    /[^A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ .,&\-()/'"]/g);
   filtrarInput(form.querySelector('[name="email"]'),           /[^A-Za-z0-9._@]/g);
   filtrarInput(form.querySelector('[name="celular"]'),         /[^0-9]/g);
 
@@ -350,8 +375,10 @@
   var inpRuc       = document.getElementById('sfcRucDni') || form.querySelector('[name="ruc_dni"]');
   var inpRazon     = document.getElementById('sfcRazon');
   var lblRazon     = document.getElementById('sfcRazonLabel');
+  var astRazon = document.getElementById('sfcRazonAsterisk');
   function actualizarReglasDocumento() {
     var esAlq = chkAlq && chkAlq.checked;
+    var docDig = inpRuc ? inpRuc.value.replace(/[^0-9]/g, '') : '';
     {% if country_code == 'ar' %}
     /* Argentina: SIEMPRE alquiler (no existe "usados") → siempre CUIT/CUIL */
     if (inpRuc) {
@@ -360,14 +387,15 @@
       inpRuc.setAttribute('placeholder', 'CUIT/CUIL (11 dígitos)*');
       inpRuc.setAttribute('title', 'CUIT/CUIL válido (11 dígitos). Inicia con 20, 23, 24, 25, 26, 27, 30, 33 o 34. Formato: XX-XXXXXXXX-X');
     }
-    /* Razón social: siempre obligatoria en Argentina */
+    /* Razón social: siempre habilitada y obligatoria en Argentina */
     if (inpRazon) {
+      inpRazon.disabled = false;
       inpRazon.setAttribute('required', '');
       inpRazon.setAttribute('placeholder', 'Razón Social*');
-      if (lblRazon) lblRazon.textContent = 'Razón Social:';
+      if (astRazon) astRazon.classList.remove('cgm-hidden');
     }
     {% else %}
-    /* Perú: alquiler → RUC (11) | usados → DNI (8) o RUC (11) */
+    /* Perú: ruc_dni — placeholder según checkbox de tipo */
     if (inpRuc) {
       if (esAlq) {
         inpRuc.setAttribute('minlength', '11');
@@ -381,19 +409,30 @@
         inpRuc.setAttribute('title', 'DNI (8 dígitos) o RUC (11 dígitos).');
       }
     }
-    /* Razón social: obligatoria solo si hay alquiler */
+    /* Razón social: depende de la longitud del documento Y del tipo seleccionado.
+       - 8 dígitos (DNI) Y NO es alquiler → deshabilitada (persona natural, no aplica)
+       - Cualquier otra combinación → habilitada y obligatoria
+       Nota: si Alquiler está marcado, razón social SIEMPRE va a ser obligatoria
+       (porque alquiler exige RUC), incluso si el usuario aún no completó los 11 dígitos. */
     if (inpRazon) {
-      if (esAlq) {
+      var esDni = (docDig.length === 8 && !esAlq);
+      if (esDni) {
+        inpRazon.disabled = true;
+        inpRazon.removeAttribute('required');
+        inpRazon.setAttribute('placeholder', 'Solo aplica con RUC');
+        if (astRazon) astRazon.classList.add('cgm-hidden');
+      } else {
+        inpRazon.disabled = false;
         inpRazon.setAttribute('required', '');
         inpRazon.setAttribute('placeholder', 'Razón Social*');
-        if (lblRazon) lblRazon.textContent = 'Razón Social:';
-      } else {
-        inpRazon.removeAttribute('required');
-        inpRazon.setAttribute('placeholder', 'Razón Social (opcional)');
-        if (lblRazon) lblRazon.textContent = 'Razón Social (opcional):';
+        if (astRazon) astRazon.classList.remove('cgm-hidden');
       }
     }
     {% endif %}
+  }
+  /* Listener: actualizar también cuando el cliente escriba en RUC/DNI */
+  if (inpRuc) {
+    inpRuc.addEventListener('input', actualizarReglasDocumento);
   }
   /* Estado inicial */
   actualizarReglasDocumento();
@@ -455,24 +494,72 @@
     if (!alquiler && !compra) {
       e.preventDefault();
       {% if country_code == 'ar' %}
-      alert('Debes marcar la opción "Alquiler" para continuar.');
+      cgmNotify('Debes marcar la opción "Alquiler" para continuar.');
       {% else %}
-      alert('Selecciona al menos un tipo de operación: Alquiler o Compra.');
+      cgmNotify('Selecciona al menos un tipo de operación: Alquiler o Compra.');
       {% endif %}
       if (chkAlq) chkAlq.focus();
       return;
     }
 
+    /* ── Validación genérica: campos requeridos vacíos ──
+       Como desactivamos la validación nativa del navegador con novalidate,
+       chequeamos aquí los campos required vacíos para mostrar mensaje decorado. */
+    var camposReq = [
+      { sel: '[name="nombre_apellido"]', label: 'Nombres y Apellidos' },
+      { sel: '[name="pais"]',            label: 'País del proyecto' },
+      { sel: '[name="ruc_dni"]',         label: 'RUC/DNI' },
+      { sel: '[name="email"]',           label: 'Email' },
+      { sel: '[name="celular"]',         label: 'Celular' },
+      { sel: '[name="equipo_requerido"]',label: 'Equipo requerido' }
+    ];
+    for (var i = 0; i < camposReq.length; i++) {
+      var f = form.querySelector(camposReq[i].sel);
+      if (f && !f.disabled && f.offsetParent !== null && !f.value.trim()) {
+        e.preventDefault();
+        cgmNotify('Completa el campo: ' + camposReq[i].label);
+        f.focus();
+        return;
+      }
+    }
+    /* Departamento o Ciudad (uno u otro según país elegido) */
+    var deptoF = document.getElementById('sfcDepto');
+    var ciudadF = document.getElementById('sfcCiudad');
+    if (deptoF && !deptoF.disabled && !deptoF.value.trim()) {
+      e.preventDefault();
+      cgmNotify('Selecciona el departamento del proyecto.');
+      deptoF.focus(); return;
+    }
+    if (ciudadF && !ciudadF.disabled && !ciudadF.value.trim()) {
+      e.preventDefault();
+      cgmNotify('Indica la ciudad/región del proyecto.');
+      ciudadF.focus(); return;
+    }
+    /* Otro país (si visible) */
+    var otroF = document.getElementById('sfcOtroPais');
+    if (otroF && !otroF.disabled && otroF.offsetParent !== null && !otroF.value.trim()) {
+      e.preventDefault();
+      cgmNotify('Indica el país del proyecto.');
+      otroF.focus(); return;
+    }
+    /* Razón social (si está habilitada → RUC presente) */
+    var razonF = document.getElementById('sfcRazon');
+    if (razonF && !razonF.disabled && !razonF.value.trim()) {
+      e.preventDefault();
+      cgmNotify('Ingresa la razón social.');
+      razonF.focus(); return;
+    }
+
     var nombre = form.querySelector('[name="nombre_apellido"]');
     if (nombre && nombre.value.trim().length < 3) {
       e.preventDefault();
-      alert('Ingresa tu nombre y apellido completos.');
+      cgmNotify('Ingresa tu nombre y apellido completos.');
       nombre.focus(); return;
     }
     /* Solo letras y espacios — sin números, puntos, guiones, símbolos ni emojis */
     if (nombre && !/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$/.test(nombre.value.trim())) {
       e.preventDefault();
-      alert('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
+      cgmNotify('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
       nombre.focus(); return;
     }
 
@@ -491,7 +578,7 @@
           var msg = (minD === maxD)
             ? 'El celular para ' + pais + ' debe tener exactamente ' + minD + ' dígitos.'
             : 'El celular para ' + pais + ' debe tener entre ' + minD + ' y ' + maxD + ' dígitos.';
-          alert(msg);
+          cgmNotify(msg);
           cel.focus(); return;
         }
       }
@@ -501,7 +588,7 @@
     var emailF = form.querySelector('[name="email"]');
     if (emailF && !/^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/.test(emailF.value.trim())) {
       e.preventDefault();
-      alert('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
+      cgmNotify('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
       emailF.focus(); return;
     }
 
@@ -516,12 +603,12 @@
       var prefijosArg = ['20','23','24','25','26','27','30','33','34'];
       if (soloRuc.length !== 11) {
         e.preventDefault();
-        alert('Debes ingresar un CUIT/CUIL válido (11 dígitos).');
+        cgmNotify('Debes ingresar un CUIT/CUIL válido (11 dígitos).');
         ruc.focus(); return;
       }
       if (prefijosArg.indexOf(soloRuc.substring(0, 2)) === -1) {
         e.preventDefault();
-        alert('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.');
+        cgmNotify('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.');
         ruc.focus(); return;
       }
       {% else %}
@@ -530,12 +617,12 @@
       if (esAlq) {
         if (soloRuc.length !== 11) {
           e.preventDefault();
-          alert('Para alquiler debes ingresar un RUC de 11 dígitos.');
+          cgmNotify('Para alquiler debes ingresar un RUC de 11 dígitos.');
           ruc.focus(); return;
         }
         if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
           e.preventDefault();
-          alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
+          cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
           ruc.focus(); return;
         }
       } else {
@@ -543,34 +630,90 @@
         else if (soloRuc.length === 11) {
           if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
             e.preventDefault();
-            alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
+            cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
             ruc.focus(); return;
           }
         } else {
           e.preventDefault();
-          alert('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).');
+          cgmNotify('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).');
           ruc.focus(); return;
         }
       }
       {% endif %}
     }
 
-    /* Razón social obligatoria si se solicita alquiler */
-    if (chkAlq && chkAlq.checked) {
-      var razon = form.querySelector('[name="razon_social"]');
-      if (razon && razon.value.trim().length < 2) {
-        e.preventDefault();
-        alert('La razón social es obligatoria cuando solicitas alquiler de equipos.');
-        razon.focus(); return;
+    /* Razón social obligatoria si el documento es RUC/CUIT (11 dígitos) */
+    if (ruc) {
+      var docCheck = ruc.value.replace(/[^0-9]/g, '');
+      if (docCheck.length === 11) {
+        var razon = form.querySelector('[name="razon_social"]');
+        if (razon && razon.value.trim().length < 2) {
+          e.preventDefault();
+          cgmNotify('La razón social es obligatoria cuando se usa RUC.');
+          razon.focus(); return;
+        }
       }
     }
 
 
     if (!document.getElementById('sfcPolitica').checked) {
       e.preventDefault();
-      alert('Debes aceptar la política de privacidad.');
+      cgmNotify('Debes aceptar la política de privacidad.');
       return;
     }
+
+    /* ── TODAS las validaciones pasaron → envío vía AJAX ──
+       Convertimos el envío tradicional (POST → navegación) a fetch.
+       Ventaja: si el server rechaza con 400 (Turnstile expirado, contenido
+       bloqueado, etc.), mostramos el error como cgmNotify decorada en vez
+       de que el browser navegue a una página con JSON crudo. */
+    e.preventDefault();
+
+    var btnSubmit = document.getElementById('sfcSubmitBtn');
+    var btnTextoOriginal = btnSubmit ? btnSubmit.innerHTML : '';
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = 'Enviando...';
+    }
+
+    var fd = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: fd,
+    })
+    .then(function (res) {
+      /* Si el server hizo redirect (éxito) → fetch lo siguió hasta /gracias/.
+         Navegamos manualmente a esa URL para que el usuario vea la página. */
+      if (res.redirected) {
+        window.location.href = res.url;
+        return null;
+      }
+      /* Otro caso: server retornó JSON (error o respuesta directa) */
+      return res.json().catch(function () { return null; });
+    })
+    .then(function (data) {
+      if (data === null) return;  // ya redirigió
+      if (!data.ok) {
+        cgmNotify(data.error || 'No pudimos enviar tu mensaje. Intenta nuevamente.');
+        /* Restaurar botón para que pueda reintentar */
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = btnTextoOriginal;
+        }
+        return;
+      }
+      /* Server retornó ok=true pero sin redirect (caso poco común) */
+      if (data.redirect) {
+        window.location.href = data.redirect;
+      }
+    })
+    .catch(function () {
+      cgmNotify('Error de conexión. Verifica tu internet e intenta nuevamente.');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = btnTextoOriginal;
+      }
+    });
   });
 })();
 </script>

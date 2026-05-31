@@ -1686,11 +1686,13 @@ def api_guardar_contacto():
     if err_doc:
         return jsonify({"ok": False, "error": err_doc}), 400
 
-    # 3) Si hay alquiler, la razón social es obligatoria (es B2B → cliente debe ser empresa)
-    if is_alq and not data.get("razon_social", "").strip():
+    # 3) Razón social obligatoria cuando el documento es RUC/CUIT (11 dígitos).
+    #    Si es DNI (8 dígitos), el cliente es persona natural y razón social no aplica.
+    doc_clean_chk = re.sub(r'[^\d]', '', data.get("ruc_dni", "").strip())
+    if len(doc_clean_chk) == 11 and not data.get("razon_social", "").strip():
         return jsonify({
             "ok": False,
-            "error": "La razón social es obligatoria cuando solicitas alquiler de equipos.",
+            "error": "La razón social es obligatoria cuando se usa RUC.",
         }), 400
 
     try:
@@ -1806,17 +1808,20 @@ def api_guardar_cotizacion():
             "error": f"No tienes equipos de tipo '{tag_target}' en el carrito.",
         }), 400
 
-    # ── Validación de negocio: documento y razón social según tipo ──────────
-    # Si tag_target='alquiler' → RUC obligatorio + razón social obligatoria
-    # Si tag_target='usados'   → DNI/RUC + razón social opcional
+    # ── Validación de negocio: documento y razón social ─────────────────────
+    # Documento: si tag_target='alquiler' → RUC obligatorio (11 dig).
+    #            si tag_target='usados'   → DNI (8) o RUC (11).
     err_doc = _validar_documento(data.get("ruc_dni", "").strip(), tag_target, pais_sitio)
     if err_doc:
         return jsonify({"ok": False, "error": err_doc}), 400
 
-    if tag_target == 'alquiler' and not data.get("razon_social", "").strip():
+    # Razón social: obligatoria cuando el documento es RUC/CUIT (11 dígitos).
+    # Si es DNI (8 dígitos), el cliente es persona natural y razón social no aplica.
+    doc_clean_chk = re.sub(r'[^\d]', '', data.get("ruc_dni", "").strip())
+    if len(doc_clean_chk) == 11 and not data.get("razon_social", "").strip():
         return jsonify({
             "ok": False,
-            "error": "La razón social es obligatoria para cotizar alquiler de equipos.",
+            "error": "La razón social es obligatoria cuando se usa RUC.",
         }), 400
 
     # Construir detalle_equipos solo con los equipos del tipo enviado

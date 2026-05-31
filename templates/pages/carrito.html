@@ -1,6 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Carrito de Cotización — CGM Rental{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Razón social: transición suave entre habilitado/deshabilitado */
+  #sfRazon {
+    transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+  }
+  #sfRazon[disabled] {
+    background-color: #f3f4f6 !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.75;
+    border-color: #d1d5db !important;
+  }
+  #sfRazonAsterisk {
+    color: #dc2626;
+    transition: opacity 0.2s ease;
+  }
+  #sfRazonAsterisk.cgm-hidden { opacity: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <section id="heroEmpty" class="cgm-cotiz-hero-empty">
@@ -203,7 +224,8 @@
 
           <form id="sfCartForm"
                 action="/api/guardar-cotizacion"
-                method="POST">
+                method="POST"
+                novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio"      value="{{ country_code }}">
             <input type="hidden" name="detalle_equipos" id="sfCarritoDetalle">
@@ -240,7 +262,9 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfRazon" id="sfRazonLabel">Razón Social *</label>
+                <label class="cgm-form-label" for="sfRazon" id="sfRazonLabel">
+                  Razón Social <span id="sfRazonAsterisk">*</span>
+                </label>
                 <input type="text" id="sfRazon" name="razon_social" class="cgm-form-control"
                        placeholder="Mi Empresa S.A.C."
                        minlength="2" autocomplete="organization">
@@ -600,6 +624,7 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
   }
   /* Aplicar filtros por campo */
   filtrarInput(document.getElementById('sfNombre'),    /[^A-Za-záéíóúüñÁÉÍÓÚÜÑ ]/g);
+  filtrarInput(document.getElementById('sfRazon'),     /[^A-Za-z0-9áéíóúüñÁÉÍÓÚÜÑ .,&\-()/'"]/g);
   filtrarInput(document.getElementById('sfEmail'),     /[^A-Za-z0-9._@]/g);
   filtrarInput(document.getElementById('sfCelular'),   /[^0-9]/g);
 
@@ -680,29 +705,28 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
     /* Hidden input que el backend lee */
     if (hiddenTipo) hiddenTipo.value = tipoActivo;
 
-    /* ── Reglas dinámicas según tipo (Alquiler vs Compra/Usados) ──
-       - Alquiler  → ruc_dni: SOLO RUC (11) | razon_social obligatoria
-       - Usados    → ruc_dni: DNI (8) o RUC (11) | razon_social opcional        */
+    /* ── Reglas dinámicas: ruc_dni según tipo (alquiler/usados), razón social según documento ─── */
     var inpRuc   = document.getElementById('sfRuc');
     var inpRazon = document.getElementById('sfRazon');
-    var lblRazon = document.getElementById('sfRazonLabel');
+    var astRazon = document.getElementById('sfRazonAsterisk');
     var esAlqCart = (tipoActivo === 'alquiler');
+    var docDigCart = inpRuc ? inpRuc.value.replace(/[^0-9]/g, '') : '';
     {% if country_code == 'ar' %}
-    /* Argentina: SIEMPRE alquiler (no existe "usados") → siempre CUIT/CUIL */
+    /* Argentina: SIEMPRE alquiler → siempre CUIT/CUIL, razón social siempre obligatoria */
     if (inpRuc) {
       inpRuc.setAttribute('minlength', '11');
       inpRuc.setAttribute('maxlength', '13');
       inpRuc.setAttribute('placeholder', 'CUIT/CUIL (11 dígitos)');
       inpRuc.setAttribute('title', 'CUIT/CUIL válido (11 dígitos). Inicia con 20, 23, 24, 25, 26, 27, 30, 33 o 34. Formato: XX-XXXXXXXX-X');
     }
-    /* Razón social siempre obligatoria en Argentina */
     if (inpRazon) {
+      inpRazon.disabled = false;
       inpRazon.setAttribute('required', '');
       inpRazon.setAttribute('placeholder', 'Mi Empresa S.R.L.');
-      if (lblRazon) lblRazon.textContent = 'Razón Social *';
+      if (astRazon) astRazon.classList.remove('cgm-hidden');
     }
     {% else %}
-    /* Perú: alquiler → RUC (11) | usados → DNI (8) o RUC (11) */
+    /* Perú: ruc_dni — atributos según tipo activo */
     if (inpRuc) {
       if (esAlqCart) {
         inpRuc.setAttribute('minlength', '11');
@@ -716,18 +740,30 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
         inpRuc.setAttribute('title', 'DNI (8 dígitos) o RUC (11 dígitos).');
       }
     }
+    /* Razón social: depende de la longitud del documento Y del tipo activo.
+       - 8 dígitos (DNI) Y NO es alquiler → deshabilitada
+       - Cualquier otra combinación → habilitada y obligatoria
+       Si tipoActivo='alquiler', razón social SIEMPRE es obligatoria. */
     if (inpRazon) {
-      if (esAlqCart) {
+      var esDniCart = (docDigCart.length === 8 && !esAlqCart);
+      if (esDniCart) {
+        inpRazon.disabled = true;
+        inpRazon.removeAttribute('required');
+        inpRazon.setAttribute('placeholder', 'Solo aplica con RUC');
+        if (astRazon) astRazon.classList.add('cgm-hidden');
+      } else {
+        inpRazon.disabled = false;
         inpRazon.setAttribute('required', '');
         inpRazon.setAttribute('placeholder', 'Mi Empresa S.A.C.');
-        if (lblRazon) lblRazon.textContent = 'Razón Social *';
-      } else {
-        inpRazon.removeAttribute('required');
-        inpRazon.setAttribute('placeholder', 'Opcional');
-        if (lblRazon) lblRazon.textContent = 'Razón Social (opcional)';
+        if (astRazon) astRazon.classList.remove('cgm-hidden');
       }
     }
     {% endif %}
+  }
+  /* Listener: actualizar al escribir en RUC/DNI */
+  var inpRucListener = document.getElementById('sfRuc');
+  if (inpRucListener) {
+    inpRucListener.addEventListener('input', renderizar);
   }
 
   /* ── cambiarTipo(): único entry point para mutar el estado ──────────── */
@@ -805,14 +841,51 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
+    /* ── Validación genérica: campos requeridos vacíos ──
+       Como desactivamos la validación nativa con novalidate, chequeamos aquí
+       los campos requeridos para mostrar mensaje decorado. */
+    var camposReqCart = [
+      { id: 'sfNombre',  label: 'Nombres y Apellidos' },
+      { id: 'sfRuc',     label: 'RUC/DNI' },
+      { id: 'sfEmail',   label: 'Email' },
+      { id: 'sfCelular', label: 'Celular' },
+      { id: 'sfPais',    label: 'País del proyecto' }
+    ];
+    for (var i = 0; i < camposReqCart.length; i++) {
+      var fC = document.getElementById(camposReqCart[i].id);
+      if (fC && !fC.disabled && fC.offsetParent !== null && !fC.value.trim()) {
+        cgmNotify('Completa el campo: ' + camposReqCart[i].label);
+        fC.focus(); return;
+      }
+    }
+    /* Departamento o Ciudad (uno u otro según país elegido) */
+    var deptoC = document.getElementById('sfDepto');
+    var ciudadC = document.getElementById('sfCiudad');
+    if (deptoC && !deptoC.disabled && !deptoC.value.trim()) {
+      cgmNotify('Selecciona el departamento del proyecto.'); deptoC.focus(); return;
+    }
+    if (ciudadC && !ciudadC.disabled && !ciudadC.value.trim()) {
+      cgmNotify('Indica la ciudad/región del proyecto.'); ciudadC.focus(); return;
+    }
+    /* Otro país (si visible) */
+    var otroC = document.getElementById('sfOtroPais');
+    if (otroC && !otroC.disabled && otroC.offsetParent !== null && !otroC.value.trim()) {
+      cgmNotify('Indica el país del proyecto.'); otroC.focus(); return;
+    }
+    /* Razón social (si está habilitada → RUC presente) */
+    var razonC = document.getElementById('sfRazon');
+    if (razonC && !razonC.disabled && !razonC.value.trim()) {
+      cgmNotify('Ingresa la razón social.'); razonC.focus(); return;
+    }
+
     /* Validaciones cliente (mantengo las existentes) */
     var nombre = document.getElementById('sfNombre');
     if (nombre && nombre.value.trim().length < 3) {
-      alert('Ingresa tu nombre y apellido completos.'); nombre.focus(); return;
+      cgmNotify('Ingresa tu nombre y apellido completos.'); nombre.focus(); return;
     }
     /* Solo letras y espacios — sin números, puntos, guiones, símbolos ni emojis */
     if (nombre && !/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$/.test(nombre.value.trim())) {
-      alert('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
+      cgmNotify('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
       nombre.focus(); return;
     }
     var cel = document.getElementById('sfCelular');
@@ -828,14 +901,14 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
           var msg = (minD === maxD)
             ? 'El celular para ' + pais + ' debe tener exactamente ' + minD + ' dígitos.'
             : 'El celular para ' + pais + ' debe tener entre ' + minD + ' y ' + maxD + ' dígitos.';
-          alert(msg); cel.focus(); return;
+          cgmNotify(msg); cel.focus(); return;
         }
       }
     }
     /* Email: solo letras, números, puntos, guión bajo y @ */
     var emailF = document.getElementById('sfEmail');
     if (emailF && !/^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/.test(emailF.value.trim())) {
-      alert('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
+      cgmNotify('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
       emailF.focus(); return;
     }
     /* RUC/DNI: validar según tipo activo (alquiler vs usados) */
@@ -847,52 +920,55 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
       /* Argentina: solo CUIT/CUIL (11 dígitos con prefijo válido) — no hay usados */
       var prefijosArg = ['20','23','24','25','26','27','30','33','34'];
       if (soloRuc.length !== 11) {
-        alert('Debes ingresar un CUIT/CUIL válido (11 dígitos).'); ruc.focus(); return;
+        cgmNotify('Debes ingresar un CUIT/CUIL válido (11 dígitos).'); ruc.focus(); return;
       }
       if (prefijosArg.indexOf(soloRuc.substring(0, 2)) === -1) {
-        alert('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.'); ruc.focus(); return;
+        cgmNotify('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.'); ruc.focus(); return;
       }
       {% else %}
       /* Prefijos válidos de RUC en Perú: 10, 15, 16, 17, 20, 60-69 */
       var prefijosRuc = ['10','15','16','17','20','60','61','62','63','64','65','66','67','68','69'];
       if (esAlqSubmit) {
         if (soloRuc.length !== 11) {
-          alert('Para alquiler debes ingresar un RUC de 11 dígitos.'); ruc.focus(); return;
+          cgmNotify('Para alquiler debes ingresar un RUC de 11 dígitos.'); ruc.focus(); return;
         }
         if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
-          alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
+          cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
         }
       } else {
         if (soloRuc.length === 8) { /* DNI ok */ }
         else if (soloRuc.length === 11) {
           if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
-            alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
+            cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
           }
         } else {
-          alert('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).'); ruc.focus(); return;
+          cgmNotify('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).'); ruc.focus(); return;
         }
       }
       {% endif %}
     }
 
-    /* Razón social: obligatoria solo si tipo activo es alquiler */
-    if (tipoActivo === 'alquiler') {
-      var razonF = document.getElementById('sfRazon');
-      if (razonF && razonF.value.trim().length < 2) {
-        alert('La razón social es obligatoria para cotizar alquiler de equipos.');
-        razonF.focus(); return;
+    /* Razón social: obligatoria si el documento es RUC/CUIT (11 dígitos) */
+    if (ruc) {
+      var docCheckCart = ruc.value.replace(/[^0-9]/g, '');
+      if (docCheckCart.length === 11) {
+        var razonF = document.getElementById('sfRazon');
+        if (razonF && razonF.value.trim().length < 2) {
+          cgmNotify('La razón social es obligatoria cuando se usa RUC.');
+          razonF.focus(); return;
+        }
       }
     }
 
     if (politica && !politica.checked) {
-      alert('Debes aceptar la política de privacidad.'); return;
+      cgmNotify('Debes aceptar la política de privacidad.'); return;
     }
 
     /* Construir detalle_equipos solo con los del tipo activo */
     var tagDeseado = (tipoActivo === 'compra') ? 'usados' : 'alquiler';
     var rowsActivas = cartTable.querySelectorAll('tr.cart-item-row[data-tag="' + tagDeseado + '"]');
     if (rowsActivas.length === 0) {
-      alert('No hay equipos del tipo seleccionado en el carrito.'); return;
+      cgmNotify('No hay equipos del tipo seleccionado en el carrito.'); return;
     }
     var items = [];
     rowsActivas.forEach(function (row) {
@@ -921,11 +997,11 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
       if (!res.body.ok) {
         /* Mitigación #4: si session expiró o carrito vacío inesperado */
         if (res.body.cart_vacio) {
-          alert('Tu carrito está vacío o la sesión expiró. Vuelve a agregar equipos.');
+          cgmNotify('Tu carrito está vacío o la sesión expiró. Vuelve a agregar equipos.');
           setTimeout(function () { window.location.reload(); }, 1500);
           return;
         }
-        alert(res.body.error || 'No pudimos enviar tu cotización.');
+        cgmNotify(res.body.error || 'No pudimos enviar tu cotización.');
         if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
         return;
       }
@@ -964,7 +1040,7 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
     })
     .catch(function (err) {
       console.error('Error al enviar cotización:', err);
-      alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+      cgmNotify('Error de conexión. Verifica tu internet e intenta nuevamente.');
       if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
       /* Reset Turnstile para que el siguiente intento sea válido */
       if (window.turnstile) { try { turnstile.reset(); } catch(e) {} }

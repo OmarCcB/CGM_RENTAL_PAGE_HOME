@@ -171,6 +171,186 @@
   </a>
 
    <script>window.CGM_COUNTRY = "{{ country_code }}";</script>
+
+  <!-- ── Sistema global de notificaciones decoradas (cgmNotify) ─────────────── -->
+  <style>
+    .cgm-notify-stack {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: calc(100vw - 48px);
+    }
+    .cgm-notify {
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18), 0 2px 6px rgba(0,0,0,.08);
+      padding: 14px 18px 14px 14px;
+      min-width: 290px;
+      max-width: 420px;
+      border-left: 5px solid #dc2626;
+      transform: translateX(120%);
+      opacity: 0;
+      transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .cgm-notify.is-show { transform: translateX(0); opacity: 1; }
+    .cgm-notify.is-hide { transform: translateX(120%); opacity: 0; }
+    .cgm-notify::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 3px;
+      background: currentColor;
+      opacity: .25;
+      /* Duración configurable vía CSS var (sincroniza con setTimeout) */
+      animation: cgm-notify-bar var(--cgm-notify-dur, 5s) linear forwards;
+      animation-delay: 0.4s;  /* espera al slide-in para no "gastar" tiempo no visible */
+      transform-origin: left;
+    }
+    @keyframes cgm-notify-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    .cgm-notify-ico {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cgm-notify-body { flex: 1; min-width: 0; }
+    .cgm-notify-title {
+      font-family: 'Estricta', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 2px 0;
+      line-height: 1.2;
+    }
+    .cgm-notify-msg {
+      font-size: 13px;
+      color: #4b5563;
+      line-height: 1.4;
+      margin: 0;
+    }
+    .cgm-notify-x {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 18px;
+      padding: 0;
+      width: 22px; height: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: color .2s ease;
+    }
+    .cgm-notify-x:hover { color: #1a1a1a; }
+    /* Variantes por tipo */
+    .cgm-notify.err  { border-left-color: #dc2626; color: #dc2626; }
+    .cgm-notify.err  .cgm-notify-ico { background: #dc2626; }
+    .cgm-notify.warn { border-left-color: #f59e0b; color: #f59e0b; }
+    .cgm-notify.warn .cgm-notify-ico { background: #f59e0b; }
+    .cgm-notify.info { border-left-color: #0ea5e9; color: #0ea5e9; }
+    .cgm-notify.info .cgm-notify-ico { background: #0ea5e9; }
+    .cgm-notify.ok   { border-left-color: #02534c; color: #02534c; }
+    .cgm-notify.ok   .cgm-notify-ico { background: #02534c; }
+    @media (max-width: 600px) {
+      .cgm-notify-stack { top: 12px; right: 12px; left: 12px; max-width: none; }
+      .cgm-notify { min-width: 0; max-width: 100%; }
+    }
+  </style>
+  <script>
+  (function () {
+    /* cgmNotify(mensaje, tipo, opciones)
+       tipo: 'error' | 'warn' | 'info' | 'ok'   (default 'error')
+       opciones: { titulo, duracion }                                       */
+    var stack;
+    var MAX_VISIBLE = 4;  // máximo de notificaciones simultáneas
+    function ensureStack() {
+      /* Fix BUG #2: re-crear si el stack fue eliminado del DOM */
+      if (!stack || !document.body.contains(stack)) {
+        stack = document.createElement('div');
+        stack.className = 'cgm-notify-stack';
+        stack.id = 'cgmNotifyStack';
+        document.body.appendChild(stack);
+      }
+      return stack;
+    }
+    var ICONOS = { error: '!', warn: '!', info: 'i', ok: '✓' };
+    var CLASES = { error: 'err', warn: 'warn', info: 'info', ok: 'ok' };
+    var TITULOS = {
+      error: 'Atención',
+      warn:  'Advertencia',
+      info:  'Información',
+      ok:    '¡Listo!'
+    };
+    window.cgmNotify = function (mensaje, tipo, opciones) {
+      tipo = tipo || 'error';
+      opciones = opciones || {};
+      var titulo = opciones.titulo || TITULOS[tipo] || 'Atención';
+      var dur    = opciones.duracion || 5000;
+      var clase  = CLASES[tipo] || 'err';
+      var icono  = ICONOS[tipo] || '!';
+      var s = ensureStack();
+
+      /* Anti-spam: si ya hay una notificación con el MISMO mensaje, eliminarla
+         y crear una nueva (efectivamente "resetea" su timer). Evita apilar 10
+         copias idénticas si el usuario hace spam-click al botón submit. */
+      var existing = s.querySelectorAll('.cgm-notify');
+      for (var i = 0; i < existing.length; i++) {
+        var existingMsg = existing[i].querySelector('.cgm-notify-msg');
+        if (existingMsg && existingMsg.textContent === mensaje) {
+          if (existing[i].parentNode) existing[i].parentNode.removeChild(existing[i]);
+          break;
+        }
+      }
+
+      /* Fix BUG #3: limitar a MAX_VISIBLE notificaciones — eliminar la más antigua */
+      while (s.querySelectorAll('.cgm-notify').length >= MAX_VISIBLE) {
+        var oldest = s.querySelector('.cgm-notify');
+        if (oldest && oldest.parentNode) oldest.parentNode.removeChild(oldest);
+        else break;
+      }
+
+      var card = document.createElement('div');
+      card.className = 'cgm-notify ' + clase;
+      /* Fix BUG #1: sincronizar barra de progreso con la duración real */
+      card.style.setProperty('--cgm-notify-dur', dur + 'ms');
+      card.innerHTML =
+        '<div class="cgm-notify-ico">' + icono + '</div>' +
+        '<div class="cgm-notify-body">' +
+          '<p class="cgm-notify-title"></p>' +
+          '<p class="cgm-notify-msg"></p>' +
+        '</div>' +
+        '<button class="cgm-notify-x" aria-label="Cerrar">×</button>';
+      card.querySelector('.cgm-notify-title').textContent = titulo;
+      card.querySelector('.cgm-notify-msg').textContent   = mensaje;
+      var cerrado = false;  // flag para evitar doble-cierre
+      var cerrar = function () {
+        if (cerrado) return;
+        cerrado = true;
+        card.classList.remove('is-show');
+        card.classList.add('is-hide');
+        setTimeout(function () { if (card.parentNode) card.parentNode.removeChild(card); }, 400);
+      };
+      card.querySelector('.cgm-notify-x').addEventListener('click', cerrar);
+      s.appendChild(card);
+      requestAnimationFrame(function () { card.classList.add('is-show'); });
+      setTimeout(cerrar, dur);
+    };
+  })();
+  </script>
+
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/swiper-bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
