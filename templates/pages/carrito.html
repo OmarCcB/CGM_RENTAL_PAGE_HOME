@@ -240,9 +240,9 @@
               </div>
 
               <div class="col-12 col-sm-6">
-                <label class="cgm-form-label" for="sfRazon">Razón Social *</label>
+                <label class="cgm-form-label" for="sfRazon" id="sfRazonLabel">Razón Social *</label>
                 <input type="text" id="sfRazon" name="razon_social" class="cgm-form-control"
-                       placeholder="Mi Empresa S.A.C." required
+                       placeholder="Mi Empresa S.A.C."
                        minlength="2" autocomplete="organization">
               </div>
 
@@ -679,6 +679,55 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
 
     /* Hidden input que el backend lee */
     if (hiddenTipo) hiddenTipo.value = tipoActivo;
+
+    /* ── Reglas dinámicas según tipo (Alquiler vs Compra/Usados) ──
+       - Alquiler  → ruc_dni: SOLO RUC (11) | razon_social obligatoria
+       - Usados    → ruc_dni: DNI (8) o RUC (11) | razon_social opcional        */
+    var inpRuc   = document.getElementById('sfRuc');
+    var inpRazon = document.getElementById('sfRazon');
+    var lblRazon = document.getElementById('sfRazonLabel');
+    var esAlqCart = (tipoActivo === 'alquiler');
+    {% if country_code == 'ar' %}
+    /* Argentina: SIEMPRE alquiler (no existe "usados") → siempre CUIT/CUIL */
+    if (inpRuc) {
+      inpRuc.setAttribute('minlength', '11');
+      inpRuc.setAttribute('maxlength', '13');
+      inpRuc.setAttribute('placeholder', 'CUIT/CUIL (11 dígitos)');
+      inpRuc.setAttribute('title', 'CUIT/CUIL válido (11 dígitos). Inicia con 20, 23, 24, 25, 26, 27, 30, 33 o 34. Formato: XX-XXXXXXXX-X');
+    }
+    /* Razón social siempre obligatoria en Argentina */
+    if (inpRazon) {
+      inpRazon.setAttribute('required', '');
+      inpRazon.setAttribute('placeholder', 'Mi Empresa S.R.L.');
+      if (lblRazon) lblRazon.textContent = 'Razón Social *';
+    }
+    {% else %}
+    /* Perú: alquiler → RUC (11) | usados → DNI (8) o RUC (11) */
+    if (inpRuc) {
+      if (esAlqCart) {
+        inpRuc.setAttribute('minlength', '11');
+        inpRuc.setAttribute('maxlength', '11');
+        inpRuc.setAttribute('placeholder', 'RUC (11 dígitos)');
+        inpRuc.setAttribute('title', 'Para alquiler debe ingresar RUC de empresa (11 dígitos). Inicia con 10, 15, 16, 17, 20 o 60-69.');
+      } else {
+        inpRuc.setAttribute('minlength', '8');
+        inpRuc.setAttribute('maxlength', '11');
+        inpRuc.setAttribute('placeholder', 'DNI (8) o RUC (11)');
+        inpRuc.setAttribute('title', 'DNI (8 dígitos) o RUC (11 dígitos).');
+      }
+    }
+    if (inpRazon) {
+      if (esAlqCart) {
+        inpRazon.setAttribute('required', '');
+        inpRazon.setAttribute('placeholder', 'Mi Empresa S.A.C.');
+        if (lblRazon) lblRazon.textContent = 'Razón Social *';
+      } else {
+        inpRazon.removeAttribute('required');
+        inpRazon.setAttribute('placeholder', 'Opcional');
+        if (lblRazon) lblRazon.textContent = 'Razón Social (opcional)';
+      }
+    }
+    {% endif %}
   }
 
   /* ── cambiarTipo(): único entry point para mutar el estado ──────────── */
@@ -789,11 +838,52 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
       alert('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
       emailF.focus(); return;
     }
+    /* RUC/DNI: validar según tipo activo (alquiler vs usados) */
     var ruc = document.getElementById('sfRuc');
-    if (ruc && ruc.value.trim() !== '') {
+    if (ruc) {
       var soloRuc = ruc.value.replace(/[^0-9]/g, '');
-      if (soloRuc.length < 8) { alert('Ingresa un RUC, DNI o CUIT válido.'); ruc.focus(); return; }
+      var esAlqSubmit = (tipoActivo === 'alquiler');
+      {% if country_code == 'ar' %}
+      /* Argentina: solo CUIT/CUIL (11 dígitos con prefijo válido) — no hay usados */
+      var prefijosArg = ['20','23','24','25','26','27','30','33','34'];
+      if (soloRuc.length !== 11) {
+        alert('Debes ingresar un CUIT/CUIL válido (11 dígitos).'); ruc.focus(); return;
+      }
+      if (prefijosArg.indexOf(soloRuc.substring(0, 2)) === -1) {
+        alert('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.'); ruc.focus(); return;
+      }
+      {% else %}
+      /* Prefijos válidos de RUC en Perú: 10, 15, 16, 17, 20, 60-69 */
+      var prefijosRuc = ['10','15','16','17','20','60','61','62','63','64','65','66','67','68','69'];
+      if (esAlqSubmit) {
+        if (soloRuc.length !== 11) {
+          alert('Para alquiler debes ingresar un RUC de 11 dígitos.'); ruc.focus(); return;
+        }
+        if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
+          alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
+        }
+      } else {
+        if (soloRuc.length === 8) { /* DNI ok */ }
+        else if (soloRuc.length === 11) {
+          if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
+            alert('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.'); ruc.focus(); return;
+          }
+        } else {
+          alert('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).'); ruc.focus(); return;
+        }
+      }
+      {% endif %}
     }
+
+    /* Razón social: obligatoria solo si tipo activo es alquiler */
+    if (tipoActivo === 'alquiler') {
+      var razonF = document.getElementById('sfRazon');
+      if (razonF && razonF.value.trim().length < 2) {
+        alert('La razón social es obligatoria para cotizar alquiler de equipos.');
+        razonF.focus(); return;
+      }
+    }
+
     if (politica && !politica.checked) {
       alert('Debes aceptar la política de privacidad.'); return;
     }

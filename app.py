@@ -1403,6 +1403,78 @@ def _validar_lead_contenido(data):
     return None
 
 
+# ── Validación de documento (RUC/DNI/CUIT) según tipo de operación ──────────
+# Reglas de negocio:
+#   - Alquiler (B2B): SOLO RUC (Perú) o CUIT (Argentina)
+#   - Usados: DNI / RUC (Perú) o DNI / CUIT-CUIL (Argentina)
+#
+# Prefijos válidos de RUC en Perú (SUNAT):
+#   10 → Persona Natural con negocio domiciliada
+#   15 → Persona Natural No Domiciliada
+#   16 → Empresa Unipersonal Extranjera
+#   17 → Persona Jurídica No Domiciliada
+#   20 → Persona Jurídica domiciliada (empresa/sociedad)
+#   60-69 → Entidades del Estado / sector público
+_RUC_PE_PREFIXES = (
+    '10', '15', '16', '17', '20',
+    '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
+)
+
+# Prefijos válidos de CUIT/CUIL en Argentina (AFIP):
+#   20, 23, 24      → Personas Naturales Masculinas
+#   25, 26          → Extranjeros (M/F)
+#   27              → Personas Naturales Femeninas
+#   30, 33          → Personas Jurídicas (empresas, cooperativas, fundaciones)
+#   34              → Personas Jurídicas Extranjeras
+# En Argentina NO existe la operación "usados" (show_usados=False en countries.py),
+# por lo que NO se acepta DNI: todo lead es alquiler → debe tener CUIT/CUIL.
+_CUIT_AR_PREFIXES = ('20', '23', '24', '25', '26', '27', '30', '33', '34')
+
+def _validar_documento(doc, tipo, country_code="pe"):
+    """Valida ruc_dni según el tipo de operación y país.
+
+    tipo ∈ {'alquiler', 'usados'} (también acepta 'compra' como alias de usados).
+    country_code ∈ {'pe', 'ar'}.
+
+    Devuelve None si es válido, o un string con el mensaje de error.
+    """
+    if not doc:
+        return "El documento de identidad es obligatorio."
+
+    # Normalizar: solo dígitos
+    doc_clean = re.sub(r'[^\d]', '', doc)
+    tipo = (tipo or '').lower()
+    is_alquiler = (tipo == 'alquiler')
+
+    if country_code == "ar":
+        # Argentina: solo alquiler → solo CUIT/CUIL (11 dígitos con prefijo válido).
+        # No se acepta DNI porque no hay operación de usados en AR.
+        if len(doc_clean) != 11:
+            return "Debe ingresar un CUIT/CUIL válido (11 dígitos)."
+        if not doc_clean.startswith(_CUIT_AR_PREFIXES):
+            return "CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34."
+        return None
+
+    # Perú (default)
+    if is_alquiler:
+        # Solo RUC: 11 dígitos con prefijo válido
+        if len(doc_clean) != 11:
+            return "Para alquiler debe ingresar un RUC (11 dígitos)."
+        if not doc_clean.startswith(_RUC_PE_PREFIXES):
+            return "RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69."
+    else:
+        # Usados: acepta DNI (8 dígitos) o RUC (11 dígitos)
+        if len(doc_clean) == 8:
+            return None  # DNI válido
+        if len(doc_clean) == 11:
+            if not doc_clean.startswith(_RUC_PE_PREFIXES):
+                return "RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69."
+            return None
+        return "Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos)."
+
+    return None
+
+
 # ── Normalización de texto para BD ───────────────────────────────────────────
 def _normalizar(texto):
     """Convierte texto a MAYÚSCULAS sin tildes ni diacríticos para guardar en BD.
@@ -1594,6 +1666,33 @@ def api_guardar_contacto():
         )
         return jsonify({"ok": False, "error": err}), 400
 
+    # ── Validación de negocio: tipo seleccionado, documento y razón social ───
+    is_alq  = bool(data.get("tipo_alquiler"))
+    is_comp = bool(data.get("tipo_compra"))
+
+    # 1) Al menos un tipo debe estar seleccionado (lead no es accionable sin esto)
+    if not is_alq and not is_comp:
+        # Mensaje contextual: en Argentina solo existe "Alquiler" (show_usados=False)
+        if pais_sitio == 'ar':
+            err_msg = 'Debes marcar la opción "Alquiler" para continuar.'
+        else:
+            err_msg = "Debes seleccionar al menos una opción: Alquiler o Compra."
+        return jsonify({"ok": False, "error": err_msg}), 400
+
+    # 2) Validar RUC/DNI según el tipo. Si hay alquiler, aplica la regla estricta
+    #    (RUC obligatorio); si solo hay usados, acepta DNI también.
+    tipo_doc = 'alquiler' if is_alq else 'usados'
+    err_doc = _validar_documento(data.get("ruc_dni", "").strip(), tipo_doc, pais_sitio)
+    if err_doc:
+        return jsonify({"ok": False, "error": err_doc}), 400
+
+    # 3) Si hay alquiler, la razón social es obligatoria (es B2B → cliente debe ser empresa)
+    if is_alq and not data.get("razon_social", "").strip():
+        return jsonify({
+            "ok": False,
+            "error": "La razón social es obligatoria cuando solicitas alquiler de equipos.",
+        }), 400
+
     try:
         conn   = db_sqlserver.get_conn()
         cursor = conn.cursor()
@@ -1705,6 +1804,19 @@ def api_guardar_cotizacion():
         return jsonify({
             "ok": False,
             "error": f"No tienes equipos de tipo '{tag_target}' en el carrito.",
+        }), 400
+
+    # ── Validación de negocio: documento y razón social según tipo ──────────
+    # Si tag_target='alquiler' → RUC obligatorio + razón social obligatoria
+    # Si tag_target='usados'   → DNI/RUC + razón social opcional
+    err_doc = _validar_documento(data.get("ruc_dni", "").strip(), tag_target, pais_sitio)
+    if err_doc:
+        return jsonify({"ok": False, "error": err_doc}), 400
+
+    if tag_target == 'alquiler' and not data.get("razon_social", "").strip():
+        return jsonify({
+            "ok": False,
+            "error": "La razón social es obligatoria para cotizar alquiler de equipos.",
         }), 400
 
     # Construir detalle_equipos solo con los equipos del tipo enviado
