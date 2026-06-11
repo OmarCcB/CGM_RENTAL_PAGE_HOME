@@ -2227,12 +2227,21 @@ def _lookup_dni_eldni(dni):
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/124.0.0.0 Safari/537.36"
             ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Cache-Control": "max-age=0",
         })
 
         # Paso 1: GET → obtener CSRF token y cookies
-        r_get = sess.get(base, timeout=8)
-        r_get.raise_for_status()
+        r_get = sess.get(base, timeout=10, allow_redirects=True)
+        if r_get.status_code not in (200, 302):
+            return {"error": "sunat_no_disponible", "msg": "Servicio RENIEC no disponible."}
         tok_m = re.search(r'name="_token"\s+value="([^"]+)"', r_get.text)
         if not tok_m:
             return {"error": "sunat_no_disponible", "msg": "No se pudo obtener el token RENIEC."}
@@ -2241,10 +2250,18 @@ def _lookup_dni_eldni(dni):
         r_post = sess.post(
             base,
             files={"_token": (None, tok_m.group(1)), "dni": (None, dni)},
-            headers={"Referer": base},
-            timeout=10,
+            headers={
+                "Referer": base,
+                "Origin": "https://eldni.com",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Dest": "document",
+            },
+            timeout=12,
+            allow_redirects=True,
         )
-        r_post.raise_for_status()
+        if r_post.status_code not in (200, 302):
+            return {"error": "sunat_no_disponible", "msg": "Servicio RENIEC no disponible."}
 
         # Paso 3: extraer datos de la tabla en section#dni-nombres
         # Estructura esperada: DNI | Nombres | Apellido Paterno | Apellido Materno
