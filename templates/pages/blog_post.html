@@ -187,7 +187,7 @@ function _liBI(t) {
   });
 }
 /* Convierte el HTML del post a texto formateado para LinkedIn */
-function _liHtmlToText(htmlEl, titulo, url) {
+function _liHtmlToText(htmlEl, titulo) {
   var lines = [_liB(titulo), ''];
   var nodes = htmlEl.childNodes;
   for (var i = 0; i < nodes.length; i++) {
@@ -213,7 +213,6 @@ function _liHtmlToText(htmlEl, titulo, url) {
       }
     }
   }
-  lines.push(url);
   /* Eliminar líneas vacías consecutivas */
   var out = [], prevBlank = false;
   for (var j = 0; j < lines.length; j++) {
@@ -230,8 +229,8 @@ function compartirLinkedIn(btn) {
   var url    = btn.getAttribute('data-url');
   var rawEl  = document.getElementById('cgmPostContentRaw');
   var texto  = rawEl
-    ? _liHtmlToText(rawEl, titulo, url)
-    : (_liB(titulo) + '\n\n' + url);
+    ? _liHtmlToText(rawEl, titulo)
+    : _liB(titulo);
   var liUrl  = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
   var toast  = document.getElementById('cgmLinkedInToast');
 
