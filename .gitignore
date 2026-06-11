@@ -20,12 +20,9 @@ _archive/
 _no_usado/
 
 # ── Bases de datos locales SQLite ────────────────────────────────────────────
-# Por defecto se ignoran todos los *.db, pero la BD oficial vive en data/cgm.db
-# y SÍ debe versionarse (la app la usa directamente; el panel admin escribe ahí).
 *.db
 *.sqlite
 *.sqlite3
-!data/cgm.db
 
 # ── Dumps / scripts SQL one-shot ─────────────────────────────────────────────
 *.sql

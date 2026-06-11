@@ -21,6 +21,84 @@
     transition: opacity 0.2s ease;
   }
   #sfcRazonAsterisk.cgm-hidden { opacity: 0; }
+
+  /* ── Paso 2: preguntas filtro (radio buttons clásicos) ── */
+  .cgm-pregunta-bloque {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+  .cgm-pregunta-titulo {
+    display: block;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .cgm-pregunta-opcion {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    color: rgba(255,255,255,.92);
+    font-size: 12px;
+    margin: 3px 0;
+    cursor: pointer;
+    padding: 2px 0;
+    line-height: 1.35;
+  }
+  .cgm-pregunta-opcion:hover { color: #fff; }
+  .cgm-pregunta-opcion input[type="radio"] {
+    flex-shrink: 0;
+    margin-top: 3px;
+    cursor: pointer;
+    accent-color: var(--cgm-lima, #c4e76c);
+    width: 16px; height: 16px;
+  }
+  #sfcSubmitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Bloque de pregunta con opciones en 2 columnas (para preguntas con muchas opciones) */
+  .cgm-pregunta-bloque--2col {
+    column-count: 2;
+    column-gap: 18px;
+  }
+  .cgm-pregunta-bloque--2col .cgm-pregunta-titulo {
+    column-span: all;
+  }
+  .cgm-pregunta-bloque--2col .cgm-pregunta-opcion {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  @media (max-width: 600px) {
+    .cgm-pregunta-bloque--2col { column-count: 1; }
+  }
+  .cgm-btn-volver-sfc {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.8);
+    border-radius: 4px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    white-space: nowrap;
+  }
+  .cgm-btn-volver-sfc:hover {
+    border-color: rgba(255,255,255,0.75);
+    color: #fff;
+  }
+  /* SUNAT auto-fill feedback */
+  .cgm-sunat-fb { font-size:11px; margin-top:3px; min-height:14px; display:block; line-height:1.3; }
+  .cgm-sunat-fb.loading { color:#9aa; }
+  .cgm-sunat-fb.ok      { color:#22a36b; }
+  .cgm-sunat-fb.err     { color:#d94f4f; }
 </style>
 {% endblock %}
 
@@ -91,8 +169,6 @@
 
            <div class="col-12 col-lg-7 fade-up fade-up-delay-2">
         <div class="cgm-contacto-card">
-          <p class="cgm-contacto-card-title">Déjanos tus datos y pronto un asesor se contactará</p>
-
           <form id="sfContactForm"
                 action="/api/guardar-contacto"
                 method="POST"
@@ -100,23 +176,29 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="pais_sitio" value="{{ country_code }}">
 
-                       <div class="cgm-contacto-tipo mb-3">
-              <label class="cgm-contacto-check-label">
-                <input type="checkbox" name="tipo_alquiler" value="1" id="tipoAlquiler">
-                Alquiler:
-              </label>
-              {% if country_code != 'ar' %}
-              <label class="cgm-contacto-check-label ms-4">
-                <input type="checkbox" name="tipo_compra" value="1" id="tipoCompra">
-                Compra:
-              </label>
-              {% endif %}
-            </div>
+            <div class="row g-3" id="sfcStep1">
 
-            <div class="row g-3">
+              <div class="col-12">
+                <p class="cgm-contacto-card-title">Déjanos tus datos y pronto un asesor se contactará</p>
+              </div>
+
+              <div class="col-12">
+                <div class="cgm-contacto-tipo">
+                  <label class="cgm-contacto-check-label">
+                    <input type="checkbox" name="tipo_alquiler" value="1" id="tipoAlquiler">
+                    Alquiler:
+                  </label>
+                  {% if country_code != 'ar' %}
+                  <label class="cgm-contacto-check-label ms-4">
+                    <input type="checkbox" name="tipo_compra" value="1" id="tipoCompra">
+                    Compra:
+                  </label>
+                  {% endif %}
+                </div>
+              </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Nombres y Apellidos</label>
-                <input type="text" name="nombre_apellido" class="cgm-contacto-input"
+                <input type="text" id="sfcNombre" name="nombre_apellido" class="cgm-contacto-input"
                        placeholder="Nombres y Apellidos*" required
                        pattern="[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+"
                        title="Solo letras y espacios. Sin números, puntos, guiones ni símbolos."
@@ -145,13 +227,14 @@
                 <label class="cgm-contacto-field-label">
                   {% if country_code == 'ar' %}CUIT / CUIL:{% else %}RUC / DNI:{% endif %}
                 </label>
-                <input type="text" name="ruc_dni" class="cgm-contacto-input"
+                <input type="text" id="sfcRuc" name="ruc_dni" class="cgm-contacto-input"
                        placeholder="{% if country_code == 'ar' %}CUIT / CUIL*{% else %}RUC / DNI*{% endif %}"
                        maxlength="{% if country_code == 'ar' %}13{% else %}11{% endif %}"
                        minlength="{% if country_code == 'ar' %}11{% else %}8{% endif %}"
                        pattern="{% if country_code == 'ar' %}[0-9\-]+{% else %}[0-9]+{% endif %}"
                        title="{% if country_code == 'ar' %}Solo números y guiones. Formato: XX-XXXXXXXX-X{% else %}Solo números. 8 dígitos para DNI, 11 para RUC.{% endif %}"
                        inputmode="numeric" autocomplete="off" required>
+                {% if country_code != 'ar' %}<small id="sfcRucFb" class="cgm-sunat-fb"></small>{% endif %}
               </div>
               <div class="col-12 col-sm-6" id="sfcDeptoWrap">
                 <label class="cgm-contacto-field-label" for="sfcDepto">
@@ -234,7 +317,6 @@
                          placeholder="Número" inputmode="numeric" autocomplete="tel" required>
                 </div>
               </div>
-              </div>
                            <div class="col-12">
                 <label class="cgm-contacto-field-label">Equipo requerido:</label>
                 <input type="text" name="equipo_requerido" class="cgm-contacto-input"
@@ -243,8 +325,78 @@
                        title="Solo letras y números."
                        minlength="3" maxlength="200">
               </div>
-                           <div class="col-12">
+
+              {# Botón siguiente del Paso 1 #}
+              <div class="col-12 text-end">
                 <p class="cgm-contacto-obligatorio">(*) Campos obligatorios</p>
+                <button type="button" id="sfcBtnSiguiente" class="cgm-btn cgm-btn-lima">
+                  SIGUIENTE <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+              </div>
+            </div>{# /sfcStep1 #}
+
+            {# ══════════ PASO 2 — Preguntas filtro adicionales ══════════ #}
+            <div class="row g-3" id="sfcStep2" style="display:none;">
+
+              <div class="col-12">
+                <p class="cgm-contacto-card-title">Para brindarte una mejor atención, por favor respondé las siguientes preguntas.</p>
+              </div>
+
+              {# ── Preguntas para Alquiler ── #}
+              <div class="col-12" id="sfcPreguntasAlquiler" style="display:none;">
+                <div class="cgm-pregunta-bloque">
+                  <label class="cgm-pregunta-titulo">1. ¿En qué plazo necesitas alquilar la maquinaria?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_alquiler" value="De inmediato / en esta semana"> De inmediato / en esta semana</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_alquiler" value="Dentro de 1 a 3 meses"> Dentro de 1 a 3 meses</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_alquiler" value="Más adelante (cotización referencial)"> Más adelante (cotización referencial)</label>
+                </div>
+
+                <div class="cgm-pregunta-bloque">
+                  <label class="cgm-pregunta-titulo">2. ¿En qué etapa se encuentra tu proyecto?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="etapa_proyecto" value="Proyecto en ejecución"> Proyecto en ejecución</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="etapa_proyecto" value="Proyecto adjudicado, próximo a iniciar"> Proyecto adjudicado, próximo a iniciar</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="etapa_proyecto" value="En evaluación técnica o presupuestal"> En evaluación técnica o presupuestal</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="etapa_proyecto" value="Solo estoy comparando precios"> Solo estoy comparando precios</label>
+                </div>
+
+                <div class="cgm-pregunta-bloque cgm-pregunta-bloque--2col">
+                  <label class="cgm-pregunta-titulo">3. ¿Por cuánto tiempo estimas alquilar el equipo?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="tiempo_alquiler" value="Menos de 1 mes"> Menos de 1 mes</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="tiempo_alquiler" value="De 1 a 3 meses"> De 1 a 3 meses</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="tiempo_alquiler" value="De 3 a 6 meses"> De 3 a 6 meses</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="tiempo_alquiler" value="Más de 6 meses"> Más de 6 meses</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="tiempo_alquiler" value="Aún por definir"> Aún por definir</label>
+                </div>
+              </div>
+
+              {# ── Preguntas para Compra/Usados ── #}
+              <div class="col-12" id="sfcPreguntasCompra" style="display:none;">
+                <div class="cgm-pregunta-bloque">
+                  <label class="cgm-pregunta-titulo">1. ¿Cuándo tienes previsto comprar la maquinaria?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_compra" value="De inmediato / esta semana"> De inmediato / esta semana</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_compra" value="En las próximas 2 a 4 semanas"> En las próximas 2 a 4 semanas</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_compra" value="Dentro de 1 a 3 meses"> Dentro de 1 a 3 meses</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="plazo_compra" value="Más adelante / solo cotización referencial"> Más adelante / solo cotización referencial</label>
+                </div>
+
+                <div class="cgm-pregunta-bloque">
+                  <label class="cgm-pregunta-titulo">2. ¿Ya cuentas con presupuesto aprobado para la compra?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="presupuesto" value="Sí, cuento con presupuesto aprobado"> Sí, cuento con presupuesto aprobado</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="presupuesto" value="Estoy evaluando opciones según precio y estado del equipo"> Estoy evaluando opciones según precio y estado del equipo</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="presupuesto" value="Necesito financiamiento"> Necesito financiamiento</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="presupuesto" value="Solo estoy cotizando de manera referencial"> Solo estoy cotizando de manera referencial</label>
+                </div>
+
+                <div class="cgm-pregunta-bloque">
+                  <label class="cgm-pregunta-titulo">3. ¿Qué modalidad de compra prefieres?</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="modalidad_compra" value="Pago al contado"> Pago al contado</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="modalidad_compra" value="Inicial + financiamiento"> Inicial + financiamiento</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="modalidad_compra" value="Financiamiento completo"> Financiamiento completo</label>
+                  <label class="cgm-pregunta-opcion"><input type="radio" name="modalidad_compra" value="Aún estoy evaluando la mejor opción"> Aún estoy evaluando la mejor opción</label>
+                </div>
+              </div>
+
+              <div class="col-12">
                 <label class="cgm-contacto-politica">
                   <input type="checkbox" id="sfcPolitica" required>
                   <span>Acepto las Políticas de Privacidad y Términos y Condiciones de CGM Rental. Autorizo realizar actividades de prospección comercial y marketing descritas en las Políticas de Privacidad</span>
@@ -266,12 +418,15 @@
               </div>
               {% endif %}
 
-                           <div class="col-12 text-end">
-                <button type="submit" id="sfcSubmitBtn" class="cgm-btn cgm-btn-lima">
+              <div class="col-12 d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <button type="button" id="sfcBtnAtras" class="cgm-btn-volver-sfc">
+                  <i class="bi bi-arrow-left me-1"></i>Volver
+                </button>
+                <button type="submit" id="sfcSubmitBtn" class="cgm-btn cgm-btn-lima" disabled>
                   SOLICITAR INFORMACIÓN
                 </button>
               </div>
-            </div>
+            </div>{# /sfcStep2 #}
           </form>
         </div>
       </div>
@@ -400,13 +555,13 @@
       if (esAlq) {
         inpRuc.setAttribute('minlength', '11');
         inpRuc.setAttribute('maxlength', '11');
-        inpRuc.setAttribute('placeholder', 'RUC (11 dígitos)*');
-        inpRuc.setAttribute('title', 'Para alquiler debe ingresar RUC de empresa (11 dígitos). Inicia con 10, 15, 16, 17, 20 o 60-69.');
+        inpRuc.setAttribute('placeholder', 'RUC 20 (11 dígitos)*');
+        inpRuc.setAttribute('title', 'Para alquiler debe ingresar RUC de empresa (11 dígitos, inicia con 20).');
       } else {
         inpRuc.setAttribute('minlength', '8');
         inpRuc.setAttribute('maxlength', '11');
-        inpRuc.setAttribute('placeholder', 'DNI (8) o RUC (11)*');
-        inpRuc.setAttribute('title', 'DNI (8 dígitos) o RUC (11 dígitos).');
+        inpRuc.setAttribute('placeholder', 'DNI (8) o RUC 10/20 (11)*');
+        inpRuc.setAttribute('title', 'DNI (8 dígitos) o RUC (11 dígitos, inicia con 10 o 20).');
       }
     }
     /* Razón social: depende de la longitud del documento Y del tipo seleccionado.
@@ -484,27 +639,23 @@
     syncOtroPais();
   }
 
-  form.addEventListener('submit', function(e) {
-
-    /* ── Validación PRIORITARIA: al menos un tipo seleccionado ──
-       Va primero porque si no hay tipo, las demás validaciones (RUC vs tipo,
-       razón social vs tipo) no tienen referencia. */
+  /* ════════ Validación del PASO 1 (datos básicos) ════════
+     Devuelve true si todo OK, false si hay error (y ya muestra cgmNotify). */
+  function validarPaso1() {
+    /* Validación PRIORITARIA: al menos un tipo seleccionado */
     var alquiler = chkAlq && chkAlq.checked;
     var compra   = chkCom && chkCom.checked;
     if (!alquiler && !compra) {
-      e.preventDefault();
       {% if country_code == 'ar' %}
       cgmNotify('Debes marcar la opción "Alquiler" para continuar.');
       {% else %}
       cgmNotify('Selecciona al menos un tipo de operación: Alquiler o Compra.');
       {% endif %}
       if (chkAlq) chkAlq.focus();
-      return;
+      return false;
     }
 
-    /* ── Validación genérica: campos requeridos vacíos ──
-       Como desactivamos la validación nativa del navegador con novalidate,
-       chequeamos aquí los campos required vacíos para mostrar mensaje decorado. */
+    /* Campos requeridos vacíos */
     var camposReq = [
       { sel: '[name="nombre_apellido"]', label: 'Nombres y Apellidos' },
       { sel: '[name="pais"]',            label: 'País del proyecto' },
@@ -516,53 +667,44 @@
     for (var i = 0; i < camposReq.length; i++) {
       var f = form.querySelector(camposReq[i].sel);
       if (f && !f.disabled && f.offsetParent !== null && !f.value.trim()) {
-        e.preventDefault();
         cgmNotify('Completa el campo: ' + camposReq[i].label);
         f.focus();
-        return;
+        return false;
       }
     }
-    /* Departamento o Ciudad (uno u otro según país elegido) */
+    /* Departamento o Ciudad */
     var deptoF = document.getElementById('sfcDepto');
     var ciudadF = document.getElementById('sfcCiudad');
     if (deptoF && !deptoF.disabled && !deptoF.value.trim()) {
-      e.preventDefault();
       cgmNotify('Selecciona el departamento del proyecto.');
-      deptoF.focus(); return;
+      deptoF.focus(); return false;
     }
     if (ciudadF && !ciudadF.disabled && !ciudadF.value.trim()) {
-      e.preventDefault();
       cgmNotify('Indica la ciudad/región del proyecto.');
-      ciudadF.focus(); return;
+      ciudadF.focus(); return false;
     }
     /* Otro país (si visible) */
     var otroF = document.getElementById('sfcOtroPais');
     if (otroF && !otroF.disabled && otroF.offsetParent !== null && !otroF.value.trim()) {
-      e.preventDefault();
       cgmNotify('Indica el país del proyecto.');
-      otroF.focus(); return;
+      otroF.focus(); return false;
     }
-    /* Razón social (si está habilitada → RUC presente) */
+    /* Razón social */
     var razonF = document.getElementById('sfcRazon');
     if (razonF && !razonF.disabled && !razonF.value.trim()) {
-      e.preventDefault();
       cgmNotify('Ingresa la razón social.');
-      razonF.focus(); return;
+      razonF.focus(); return false;
     }
 
     var nombre = form.querySelector('[name="nombre_apellido"]');
     if (nombre && nombre.value.trim().length < 3) {
-      e.preventDefault();
       cgmNotify('Ingresa tu nombre y apellido completos.');
-      nombre.focus(); return;
+      nombre.focus(); return false;
     }
-    /* Solo letras y espacios — sin números, puntos, guiones, símbolos ni emojis */
     if (nombre && !/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ ]+$/.test(nombre.value.trim())) {
-      e.preventDefault();
       cgmNotify('El nombre solo puede contener letras y espacios. Sin números, puntos, guiones ni símbolos.');
-      nombre.focus(); return;
+      nombre.focus(); return false;
     }
-
 
     var cel = form.querySelector('[name="celular"]');
     if (cel && picker) {
@@ -574,69 +716,57 @@
         var maxD = parseInt(selItem.getAttribute('data-max'), 10) || 15;
         var pais = selItem.getAttribute('data-name') || '';
         if (soloDigitos.length < minD || soloDigitos.length > maxD) {
-          e.preventDefault();
           var msg = (minD === maxD)
             ? 'El celular para ' + pais + ' debe tener exactamente ' + minD + ' dígitos.'
             : 'El celular para ' + pais + ' debe tener entre ' + minD + ' y ' + maxD + ' dígitos.';
           cgmNotify(msg);
-          cel.focus(); return;
+          cel.focus(); return false;
         }
       }
     }
 
-    /* Email: solo letras, números, puntos, guión bajo y @ */
     var emailF = form.querySelector('[name="email"]');
     if (emailF && !/^[A-Za-z0-9._]+@[A-Za-z0-9.]+\.[A-Za-z]{2,}$/.test(emailF.value.trim())) {
-      e.preventDefault();
       cgmNotify('Email inválido. Solo se permiten letras, números, puntos, guión bajo y @.');
-      emailF.focus(); return;
+      emailF.focus(); return false;
     }
 
-
-    /* RUC/DNI: validar según tipo (alquiler vs usados) */
+    /* RUC/DNI */
     var ruc = form.querySelector('[name="ruc_dni"]');
     if (ruc) {
       var soloRuc = ruc.value.replace(/[^0-9]/g, '');
       var esAlq = chkAlq && chkAlq.checked;
       {% if country_code == 'ar' %}
-      /* Argentina: solo CUIT/CUIL (11 dígitos con prefijo válido) — no hay usados */
       var prefijosArg = ['20','23','24','25','26','27','30','33','34'];
       if (soloRuc.length !== 11) {
-        e.preventDefault();
         cgmNotify('Debes ingresar un CUIT/CUIL válido (11 dígitos).');
-        ruc.focus(); return;
+        ruc.focus(); return false;
       }
       if (prefijosArg.indexOf(soloRuc.substring(0, 2)) === -1) {
-        e.preventDefault();
         cgmNotify('CUIT/CUIL inválido. Debe iniciar con 20, 23, 24, 25, 26, 27, 30, 33 o 34.');
-        ruc.focus(); return;
+        ruc.focus(); return false;
       }
       {% else %}
-      /* Prefijos válidos de RUC en Perú: 10, 15, 16, 17, 20, 60-69 */
-      var prefijosRuc = ['10','15','16','17','20','60','61','62','63','64','65','66','67','68','69'];
       if (esAlq) {
         if (soloRuc.length !== 11) {
-          e.preventDefault();
-          cgmNotify('Para alquiler debes ingresar un RUC de 11 dígitos.');
-          ruc.focus(); return;
+          cgmNotify('Para alquiler debes ingresar un RUC de empresa (11 dígitos, inicia con 20).');
+          ruc.focus(); return false;
         }
-        if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
-          e.preventDefault();
-          cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
-          ruc.focus(); return;
+        if (soloRuc.substring(0, 2) !== '20') {
+          cgmNotify('RUC inválido. Para alquiler debe iniciar con 20 (empresa).');
+          ruc.focus(); return false;
         }
       } else {
+        var prefijo = soloRuc.substring(0, 2);
         if (soloRuc.length === 8) { /* DNI ok */ }
         else if (soloRuc.length === 11) {
-          if (prefijosRuc.indexOf(soloRuc.substring(0, 2)) === -1) {
-            e.preventDefault();
-            cgmNotify('RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69.');
-            ruc.focus(); return;
+          if (prefijo !== '10' && prefijo !== '20') {
+            cgmNotify('RUC inválido. Debe iniciar con 10 (persona natural con negocio) o 20 (empresa).');
+            ruc.focus(); return false;
           }
         } else {
-          e.preventDefault();
           cgmNotify('Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos).');
-          ruc.focus(); return;
+          ruc.focus(); return false;
         }
       }
       {% endif %}
@@ -648,28 +778,109 @@
       if (docCheck.length === 11) {
         var razon = form.querySelector('[name="razon_social"]');
         if (razon && razon.value.trim().length < 2) {
-          e.preventDefault();
           cgmNotify('La razón social es obligatoria cuando se usa RUC.');
-          razon.focus(); return;
+          razon.focus(); return false;
         }
       }
     }
 
+    return true;
+  }
 
+  /* ════════ Validación del PASO 2 (preguntas filtro + política) ════════ */
+  function getPreguntasAplicables() {
+    /* Devuelve array de names de las preguntas que aplican según el tipo */
+    if (chkAlq && chkAlq.checked) {
+      return ['plazo_alquiler', 'etapa_proyecto', 'tiempo_alquiler'];
+    }
+    if (chkCom && chkCom.checked) {
+      return ['plazo_compra', 'presupuesto', 'modalidad_compra'];
+    }
+    return [];
+  }
+
+  function validarPaso2(showErrors) {
+    var preguntas = getPreguntasAplicables();
+    for (var i = 0; i < preguntas.length; i++) {
+      var checked = form.querySelector('input[name="' + preguntas[i] + '"]:checked');
+      if (!checked) {
+        if (showErrors) cgmNotify('Por favor responde todas las preguntas antes de enviar.');
+        return false;
+      }
+    }
     if (!document.getElementById('sfcPolitica').checked) {
-      e.preventDefault();
-      cgmNotify('Debes aceptar la política de privacidad.');
+      if (showErrors) cgmNotify('Debes aceptar la política de privacidad.');
+      return false;
+    }
+    return true;
+  }
+
+  /* ════════ Navegación entre pasos ════════ */
+  var step1Wrapper  = document.getElementById('sfcStep1');
+  var step2Wrapper  = document.getElementById('sfcStep2');
+  var btnSiguiente  = document.getElementById('sfcBtnSiguiente');
+  var btnAtras      = document.getElementById('sfcBtnAtras');
+  var pregAlquiler  = document.getElementById('sfcPreguntasAlquiler');
+  var pregCompra    = document.getElementById('sfcPreguntasCompra');
+  var btnSubmit     = document.getElementById('sfcSubmitBtn');
+
+  function mostrarPaso2() {
+    /* Muestra las preguntas correspondientes según tipo seleccionado */
+    if (pregAlquiler) pregAlquiler.style.display = (chkAlq && chkAlq.checked) ? '' : 'none';
+    if (pregCompra)   pregCompra.style.display   = (chkCom && chkCom.checked) ? '' : 'none';
+    step1Wrapper.style.display = 'none';
+    step2Wrapper.style.display = '';
+    actualizarEstadoSubmit();
+    /* Scroll suave al inicio del paso 2 */
+    if (step2Wrapper.scrollIntoView) {
+      step2Wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function mostrarPaso1() {
+    step2Wrapper.style.display = 'none';
+    step1Wrapper.style.display = '';
+    if (step1Wrapper.scrollIntoView) {
+      step1Wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function actualizarEstadoSubmit() {
+    if (!btnSubmit) return;
+    btnSubmit.disabled = !validarPaso2(false);
+  }
+
+  if (btnSiguiente) {
+    btnSiguiente.addEventListener('click', function () {
+      if (validarPaso1()) mostrarPaso2();
+    });
+  }
+  if (btnAtras) {
+    btnAtras.addEventListener('click', mostrarPaso1);
+  }
+
+  /* Cada vez que cambia un radio o el checkbox de política → actualizar botón */
+  form.querySelectorAll('input[type="radio"], #sfcPolitica').forEach(function (el) {
+    el.addEventListener('change', actualizarEstadoSubmit);
+  });
+  /* Estado inicial del botón submit */
+  actualizarEstadoSubmit();
+
+  /* ════════ Submit del formulario (paso 2) ════════ */
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    /* Si por alguna razón el paso 1 sigue visible (Enter en input), validar y avanzar */
+    if (step1Wrapper.style.display !== 'none') {
+      if (validarPaso1()) mostrarPaso2();
       return;
     }
 
-    /* ── TODAS las validaciones pasaron → envío vía AJAX ──
-       Convertimos el envío tradicional (POST → navegación) a fetch.
-       Ventaja: si el server rechaza con 400 (Turnstile expirado, contenido
-       bloqueado, etc.), mostramos el error como cgmNotify decorada en vez
-       de que el browser navegue a una página con JSON crudo. */
-    e.preventDefault();
+    /* Validar paso 1 nuevamente (por si el user volvió y cambió algo) y paso 2 */
+    if (!validarPaso1()) { mostrarPaso1(); return; }
+    if (!validarPaso2(true)) return;
 
-    var btnSubmit = document.getElementById('sfcSubmitBtn');
+    /* AJAX */
     var btnTextoOriginal = btnSubmit ? btnSubmit.innerHTML : '';
     if (btnSubmit) {
       btnSubmit.disabled = true;
@@ -682,27 +893,22 @@
       body: fd,
     })
     .then(function (res) {
-      /* Si el server hizo redirect (éxito) → fetch lo siguió hasta /gracias/.
-         Navegamos manualmente a esa URL para que el usuario vea la página. */
       if (res.redirected) {
         window.location.href = res.url;
         return null;
       }
-      /* Otro caso: server retornó JSON (error o respuesta directa) */
       return res.json().catch(function () { return null; });
     })
     .then(function (data) {
-      if (data === null) return;  // ya redirigió
+      if (data === null) return;
       if (!data.ok) {
         cgmNotify(data.error || 'No pudimos enviar tu mensaje. Intenta nuevamente.');
-        /* Restaurar botón para que pueda reintentar */
         if (btnSubmit) {
           btnSubmit.disabled = false;
           btnSubmit.innerHTML = btnTextoOriginal;
         }
         return;
       }
-      /* Server retornó ok=true pero sin redirect (caso poco común) */
       if (data.redirect) {
         window.location.href = data.redirect;
       }
@@ -716,5 +922,105 @@
     });
   });
 })();
+
+{% if country_code != 'ar' %}
+/* ── SUNAT auto-fill ── */
+(function () {
+  var inpRuc    = document.getElementById('sfcRuc');
+  var inpNombre = document.getElementById('sfcNombre');
+  var inpRazon  = document.getElementById('sfcRazon');
+  var fb        = document.getElementById('sfcRucFb');
+  var chkAlq    = document.getElementById('tipoAlquiler');
+  var chkCom    = document.getElementById('tipoCompra');
+  if (!inpRuc || !fb) return;
+
+  var lastVal = '', ctrl = null;
+
+  function setFb(state, msg) {
+    fb.className   = 'cgm-sunat-fb' + (state ? ' ' + state : '');
+    fb.textContent = msg || '';
+  }
+
+  function clearSiDni() {
+    var v = inpRuc.value.replace(/\D/g, '');
+    if (v.length === 8 || (v.length === 11 && !v.startsWith('20'))) {
+      inpRuc.value = '';
+      if (inpNombre) inpNombre.value = '';
+      if (inpRazon)  inpRazon.value  = '';
+      lastVal = '';
+      setFb('err', 'Para alquiler se requiere RUC de empresa (inicia con 20)');
+    }
+  }
+
+  if (chkAlq) chkAlq.addEventListener('change', function () {
+    if (this.checked) clearSiDni();
+  });
+
+  inpRuc.addEventListener('input', function () {
+    var val = this.value.replace(/\D/g, '');
+    if (val === lastVal) return;
+    if (val.length !== 8 && val.length !== 11) {
+      setFb('', '');
+      if (inpNombre) inpNombre.value = '';
+      if (inpRazon)  inpRazon.value  = '';
+      lastVal = '';
+      return;
+    }
+    lastVal = val;
+
+    var isDni = val.length === 8;
+    var modeSelected = (chkAlq && chkAlq.checked) || (chkCom && chkCom.checked);
+    if (!modeSelected) {
+      setFb('err', 'Selecciona Alquiler o Compra primero');
+      return;
+    }
+    if (chkAlq && chkAlq.checked) {
+      if (isDni || !val.startsWith('20')) {
+        setFb('err', 'Para alquiler se requiere RUC de empresa (inicia con 20)');
+        return;
+      }
+    }
+    var target = isDni ? inpNombre : inpRazon;
+    if (!target || target.disabled) { setFb('', ''); return; }
+
+    if (ctrl) ctrl.abort();
+    ctrl = new AbortController();
+    setFb('loading', isDni ? 'Consultando RENIEC…' : 'Consultando SUNAT…');
+
+    fetch('/api/sunat/' + val, { signal: ctrl.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.error) {
+          if (data.error === 'sunat_no_disponible') {
+            setFb('err', 'Servicio no disponible, ingresa manualmente');
+          } else if (isDni) {
+            setFb('err', 'No encontrado en RENIEC');
+          } else {
+            setFb('err', 'No encontrado en SUNAT');
+          }
+          return;
+        }
+        var nombreVal = (data.nombre || '').trim();
+        if (!nombreVal) {
+          setFb('err', isDni ? 'No se obtuvo el nombre (ingresa manualmente)' : 'No se obtuvo la razón social (ingresa manualmente)');
+          return;
+        }
+        target.value = nombreVal;
+        target.dispatchEvent(new Event('input'));
+        if (!isDni && val.startsWith('10') && inpNombre) {
+          inpNombre.value = nombreVal;
+          inpNombre.dispatchEvent(new Event('input'));
+        }
+        var fuente = data.fuente === 'reniec' ? 'RENIEC' : 'SUNAT';
+        var label  = isDni ? 'Nombre completado'
+                   : (val.startsWith('10') ? 'Nombre y raz\xf3n social completados' : 'Raz\xf3n social completada');
+        setFb('ok', label + ' \xb7 ' + fuente + (data.estado ? ' \xb7 ' + data.estado : ''));
+      })
+      .catch(function (e) {
+        if (e.name !== 'AbortError') setFb('err', 'No se pudo conectar al servicio');
+      });
+  });
+})();
+{% endif %}
 </script>
 {% endblock %}

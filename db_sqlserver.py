@@ -58,6 +58,7 @@ def init_tables():
         sector_producto  NVARCHAR(100) NULL,
         tipo_alquiler    BIT           DEFAULT 0,
         tipo_compra      BIT           DEFAULT 0,
+        preguntas_filtro NVARCHAR(MAX) NULL,
         sf_enviado       BIT           DEFAULT 0
     )
     """)
@@ -84,6 +85,7 @@ def init_tables():
         tipo_compra      BIT           DEFAULT 0,
         detalle_equipos  NVARCHAR(MAX) NULL,
         sector_producto  NVARCHAR(100) NULL,
+        preguntas_filtro NVARCHAR(MAX) NULL,
         sf_enviado       BIT           DEFAULT 0
     )
     """)

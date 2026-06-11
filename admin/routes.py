@@ -1056,18 +1056,37 @@ def banners_country_upload():
         (slot, country_code)
     ).fetchone()
 
+    # Fallback: si no hay global ni entrada para este país, usar otra variante
+    # del mismo slot (cualquier otro country_code) como template para la metadata.
+    # Esto permite subir variantes a slots que NO tienen versión global (caso
+    # típico de los slots del carrusel hero creados con cc='pe' o 'ar').
+    fallback_row = None
     if not global_row and not existing:
-        conn.close()
-        flash("Slot no encontrado.", "danger")
-        return redirect(url_for("admin.banners"))
+        fallback_row = conn.execute(
+            "SELECT * FROM banners_config WHERE slot=? AND country_code != ? "
+            "ORDER BY id ASC LIMIT 1",
+            (slot, country_code)
+        ).fetchone()
+        if not fallback_row:
+            conn.close()
+            flash("Slot no encontrado.", "danger")
+            return redirect(url_for("admin.banners"))
 
     # Determinar el filename de destino
     if existing:
         target = existing["filename"]
         label  = existing["label"]
-    else:
+    elif global_row:
         target = _make_country_filename(global_row["filename"], country_code)
         label  = global_row["label"]
+    else:
+        # Usar fallback_row: limpiar su prefijo de país y aplicar el del cc actual
+        base_fn = fallback_row["filename"]
+        old_cc  = fallback_row["country_code"]
+        if old_cc not in ("*", "") and f"/{old_cc}/" in base_fn:
+            base_fn = base_fn.replace(f"/{old_cc}/", "/", 1)
+        target = _make_country_filename(base_fn, country_code)
+        label  = fallback_row["label"]
 
     banners_dir = os.path.join(current_app.root_path, "static", "images", "banners")
     target_path = os.path.join(banners_dir, target.replace("/", os.sep))
@@ -1091,8 +1110,8 @@ def banners_country_upload():
                 os.remove(tmp_path)
 
     if not existing:
-        # Crear nueva entrada en BD copiando metadatos del global.
-        base = dict(global_row)
+        # Crear nueva entrada en BD copiando metadatos del global o del fallback.
+        base = dict(global_row or fallback_row)
         conn.execute(
             """INSERT OR IGNORE INTO banners_config
                    (slot, country_code, group_name, label, description, filename, orden, pages, activo)
@@ -1171,6 +1190,130 @@ def banners_delete_orphan():
         flash(f"Archivo huérfano '{safe}' eliminado.", "success")
     else:
         flash("Archivo no encontrado.", "danger")
+    return redirect(url_for("admin.banners"))
+
+
+# ── Gestión dinámica de slots del carrusel hero ──────────────────────────────
+@admin_bp.route("/banners/hero-add", methods=["POST"])
+@admin_required
+def banners_hero_add():
+    """Agrega un nuevo slot al carrusel hero del home. Detecta el siguiente
+    número disponible de slide y replica la metadata del primer slot del grupo
+    (incluyendo el country_code dominante) para que el slot nuevo se vea
+    exactamente igual que los originales en el panel admin."""
+    group_name = request.form.get("group_name", "").strip()
+    if not group_name:
+        flash("Falta el nombre del grupo.", "danger")
+        return redirect(url_for("admin.banners"))
+
+    conn = get_conn()
+
+    # Buscar el último número de slide en este grupo
+    rows = conn.execute(
+        "SELECT slot FROM banners_config "
+        "WHERE group_name = ? AND slot LIKE 'hero/slide-%'",
+        (group_name,)
+    ).fetchall()
+    existing_nums = []
+    for r in rows:
+        num_str = r["slot"].split("-")[-1]
+        if num_str.isdigit():
+            existing_nums.append(int(num_str))
+    next_num = max(existing_nums) + 1 if existing_nums else 1
+    new_slot = f"hero/slide-{next_num}"
+
+    # Asegurar que el slot no colisione con otro grupo
+    used = {r["slot"] for r in conn.execute(
+        "SELECT slot FROM banners_config WHERE slot LIKE 'hero/slide-%'"
+    ).fetchall()}
+    while new_slot in used:
+        next_num += 1
+        new_slot = f"hero/slide-{next_num}"
+
+    # Detectar el country_code DOMINANTE del grupo (qué variante usan los otros
+    # slots). Excluimos la versión global '*' porque los slots originales NO la
+    # tienen — sólo tienen rows por país (pe o ar).
+    cc_row = conn.execute(
+        "SELECT country_code, COUNT(*) AS n FROM banners_config "
+        "WHERE group_name = ? AND country_code != '*' "
+        "GROUP BY country_code ORDER BY n DESC LIMIT 1",
+        (group_name,)
+    ).fetchone()
+    primary_cc = cc_row["country_code"] if cc_row else "*"
+
+    # Replicar metadata del primer slot del grupo (pages, etc.)
+    template = conn.execute(
+        "SELECT pages FROM banners_config "
+        "WHERE group_name = ? "
+        "ORDER BY orden ASC, id ASC LIMIT 1",
+        (group_name,)
+    ).fetchone()
+    pages = template["pages"] if template else '["home"]'
+
+    # Filename: si hay country_code específico, lo metemos en el path:
+    # ej. hero/pe/slide-5.webp ; si es global, hero/slide-5.webp
+    if primary_cc != "*":
+        new_filename = f"hero/{primary_cc}/slide-{next_num}.webp"
+    else:
+        new_filename = f"{new_slot}.webp"
+
+    conn.execute(
+        """INSERT INTO banners_config
+               (slot, country_code, group_name, label, description,
+                filename, orden, pages, activo)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)""",
+        (new_slot, primary_cc, group_name, f"Slide {next_num}",
+         f"Slide {next_num} del carrusel hero de la home",
+         new_filename, next_num, pages)
+    )
+    conn.commit()
+    conn.close()
+
+    _cache.invalidate("banners:")
+    log_action(current_user().get("email", "?"), "agregar_slot_hero",
+               f"{new_slot} [{group_name}] cc={primary_cc}")
+    flash(f"Slide {next_num} agregado al carrusel. Ahora podés subir su imagen.",
+          "success")
+    return redirect(url_for("admin.banners"))
+
+
+@admin_bp.route("/banners/hero-remove", methods=["POST"])
+@admin_required
+def banners_hero_remove():
+    """Elimina un slot completo del carrusel hero (todas sus variantes de país
+    y los archivos asociados del disco)."""
+    slot = request.form.get("slot", "").strip()
+    if not slot.startswith("hero/slide-"):
+        flash("Slot inválido.", "danger")
+        return redirect(url_for("admin.banners"))
+
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT filename FROM banners_config WHERE slot=?", (slot,)
+    ).fetchall()
+    if not rows:
+        conn.close()
+        flash("Slot no encontrado.", "danger")
+        return redirect(url_for("admin.banners"))
+
+    # Borrar archivos del disco (todas las variantes país)
+    banners_dir = os.path.join(current_app.root_path, "static", "images", "banners")
+    for r in rows:
+        filepath = os.path.join(banners_dir, r["filename"].replace("/", os.sep))
+        if os.path.isfile(filepath):
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+
+    # Eliminar todas las filas del slot
+    conn.execute("DELETE FROM banners_config WHERE slot=?", (slot,))
+    conn.commit()
+    conn.close()
+
+    _cache.invalidate("banners:")
+    log_action(current_user().get("email", "?"), "eliminar_slot_hero", slot)
+    flash(f"Slot «{slot}» eliminado del carrusel.", "success")
     return redirect(url_for("admin.banners"))
 
 

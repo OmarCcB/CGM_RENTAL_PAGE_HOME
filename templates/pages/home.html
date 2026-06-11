@@ -3,11 +3,12 @@
 {% block title %}CGM Rental — Alquiler de Maquinaria Pesada | {{ country.nombre }}{% endblock %}
 {% block meta_desc %}CGM Rental: empresa líder en alquiler de maquinaria pesada en {{ country.nombre }}. Excavadoras, cargadores frontales, tractores y más para construcción, minería, agricultura y energía.{% endblock %}
 
-{# Preload LCP: móvil carga 1200px, desktop 1920px #}
+{# Preload LCP: móvil carga 1200px, desktop 1920px — usa el primer slot del hero #}
 {% block preload_lcp %}
+{% set _lcp_slot = hero_slots[0] if hero_slots else 'hero/slide-1' %}
 <link rel="preload" as="image" fetchpriority="high"
-      href="{{ burl('hero/slide-1') }}"
-      imagesrcset="{{ burl_mobile('hero/slide-1') }} 1200w, {{ burl('hero/slide-1') }} 1920w"
+      href="{{ burl(_lcp_slot) }}"
+      imagesrcset="{{ burl_mobile(_lcp_slot) }} 1200w, {{ burl(_lcp_slot) }} 1920w"
       imagesizes="(max-width: 600px) 100vw, 1920px">
 {% endblock %}
 
@@ -16,16 +17,16 @@
 <section class="cgm-hero" aria-label="Hero principal">
   <div class="swiper cgm-hero-swiper" style="position:absolute;inset:0;width:100%;height:100%;">
     <div class="swiper-wrapper">
-      {% for i in range(1, 5) %}
-      {% set _slot = 'hero/slide-' + i|string %}
+      {% for _slot in hero_slots %}
+      {% set _i = loop.index %}
       <div class="swiper-slide">
         <img src="{{ burl(_slot) }}"
              srcset="{{ burl_mobile(_slot) }} 1200w, {{ burl(_slot) }} 1920w"
              sizes="(max-width: 600px) 100vw, 1920px"
-             alt="CGM Rental — Maquinaria Pesada slide {{ i }}"
+             alt="CGM Rental — Maquinaria Pesada slide {{ _i }}"
              class="cgm-hero-img"
              width="1920" height="730"
-             {% if i == 1 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+             {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
         <div class="cgm-hero-overlay"></div>
       </div>
       {% endfor %}

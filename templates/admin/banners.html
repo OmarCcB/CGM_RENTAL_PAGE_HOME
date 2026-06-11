@@ -144,8 +144,13 @@
 {% for group_name in group_order %}
   {% set slots = grouped[group_name] %}
   {% if slots %}
+  {# Detectar si este grupo es del hero (contiene slots hero/slide-N) #}
+  {% set ns = namespace(is_hero=false) %}
+  {% for s in slots %}
+    {% if s.slot.startswith('hero/slide-') %}{% set ns.is_hero = true %}{% endif %}
+  {% endfor %}
   <div class="adm-card mb-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <h6 class="fw-bold mb-0" style="color:#02534C;">
         {% if 'Carrusel' in group_name %}<i class="bi bi-arrow-repeat me-2"></i>
         {% elif 'categoría' in group_name %}<i class="bi bi-tag me-2"></i>
@@ -153,7 +158,18 @@
         {% else %}<i class="bi bi-image me-2"></i>{% endif %}
         {{ group_name }}
       </h6>
-      <span class="adm-badge adm-badge-lime">{{ slots|length }} slot{{ 's' if slots|length != 1 else '' }}</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="adm-badge adm-badge-lime">{{ slots|length }} slot{{ 's' if slots|length != 1 else '' }}</span>
+        {% if ns.is_hero %}
+        <form method="post" action="{{ url_for('admin.banners_hero_add') }}" style="display:inline;"
+              onsubmit="return confirm('¿Agregar un nuevo slide al carrusel «{{ group_name }}»?');">
+          <input type="hidden" name="group_name" value="{{ group_name }}">
+          <button type="submit" style="background:#02534C;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:0.78rem;cursor:pointer;">
+            <i class="bi bi-plus-circle me-1"></i>Agregar slide
+          </button>
+        </form>
+        {% endif %}
+      </div>
     </div>
 
     <div class="row g-3">
@@ -351,6 +367,19 @@
               </form>
             {% endif %}
           </div>
+
+          {# Botón eliminar slide (solo para slots del carrusel hero) #}
+          {% if slot.slot.startswith('hero/slide-') %}
+          <div style="padding:8px 14px 12px;border-top:1px dashed #e0e0e0;">
+            <form method="post" action="{{ url_for('admin.banners_hero_remove') }}"
+                  onsubmit="return confirm('⚠️ ¿Eliminar el slide «{{ slot.label }}» completamente?\n\nEsto borrará el slot del carrusel y sus imágenes (todas las variantes país). Esta acción NO se puede deshacer.');">
+              <input type="hidden" name="slot" value="{{ slot.slot }}">
+              <button type="submit" class="btn-remove-sm" style="background:#fff0f0;color:#c00;border:1px solid #f5c6c6;">
+                <i class="bi bi-trash"></i> Eliminar este slide
+              </button>
+            </form>
+          </div>
+          {% endif %}
 
         </div>{# end slot-card #}
       </div>{# end col #}

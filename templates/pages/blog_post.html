@@ -4,6 +4,8 @@
 {% block meta_desc %}{{ post.extracto }}{% endblock %}
 {% block og_title %}{{ post.titulo }}{% endblock %}
 {% block og_desc %}{{ post.extracto }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_image %}{% if post.imagen %}{{ request.url_root }}static/images/{{ post.imagen }}{% else %}{{ request.url_root }}static/images/logo/cropped-CGM_logo_P_Color_tagline_RGB-1-3hhh-192x192.png{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -94,6 +96,7 @@
                <div class="cgm-post-content" style="font-size:15px;line-height:1.9;color:var(--cgm-gris-txt);">
           {{ post.contenido | safe }}
         </div>
+        <div id="cgmPostContentRaw" aria-hidden="true" style="display:none;">{{ post.contenido | safe }}</div>
 
                {% if post.video_url %}
         <div class="mt-5">
@@ -119,22 +122,33 @@
           <p style="font-size:13px;font-weight:700;color:var(--cgm-negro);margin-bottom:12px;">
             COMPARTIR ESTE ARTÍCULO:
           </p>
-          <div class="d-flex gap-3">
-            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url }}"
-               target="_blank" rel="noopener"
-               class="cgm-btn cgm-btn-verde" style="padding:8px 18px;font-size:12px;">
+          <div class="d-flex gap-3 flex-wrap">
+            <button type="button"
+                    class="cgm-btn cgm-btn-verde"
+                    style="padding:8px 18px;font-size:12px;border:none;cursor:pointer;"
+                    data-titulo="{{ post.titulo | e }}"
+                    data-extracto="{{ post.extracto | e }}"
+                    data-url="{{ request.url }}"
+                    onclick="compartirLinkedIn(this)">
               <i class="bi bi-linkedin me-1"></i>LinkedIn
-            </a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}"
+            </button>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url | urlencode }}"
                target="_blank" rel="noopener"
                class="cgm-btn" style="background:#1877f2;color:#fff;padding:8px 18px;font-size:12px;">
               <i class="bi bi-facebook me-1"></i>Facebook
             </a>
-            <a href="https://api.whatsapp.com/send?text={{ post.titulo|urlencode }}%20{{ request.url|urlencode }}"
+            <a href="https://api.whatsapp.com/send?text={{ (post.titulo ~ '\n\n' ~ post.extracto ~ '\n\n' ~ request.url) | urlencode }}"
                target="_blank" rel="noopener"
                class="cgm-btn" style="background:#25d366;color:#fff;padding:8px 18px;font-size:12px;">
               <i class="bi bi-whatsapp me-1"></i>WhatsApp
             </a>
+          </div>
+          <div id="cgmLinkedInToast"
+               style="display:none;margin-top:10px;padding:10px 14px;
+                      background:#e8f5e9;border-left:3px solid var(--cgm-verde);
+                      border-radius:4px;font-size:12px;color:var(--cgm-verde);font-weight:600;">
+            <i class="bi bi-check-circle me-1"></i>
+            Texto copiado — pégalo en tu publicación de LinkedIn
           </div>
         </div>
 
@@ -153,6 +167,89 @@
 {% endblock %}
 
 {% block extra_head %}
+<script>
+/* Convierte letras A-Z/a-z a Unicode Sans-Serif Bold */
+function _liB(t) {
+  return t.replace(/[A-Za-z]/g, function(c) {
+    var n = c.charCodeAt(0);
+    if (n >= 65 && n <= 90)  return String.fromCodePoint(0x1D5D4 + n - 65);
+    if (n >= 97 && n <= 122) return String.fromCodePoint(0x1D5EE + n - 97);
+    return c;
+  });
+}
+/* Convierte letras A-Z/a-z a Unicode Sans-Serif Bold Italic */
+function _liBI(t) {
+  return t.replace(/[A-Za-z]/g, function(c) {
+    var n = c.charCodeAt(0);
+    if (n >= 65 && n <= 90)  return String.fromCodePoint(0x1D63C + n - 65);
+    if (n >= 97 && n <= 122) return String.fromCodePoint(0x1D656 + n - 97);
+    return c;
+  });
+}
+/* Convierte el HTML del post a texto formateado para LinkedIn */
+function _liHtmlToText(htmlEl, titulo, url) {
+  var lines = [_liB(titulo), ''];
+  var nodes = htmlEl.childNodes;
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    if (node.nodeType === 3) {
+      var t = node.textContent.trim();
+      if (t) { lines.push(t); lines.push(''); }
+    } else if (node.nodeType === 1) {
+      var tag = node.tagName.toLowerCase();
+      var txt = node.textContent.trim();
+      if (!txt) continue;
+      if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
+        lines.push('▌ ' + _liB(txt));
+        lines.push('');
+      } else if (tag === 'ul' || tag === 'ol') {
+        node.querySelectorAll('li').forEach(function(li) {
+          lines.push('• ' + li.textContent.trim());
+        });
+        lines.push('');
+      } else {
+        lines.push(txt);
+        lines.push('');
+      }
+    }
+  }
+  lines.push(url);
+  /* Eliminar líneas vacías consecutivas */
+  var out = [], prevBlank = false;
+  for (var j = 0; j < lines.length; j++) {
+    var blank = !lines[j].trim();
+    if (blank && prevBlank) continue;
+    out.push(lines[j]);
+    prevBlank = blank;
+  }
+  return out.join('\n');
+}
+
+function compartirLinkedIn(btn) {
+  var titulo = btn.getAttribute('data-titulo');
+  var url    = btn.getAttribute('data-url');
+  var rawEl  = document.getElementById('cgmPostContentRaw');
+  var texto  = rawEl
+    ? _liHtmlToText(rawEl, titulo, url)
+    : (_liB(titulo) + '\n\n' + url);
+  var liUrl  = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+  var toast  = document.getElementById('cgmLinkedInToast');
+
+  function abrirLinkedIn() {
+    window.open(liUrl, '_blank', 'noopener,width=600,height=600');
+    if (toast) {
+      toast.style.display = 'block';
+      setTimeout(function () { toast.style.display = 'none'; }, 5000);
+    }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto).then(abrirLinkedIn).catch(abrirLinkedIn);
+  } else {
+    abrirLinkedIn();
+  }
+}
+</script>
 <style>
 .cgm-post-content h2, .cgm-post-content h3 {
   font-family: 'CGM BOLD', sans-serif;

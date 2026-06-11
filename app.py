@@ -526,11 +526,41 @@ def seed_db():
     conn.close()
 
 
+def cleanup_hero_slots(conn):
+    """Limpieza one-shot: elimina filas duplicadas o huérfanas en banners_config
+    para slots de hero/slide-N. Específicamente, elimina filas con group_name
+    'Home Hero' cuando ya existe un grupo principal con otro nombre — esto
+    recupera la BD de un mal estado introducido por una versión previa.
+
+    NO crea nuevos slots. La creación/eliminación de slots hero se hace
+    desde el panel admin (ver admin/routes.py → banners_hero_add / banners_hero_remove).
+    """
+    try:
+        principal = conn.execute(
+            "SELECT 1 FROM banners_config "
+            "WHERE slot LIKE 'hero/slide-%' "
+            "AND group_name IS NOT NULL AND group_name != '' "
+            "AND group_name != 'Home Hero' "
+            "LIMIT 1"
+        ).fetchone()
+        if principal:
+            conn.execute(
+                "DELETE FROM banners_config "
+                "WHERE slot LIKE 'hero/slide-%' "
+                "AND group_name = 'Home Hero'"
+            )
+            conn.commit()
+    except Exception as _e:
+        app.logger.warning(f"cleanup_hero_slots: {_e}")
+
+
 with app.app_context():
     init_db()
     seed_db()
     _admin_conn = get_conn()
     init_admin_tables(_admin_conn)
+    # Limpieza de duplicados huérfanos creados por versiones previas
+    cleanup_hero_slots(_admin_conn)
     _admin_conn.close()
     # ── SQL Server: crear tablas si no existen ────────────────────────────────
     if os.getenv("SQL_SERVER"):
@@ -731,10 +761,23 @@ def home(country):
         f"SELECT * FROM blog_posts WHERE activo=1 AND {country_col}=1 ORDER BY fecha DESC"
     ).fetchall()
     conn.close()
+
+    # Slots de hero a renderizar (dinámico, ordenado numéricamente).
+    # Lee banners_config para detectar todos los hero/slide-N activos. Si la BD
+    # aún no tiene slots (entorno fresh), fallback a slide-1..4 por defecto.
+    bans = get_banners(country)
+    hero_slots = sorted(
+        [k for k in bans.keys() if k.startswith("hero/slide-")],
+        key=lambda s: int(s.split("-")[-1]) if s.split("-")[-1].isdigit() else 9999
+    )
+    if not hero_slots:
+        hero_slots = [f"hero/slide-{i}" for i in range(1, 5)]
+
     return render_template("pages/home.html",
                            country=c, country_code=country,
                            featured=[dict(r) for r in featured],
-                           posts=[dict(r) for r in posts])
+                           posts=[dict(r) for r in posts],
+                           hero_slots=hero_slots)
 
 
 @app.route("/<country>/nosotros/")
@@ -1404,21 +1447,13 @@ def _validar_lead_contenido(data):
 
 
 # ── Validación de documento (RUC/DNI/CUIT) según tipo de operación ──────────
-# Reglas de negocio:
-#   - Alquiler (B2B): SOLO RUC (Perú) o CUIT (Argentina)
-#   - Usados: DNI / RUC (Perú) o DNI / CUIT-CUIL (Argentina)
+# Reglas de negocio (Perú):
+#   - Alquiler (B2B): SOLO RUC 20 (Persona Jurídica / empresa)
+#   - Compra/Usados: DNI (8 díg) + RUC 10 (PN con negocio) + RUC 20 (empresa)
 #
-# Prefijos válidos de RUC en Perú (SUNAT):
-#   10 → Persona Natural con negocio domiciliada
-#   15 → Persona Natural No Domiciliada
-#   16 → Empresa Unipersonal Extranjera
-#   17 → Persona Jurídica No Domiciliada
-#   20 → Persona Jurídica domiciliada (empresa/sociedad)
-#   60-69 → Entidades del Estado / sector público
-_RUC_PE_PREFIXES = (
-    '10', '15', '16', '17', '20',
-    '60', '61', '62', '63', '64', '65', '66', '67', '68', '69',
-)
+# Argentina: solo CUIT/CUIL (11 díg con prefijo válido). No hay "usados".
+_RUC_PE_PREFIXES_ALQUILER = ('20',)              # B2B: solo personas jurídicas
+_RUC_PE_PREFIXES_USADOS   = ('10', '20')         # Persona natural con negocio o empresa
 
 # Prefijos válidos de CUIT/CUIL en Argentina (AFIP):
 #   20, 23, 24      → Personas Naturales Masculinas
@@ -1457,22 +1492,44 @@ def _validar_documento(doc, tipo, country_code="pe"):
 
     # Perú (default)
     if is_alquiler:
-        # Solo RUC: 11 dígitos con prefijo válido
+        # Solo RUC 20: 11 dígitos con prefijo 20 (empresa)
         if len(doc_clean) != 11:
-            return "Para alquiler debe ingresar un RUC (11 dígitos)."
-        if not doc_clean.startswith(_RUC_PE_PREFIXES):
-            return "RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69."
+            return "Para alquiler debe ingresar un RUC de empresa (11 dígitos, inicia con 20)."
+        if not doc_clean.startswith(_RUC_PE_PREFIXES_ALQUILER):
+            return "RUC inválido. Para alquiler debe ingresar un RUC de empresa (inicia con 20)."
     else:
-        # Usados: acepta DNI (8 dígitos) o RUC (11 dígitos)
+        # Usados/Compra: DNI (8 díg) o RUC 10/20 (11 díg)
         if len(doc_clean) == 8:
             return None  # DNI válido
         if len(doc_clean) == 11:
-            if not doc_clean.startswith(_RUC_PE_PREFIXES):
-                return "RUC inválido. Debe iniciar con 10, 15, 16, 17, 20 o 60-69."
+            if not doc_clean.startswith(_RUC_PE_PREFIXES_USADOS):
+                return "RUC inválido. Debe iniciar con 10 (persona natural con negocio) o 20 (empresa)."
             return None
         return "Documento inválido. Debe ser DNI (8 dígitos) o RUC (11 dígitos)."
 
     return None
+
+
+# ── Construir texto de respuestas de las preguntas filtro ───────────────────
+def _build_preguntas_filtro(data, is_alquiler):
+    """Construye un string formateado con las respuestas a las preguntas filtro
+    del paso 2 del formulario. Cada línea es 'Etiqueta: respuesta'.
+    Devuelve None si no hay respuestas (no rompe el INSERT).
+    """
+    if is_alquiler:
+        campos = [
+            ("Plazo necesidad",  data.get("plazo_alquiler",  "").strip()),
+            ("Etapa proyecto",   data.get("etapa_proyecto",  "").strip()),
+            ("Tiempo estimado",  data.get("tiempo_alquiler", "").strip()),
+        ]
+    else:
+        campos = [
+            ("Plazo compra",     data.get("plazo_compra",    "").strip()),
+            ("Presupuesto",      data.get("presupuesto",     "").strip()),
+            ("Modalidad pago",   data.get("modalidad_compra","").strip()),
+        ]
+    lineas = [f"{etiqueta}: {valor}" for etiqueta, valor in campos if valor]
+    return "\n".join(lineas) if lineas else None
 
 
 # ── Normalización de texto para BD ───────────────────────────────────────────
@@ -1705,15 +1762,15 @@ def api_guardar_contacto():
         # Celular se guarda solo con dígitos (sin código de país); el código va aparte
         cel_digits_clean = re.sub(r"[^\d]", "", data.get("celular", ""))
 
-        # sf_enviado=0 al crear: queda pendiente de procesar/derivar al CRM,
-        # se actualiza a 1 manualmente cuando el lead es atendido.
-        # sector_producto: NULL por ahora (se popula manualmente o vía otro proceso)
         cursor.execute("""
             INSERT INTO CGM_Contacto_Leads
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, pais,
                departamento, otro_pais, email, codigo_pais, celular,
-               equipo_requerido, sector_producto, tipo_alquiler, tipo_compra, sf_enviado)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               equipo_requerido, sector_producto, tipo_alquiler, tipo_compra,
+               plazo_alquiler, etapa_proyecto, tiempo_alquiler,
+               plazo_compra, presupuesto, modalidad_compra,
+               sf_enviado)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
             _normalizar(data.get("nombre_apellido", "").strip()),
@@ -1722,14 +1779,20 @@ def api_guardar_contacto():
             _normalizar(data.get("pais",            "").strip()),
             _normalizar(data.get("departamento",    "").strip()),
             _normalizar(data.get("otro_pais",       "").strip()),
-            data.get("email",           "").strip(),   # email: se guarda tal cual
+            data.get("email",           "").strip(),
             codigo_pais_val,
             cel_digits_clean,
             _normalizar(data.get("equipo_requerido","").strip()),
             _detectar_sector_equipo(data.get("equipo_requerido", "")),
             1 if data.get("tipo_alquiler") else 0,
             1 if data.get("tipo_compra")   else 0,
-            0,  # sf_enviado: pendiente
+            data.get("plazo_alquiler",   "").strip() or None,
+            data.get("etapa_proyecto",   "").strip() or None,
+            data.get("tiempo_alquiler",  "").strip() or None,
+            data.get("plazo_compra",     "").strip() or None,
+            data.get("presupuesto",      "").strip() or None,
+            data.get("modalidad_compra", "").strip() or None,
+            0,
         ))
         conn.commit()
         conn.close()
@@ -1858,14 +1921,17 @@ def api_guardar_cotizacion():
             INSERT INTO CGM_Cotizaciones
               (pais_sitio, nombre_apellido, razon_social, ruc_dni, email,
                codigo_pais, celular, pais, departamento, tipo_alquiler,
-               tipo_compra, detalle_equipos, sector_producto, sf_enviado)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               tipo_compra, detalle_equipos, sector_producto,
+               plazo_alquiler, etapa_proyecto, tiempo_alquiler,
+               plazo_compra, presupuesto, modalidad_compra,
+               sf_enviado)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             pais_sitio,
             _normalizar(data.get("nombre_apellido", "").strip()),
             _normalizar(data.get("razon_social",    "").strip()),
             _normalizar(data.get("ruc_dni",         "").strip()),
-            data.get("email",           "").strip(),   # email: se guarda tal cual
+            data.get("email",           "").strip(),
             codigo_pais_val,
             cel_digits_clean,
             _normalizar(pais_val),
@@ -1874,7 +1940,13 @@ def api_guardar_cotizacion():
             is_compra,
             _normalizar(detalle),
             sector_producto_val,
-            0,     # sf_enviado: pendiente
+            data.get("plazo_alquiler",   "").strip() or None,
+            data.get("etapa_proyecto",   "").strip() or None,
+            data.get("tiempo_alquiler",  "").strip() or None,
+            data.get("plazo_compra",     "").strip() or None,
+            data.get("presupuesto",      "").strip() or None,
+            data.get("modalidad_compra", "").strip() or None,
+            0,
         ))
         conn.commit()
         insert_ok = True
@@ -2131,6 +2203,142 @@ def api_proveedor():
     """
     send_email(f"Nuevo proveedor registrado: {razon_social} — CGM Rental", body)
     return jsonify({"ok": True})
+
+
+# ── RENIEC lookup vía eldni.com (DNI peruano) ────────────────────────────────
+def _lookup_dni_eldni(dni):
+    """Consulta eldni.com para obtener nombre completo del titular del DNI.
+
+    Flujo:
+      1. GET para obtener el CSRF token (_token) y las cookies de sesión.
+      2. POST multipart/form-data con el DNI.
+      3. Parsear la tabla dentro de <section id="dni-nombres"> en el HTML.
+
+    Retorna {"nombre": "...", "fuente": "reniec"} si encontrado,
+    o {"error": "...", "msg": "..."} en caso de error.
+    """
+    try:
+        import requests as _req
+        base = "https://eldni.com/pe/buscar-datos-por-dni"
+        sess = _req.Session()
+        sess.headers.update({
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
+        })
+
+        # Paso 1: GET → obtener CSRF token y cookies
+        r_get = sess.get(base, timeout=8)
+        r_get.raise_for_status()
+        tok_m = re.search(r'name="_token"\s+value="([^"]+)"', r_get.text)
+        if not tok_m:
+            return {"error": "sunat_no_disponible", "msg": "No se pudo obtener el token RENIEC."}
+
+        # Paso 2: POST multipart/form-data (formato original del formulario)
+        r_post = sess.post(
+            base,
+            files={"_token": (None, tok_m.group(1)), "dni": (None, dni)},
+            headers={"Referer": base},
+            timeout=10,
+        )
+        r_post.raise_for_status()
+
+        # Paso 3: extraer datos de la tabla en section#dni-nombres
+        # Estructura esperada: DNI | Nombres | Apellido Paterno | Apellido Materno
+        sec_m = re.search(
+            r'<section[^>]+id=["\']dni-nombres["\'][^>]*>(.*?)</section>',
+            r_post.text, re.DOTALL | re.IGNORECASE
+        )
+        if not sec_m:
+            return {"error": "no_encontrado", "msg": "DNI no encontrado en RENIEC."}
+
+        tds = re.findall(r'<td[^>]*>([^<]+)</td>', sec_m.group(1))
+        if len(tds) >= 4:
+            nombres = tds[1].strip()
+            ap_pat  = tds[2].strip()
+            ap_mat  = tds[3].strip()
+            nombre  = " ".join(p for p in [nombres, ap_pat, ap_mat] if p)
+            if nombre:
+                return {"nombre": nombre, "fuente": "reniec"}
+
+        return {"error": "no_encontrado", "msg": "DNI no encontrado en RENIEC."}
+
+    except Exception as _e:
+        app.logger.debug(f"_lookup_dni_eldni DNI={dni}: {_e}")
+        return {"error": "sunat_no_disponible", "msg": "No se pudo conectar al servicio RENIEC."}
+
+
+def _lookup_ruc_sunat(ruc):
+    """Consulta e-consultaruc.sunat.gob.pe para obtener datos de un RUC.
+    SUNAT usa reCAPTCHA v3 en el frontend pero NO lo valida en el backend,
+    por lo que se puede enviar un token ficticio.
+    """
+    import html as _htmllib
+    try:
+        import requests as _req
+        base = "https://e-consultaruc.sunat.gob.pe/cl-ti-itmrconsruc/jcrS00Alias"
+        sess = _req.Session()
+        sess.headers.update({
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "es-PE,es;q=0.9",
+            "Origin": "https://e-consultaruc.sunat.gob.pe",
+            "Referer": base,
+        })
+        sess.get(base, timeout=8)
+        r = sess.post(base, data={
+            "accion": "consPorRuc", "razSoc": "", "nroRuc": ruc,
+            "nrodoc": "", "token": "x", "contexto": "ti-it",
+            "modo": "1", "rbtnTipo": "1", "search1": ruc, "codigo": "",
+        }, timeout=12)
+        r.raise_for_status()
+        html = r.content.decode("iso-8859-1", errors="replace")
+
+        # Nombre: heading con formato '{RUC} - {NOMBRE}'
+        m = re.search(
+            re.escape(ruc) + r"\s*[-–—]\s*([^<]{5,100}?)\s*</h4>",
+            html, re.IGNORECASE,
+        )
+        if not m:
+            return {"error": "no_encontrado", "msg": "RUC no encontrado en SUNAT."}
+        nombre = _htmllib.unescape(m.group(1)).strip()
+
+        # Estado: <p class="list-group-item-text"> después de "Estado del Contribuyente"
+        m_est = re.search(
+            r"Estado del Contribuyente[^<]*</h4>.*?"
+            r'<p[^>]*list-group-item-text[^>]*>\s*([^<]+)',
+            html, re.DOTALL | re.IGNORECASE,
+        )
+        estado = _htmllib.unescape(m_est.group(1)).strip() if m_est else ""
+
+        return {"nombre": nombre, "estado": estado, "fuente": "sunat"}
+    except Exception as _e:
+        app.logger.debug(f"_lookup_ruc_sunat RUC={ruc}: {_e}")
+        return {"error": "sunat_no_disponible", "msg": "No se pudo conectar a SUNAT."}
+
+
+# ── SUNAT / RENIEC lookup proxy ───────────────────────────────────────────────
+@app.route("/api/sunat/<numero>")
+@limiter.limit("20 per minute")
+def api_sunat(numero):
+    """Consulta RENIEC o SUNAT según la longitud del número.
+    8 dígitos  → DNI: scraping eldni.com (RENIEC).
+    11 dígitos → RUC: scraping directo e-consultaruc.sunat.gob.pe.
+    """
+    if not re.fullmatch(r"\d{8}|\d{11}", numero):
+        return jsonify({"error": "formato_invalido",
+                        "msg": "Se esperan 8 dígitos (DNI) o 11 (RUC)"}), 400
+
+    if len(numero) == 8:
+        return jsonify(_lookup_dni_eldni(numero))
+
+    return jsonify(_lookup_ruc_sunat(numero))
 
 
 if __name__ == "__main__":
