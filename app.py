@@ -2208,8 +2208,8 @@ def api_proveedor():
 # ── RENIEC lookup vía dniruc.apisperu.com ────────────────────────────────────
 _APISPERU_TOKEN = (
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
-    ".eyJlbWFpbCI6Im8uY2NlbmNoYmFyYXpvcmRhQGdtYWlsLmNvbSIsImV4cCI6MTc4MTg5NDQwMH0"
-    ".F6b3JkYUBnbWFpbC51g_nN54-tgh_4yDH-xn9NID5i_qiKjb4ITZtMVtQv8"
+    ".eyJlbWFpbCI6Im8uY2NlbmNob2JhcmF6b3JkYUBnbWFpbC5jb20ifQ"
+    ".51g_nN54-tgh_4yDH-xn9NID5i_qiKjb4ITZtMVtQv8"
 )
 
 def _lookup_dni_eldni(dni):
