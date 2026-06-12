@@ -2205,30 +2205,53 @@ def api_proveedor():
     return jsonify({"ok": True})
 
 
-# ── RENIEC lookup vía dniruc.apisperu.com ────────────────────────────────────
-_APISPERU_TOKEN = (
+# ── RENIEC lookup (dniruc.apisperu.com → fallback apiperu.dev) ───────────────
+_DNIRUC_TOKEN = (
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
     ".eyJlbWFpbCI6Im8uY2NlbmNob2JhcmF6b3JkYUBnbWFpbC5jb20ifQ"
     ".51g_nN54-tgh_4yDH-xn9NID5i_qiKjb4ITZtMVtQv8"
 )
+_APIPERU_DEV_TOKEN = "f791c0d7fe900aaf9e4a356f839343f54b29b385296b7e83681471d56ab75188"
+
+def _parse_dni_response(data):
+    nombres = (data.get("nombres", "") or "").strip()
+    ap_pat  = (data.get("apellidoPaterno", "") or data.get("apellido_paterno", "") or "").strip()
+    ap_mat  = (data.get("apellidoMaterno", "") or data.get("apellido_materno", "") or "").strip()
+    nombre  = " ".join(p for p in [nombres, ap_pat, ap_mat] if p)
+    return nombre or None
 
 def _lookup_dni_eldni(dni):
+    import requests as _req
+
+    # Fuente 1: dniruc.apisperu.com (100 consultas/mes gratis)
     try:
-        import requests as _req
-        url = f"https://dniruc.apisperu.com/api/v1/dni/{dni}?token={_APISPERU_TOKEN}"
-        r = _req.get(url, timeout=10)
-        if r.status_code != 200:
-            return {"error": "sunat_no_disponible", "msg": "Servicio RENIEC no disponible."}
-        data = r.json()
-        nombres   = (data.get("nombres", "") or "").strip()
-        ap_pat    = (data.get("apellidoPaterno", "") or "").strip()
-        ap_mat    = (data.get("apellidoMaterno", "") or "").strip()
-        nombre    = " ".join(p for p in [ap_pat, ap_mat, nombres] if p)
-        if nombre:
-            return {"nombre": nombre, "fuente": "reniec"}
+        r = _req.get(
+            f"https://dniruc.apisperu.com/api/v1/dni/{dni}?token={_DNIRUC_TOKEN}",
+            timeout=10,
+        )
+        if r.status_code == 200:
+            nombre = _parse_dni_response(r.json())
+            if nombre:
+                return {"nombre": nombre, "fuente": "reniec"}
     except Exception as _e:
-        app.logger.debug(f"_lookup_dni_apisperu DNI={dni}: {_e}")
-        return {"error": "sunat_no_disponible", "msg": "No se pudo conectar al servicio RENIEC."}
+        app.logger.debug(f"dniruc DNI={dni}: {_e}")
+
+    # Fuente 2: apiperu.dev (fallback, 200 consultas/mes gratis)
+    try:
+        r2 = _req.get(
+            f"https://apiperu.dev/api/dni/{dni}",
+            headers={"Authorization": f"Bearer {_APIPERU_DEV_TOKEN}"},
+            timeout=10,
+        )
+        if r2.status_code == 200:
+            data2 = r2.json()
+            nombre = _parse_dni_response(data2.get("data", data2))
+            if nombre:
+                return {"nombre": nombre, "fuente": "reniec"}
+    except Exception as _e:
+        app.logger.debug(f"apiperu.dev DNI={dni}: {_e}")
+
+    return {"error": "no_encontrado", "msg": "DNI no encontrado en RENIEC."}
 
 
 def _lookup_ruc_sunat(ruc):
