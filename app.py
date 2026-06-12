@@ -2205,86 +2205,29 @@ def api_proveedor():
     return jsonify({"ok": True})
 
 
-# ── RENIEC lookup vía eldni.com (DNI peruano) ────────────────────────────────
+# ── RENIEC lookup vía dniruc.apisperu.com ────────────────────────────────────
+_APISPERU_TOKEN = (
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9"
+    ".eyJlbWFpbCI6Im8uY2NlbmNoYmFyYXpvcmRhQGdtYWlsLmNvbSIsImV4cCI6MTc4MTg5NDQwMH0"
+    ".F6b3JkYUBnbWFpbC51g_nN54-tgh_4yDH-xn9NID5i_qiKjb4ITZtMVtQv8"
+)
+
 def _lookup_dni_eldni(dni):
-    """Consulta eldni.com para obtener nombre completo del titular del DNI.
-
-    Flujo:
-      1. GET para obtener el CSRF token (_token) y las cookies de sesión.
-      2. POST multipart/form-data con el DNI.
-      3. Parsear la tabla dentro de <section id="dni-nombres"> en el HTML.
-
-    Retorna {"nombre": "...", "fuente": "reniec"} si encontrado,
-    o {"error": "...", "msg": "..."} en caso de error.
-    """
     try:
         import requests as _req
-        base = "https://eldni.com/pe/buscar-datos-por-dni"
-        sess = _req.Session()
-        sess.headers.update({
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "es-PE,es;q=0.9,en;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Cache-Control": "max-age=0",
-        })
-
-        # Paso 1: GET → obtener CSRF token y cookies
-        r_get = sess.get(base, timeout=10, allow_redirects=True)
-        if r_get.status_code not in (200, 302):
+        url = f"https://dniruc.apisperu.com/api/v1/dni/{dni}?token={_APISPERU_TOKEN}"
+        r = _req.get(url, timeout=10)
+        if r.status_code != 200:
             return {"error": "sunat_no_disponible", "msg": "Servicio RENIEC no disponible."}
-        tok_m = re.search(r'name="_token"\s+value="([^"]+)"', r_get.text)
-        if not tok_m:
-            return {"error": "sunat_no_disponible", "msg": "No se pudo obtener el token RENIEC."}
-
-        # Paso 2: POST multipart/form-data (formato original del formulario)
-        r_post = sess.post(
-            base,
-            files={"_token": (None, tok_m.group(1)), "dni": (None, dni)},
-            headers={
-                "Referer": base,
-                "Origin": "https://eldni.com",
-                "Sec-Fetch-Site": "same-origin",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Dest": "document",
-            },
-            timeout=12,
-            allow_redirects=True,
-        )
-        if r_post.status_code not in (200, 302):
-            return {"error": "sunat_no_disponible", "msg": "Servicio RENIEC no disponible."}
-
-        # Paso 3: extraer datos de la tabla en section#dni-nombres
-        # Estructura esperada: DNI | Nombres | Apellido Paterno | Apellido Materno
-        sec_m = re.search(
-            r'<section[^>]+id=["\']dni-nombres["\'][^>]*>(.*?)</section>',
-            r_post.text, re.DOTALL | re.IGNORECASE
-        )
-        if not sec_m:
-            return {"error": "no_encontrado", "msg": "DNI no encontrado en RENIEC."}
-
-        tds = re.findall(r'<td[^>]*>([^<]+)</td>', sec_m.group(1))
-        if len(tds) >= 4:
-            nombres = tds[1].strip()
-            ap_pat  = tds[2].strip()
-            ap_mat  = tds[3].strip()
-            nombre  = " ".join(p for p in [nombres, ap_pat, ap_mat] if p)
-            if nombre:
-                return {"nombre": nombre, "fuente": "reniec"}
-
-        return {"error": "no_encontrado", "msg": "DNI no encontrado en RENIEC."}
-
+        data = r.json()
+        nombres   = (data.get("nombres", "") or "").strip()
+        ap_pat    = (data.get("apellidoPaterno", "") or "").strip()
+        ap_mat    = (data.get("apellidoMaterno", "") or "").strip()
+        nombre    = " ".join(p for p in [ap_pat, ap_mat, nombres] if p)
+        if nombre:
+            return {"nombre": nombre, "fuente": "reniec"}
     except Exception as _e:
-        app.logger.debug(f"_lookup_dni_eldni DNI={dni}: {_e}")
+        app.logger.debug(f"_lookup_dni_apisperu DNI={dni}: {_e}")
         return {"error": "sunat_no_disponible", "msg": "No se pudo conectar al servicio RENIEC."}
 
 
