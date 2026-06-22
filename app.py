@@ -57,6 +57,67 @@ if not _secret:
         )
 app.secret_key = _secret
 
+# ── Filtro de contenido inapropiado (Otras Consultas) ────────────────────────
+_PALABRAS_PROHIBIDAS = [
+    'pene','pito','verga','polla','cojones','coño','concha','teta','tetas','culo','nalgas','panocha',
+    'pajero','pajera','culear','follar','mamar','chupame',
+    'puta','puto','prostituta','zorra','perra','trola','chorra','sorete','soretes',
+    'idiota','imbecil','estupido','tarado','retrasado','subnormal',
+    'asqueroso','maldito','maldita','desgraciado','desgraciada','bastardo','bastarda','inutil',
+    'cojudo','cojuda','reconcha','conchudo','conchuda','conchatumadre','ctm',
+    'pelotudo','pelotuda','boludo','boluda','forro','forrada','gil','cagon','trolo','trola',
+    'pendejo','pendeja','cabron','cabrona','chingada','chinga','pinche','culero','mamon','mamona','ojete','joto',
+    'weon','huevon','culiao','culiado','marico','marica','maricon',
+    'faggot','nigger',
+    'hdp','hijodeputa','hijo de puta','ptm','qtm','stm',
+    'porno','porn','pornografia','pornografico','xxx',
+    'fuck','shit','bitch','asshole','bastard','cunt','dick','cock','pussy','motherfucker','slut','whore',
+    'mierda','carajo','joder','gilipollas','capullo','hostia','jodido','jodida',
+]
+
+def _contiene_palabra_prohibida(texto):
+    def _norm(s):
+        s = s.lower()
+        return ''.join(c for c in unicodedata.normalize('NFD', s)
+                       if unicodedata.category(c) != 'Mn')
+    texto_norm = _norm(texto)
+    return any(_norm(p) in texto_norm for p in _PALABRAS_PROHIBIDAS)
+
+# ── Modelos de equipos por tipo (para el modal WhatsApp) ─────────────────────
+def _build_product_models():
+    try:
+        conn = get_conn()
+        rows = conn.execute(
+            "SELECT nombre, tipo, tags, show_pe, show_arg FROM products "
+            "WHERE activo=1 AND tipo!='' AND nombre!='' AND tags IN ('alquiler','usados')"
+        ).fetchall()
+        conn.close()
+        empty = lambda: {"modelos": {}, "tipos_alq": set(), "tipos_usd": set()}
+        result = {"pe": empty(), "ar": empty()}
+        for row in rows:
+            tipo   = row["tipo"]
+            tag    = row["tags"]
+            nombre = row["nombre"].title()
+            for cc in ("pe", "ar"):
+                if cc == "ar" and not row["show_arg"]:
+                    continue
+                if cc == "pe" and not row["show_pe"]:
+                    continue
+                d = result[cc]
+                if tipo not in d["modelos"]:
+                    d["modelos"][tipo] = {"alquiler": [], "usados": []}
+                if nombre not in d["modelos"][tipo][tag]:
+                    d["modelos"][tipo][tag].append(nombre)
+                d["tipos_alq" if tag == "alquiler" else "tipos_usd"].add(tipo)
+        for cc in result:
+            result[cc]["tipos_alq"] = sorted(result[cc]["tipos_alq"])
+            result[cc]["tipos_usd"] = sorted(result[cc]["tipos_usd"])
+        return result
+    except Exception:
+        _empty = {"modelos": {}, "tipos_alq": [], "tipos_usd": []}
+        return {"pe": _empty, "ar": _empty}
+_PRODUCT_MODELS = _build_product_models()
+
 # A07 — Session timeout: 8 horas
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
 
@@ -595,7 +656,7 @@ def _log_timing(response):
         elapsed = (_time.perf_counter() - g._req_start) * 1000
         # Solo loguear rutas de página, no estáticos
         if not request.path.startswith('/static'):
-            print(f"[TIMING] {request.method} {request.path}  →  {elapsed:.0f} ms", flush=True)
+            print(f"[TIMING] {request.method} {request.path}  ->  {elapsed:.0f} ms", flush=True)
     return response
 
 
@@ -721,6 +782,9 @@ def inject_globals():
         # Canonical URL: usa la URL base sin querystring (evita duplicados por UTM, etc.)
         # Las vistas pueden sobreescribir esto pasando canonical_url=... a render_template
         "canonical_url": request.base_url,
+        # Modelos y tipos de equipos para modal WhatsApp (filtrados por país)
+        **{k: _PRODUCT_MODELS.get(cc, _PRODUCT_MODELS["pe"])[k]
+           for k in ("modelos", "tipos_alq", "tipos_usd")},
         # Cloudflare Turnstile site key (para inyectar en formularios)
         "CF_TURNSTILE_SITE_KEY": CF_TURNSTILE_SITE_KEY,
         # Códigos telefónicos de todos los países (para selector de celular)
@@ -731,6 +795,17 @@ def inject_globals():
 # ══════════════════════════════════════════════════════════════════════════════
 # RUTAS
 # ══════════════════════════════════════════════════════════════════════════════
+
+@csrf.exempt
+@app.route('/api/validar-consulta', methods=['POST'])
+def api_validar_consulta():
+    data = request.get_json(silent=True) or {}
+    texto = data.get('texto', '').strip()
+    if not texto:
+        return jsonify({'ok': False, 'error': 'Escribe tu consulta.'})
+    if _contiene_palabra_prohibida(texto):
+        return jsonify({'ok': False, 'error': 'Por favor usa un lenguaje apropiado.'})
+    return jsonify({'ok': True})
 
 @app.route("/")
 def root():

@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="es">
 <head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-NF2QFVF8');</script>
+  <!-- End Google Tag Manager -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}CGM Rental — Alquiler de Maquinaria Pesada{% endblock %}</title>
@@ -132,6 +139,10 @@
   {% endif %}
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NF2QFVF8"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
    {% include "_nav.html" %}
 
@@ -164,13 +175,764 @@
     </button>
   </div>
 
-   <a href="{{ country.whatsapp_link }}" target="_blank" rel="noopener" class="cgm-whatsapp-float" aria-label="Contactar por WhatsApp">
+  <button onclick="cgmWspOpen()" class="cgm-whatsapp-float" aria-label="Contactar por WhatsApp">
     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
     </svg>
-  </a>
+  </button>
 
-   <script>window.CGM_COUNTRY = "{{ country_code }}";</script>
+  <!-- ── Modal WhatsApp multi-paso ──────────────────────────────────────────── -->
+  <div id="cgmWspModal" class="cgm-wsp-overlay" style="display:none" onclick="if(event.target===this)cgmWspClose()">
+    <div class="cgm-wsp-modal">
+
+      <!-- Header -->
+      <div class="cgm-wsp-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#c4e76c">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <span>Contactar por WhatsApp</span>
+        <button onclick="cgmWspClose()" class="cgm-wsp-close" aria-label="Cerrar">✕</button>
+      </div>
+
+      <!-- Paso 1: selección de tipo -->
+      <div id="cgmWspStep1" class="cgm-wsp-step">
+        <p class="cgm-wsp-subtitle">¿En qué podemos ayudarte?</p>
+        <div class="cgm-wsp-options">
+          <button onclick="cgmWspSelect('alquiler')" class="cgm-wsp-option">
+            <span class="cgm-wsp-opt-icon">
+              <!-- llave en diagonal -->
+              <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36" aria-hidden="true">
+                <g transform="rotate(45 12 12)">
+                  <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                </g>
+              </svg>
+            </span>
+            <span class="cgm-wsp-opt-label">Alquiler</span>
+          </button>
+          {% if country_code != 'ar' %}
+          <button onclick="cgmWspSelect('usados')" class="cgm-wsp-option">
+            <span class="cgm-wsp-opt-icon">
+              <!-- carrito de compra -->
+              <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36" aria-hidden="true">
+                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.45 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+              </svg>
+            </span>
+            <span class="cgm-wsp-opt-label">Usados</span>
+          </button>
+          {% endif %}
+          <button onclick="cgmWspSelect('otras')" class="cgm-wsp-option">
+            <span class="cgm-wsp-opt-icon">
+              <!-- burbuja de mensaje -->
+              <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36" aria-hidden="true">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+              </svg>
+            </span>
+            <span class="cgm-wsp-opt-label">Otras<br>Consultas</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2a: Alquiler -->
+      <div id="cgmWspFormAlquiler" class="cgm-wsp-step" style="display:none">
+        <button onclick="cgmWspBack()" class="cgm-wsp-back">&#8592; Volver</button>
+        <h3 class="cgm-wsp-form-title">
+          <svg viewBox="0 0 24 24" fill="#c4e76c" width="20" height="20" style="vertical-align:middle;margin-right:6px" aria-hidden="true"><g transform="rotate(45 12 12)"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></g></svg>Alquiler de Equipo
+        </h3>
+        <form onsubmit="cgmWspSend(event,'alquiler')" novalidate>
+          <div class="cgm-wsp-field">
+            <label for="wspAlqRuc">{% if country_code == 'ar' %}CUIT empresa{% else %}RUC empresa <small>(solo RUC 20)</small>{% endif %}</label>
+            <input type="text" id="wspAlqRuc" inputmode="numeric" maxlength="11"
+                   placeholder="{% if country_code == 'ar' %}xxxxxxxxxxx{% else %}20xxxxxxxxx{% endif %}"
+                   autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'')">
+            <span class="cgm-wsp-err-msg" id="wspAlqRucErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label for="wspAlqNombre">Nombre del contacto</label>
+            <input type="text" id="wspAlqNombre" placeholder="Tu nombre completo" autocomplete="off"
+                   oninput="this.value=this.value.replace(/[^a-zA-ZÀ-ɏ\s]/g,'')"
+                   onblur="this.value=cgmTitleCase(this.value)">
+            <span class="cgm-wsp-err-msg" id="wspAlqNombreErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label>Equipo(s) de inter&#233;s</label>
+            <div class="cgm-msel" id="cgmMselAlq">
+              <div class="cgm-msel-trigger" onclick="cgmMselToggle('cgmMselAlq')">
+                <span class="cgm-msel-lbl">&#8212; {% if country_code == 'ar' %}Seleccioná{% else %}Selecciona{% endif %} uno o más &#8212;</span>
+                <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="#666" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+              </div>
+              <div class="cgm-msel-drop">
+                {% for tipo in tipos_alq %}
+                <label><input type="checkbox" value="{{ tipo }}"> {{ tipo }}</label>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="cgm-msel-models" id="cgmModelsAlq"></div>
+            <span class="cgm-wsp-err-msg" id="wspAlqEquipoErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label for="wspAlqTiempo">Tiempo de alquiler</label>
+            <select id="wspAlqTiempo">
+              <option value="">&#8212; {% if country_code == 'ar' %}Seleccioná{% else %}Selecciona{% endif %} el período &#8212;</option>
+              <option>Menos de 1 mes</option>
+              <option>De 1 a 3 meses</option>
+              <option>De 3 a 6 meses</option>
+              <option>M&#225;s de 6 meses</option>
+              <option>A&#250;n por definir</option>
+            </select>
+            <span class="cgm-wsp-err-msg" id="wspAlqTiempoErr"></span>
+          </div>
+          <button type="submit" class="cgm-wsp-send-btn">Enviar por WhatsApp &#8594;</button>
+        </form>
+      </div>
+
+      <!-- Paso 2b: Usados -->
+      <div id="cgmWspFormUsados" class="cgm-wsp-step" style="display:none">
+        <button onclick="cgmWspBack()" class="cgm-wsp-back">&#8592; Volver</button>
+        <h3 class="cgm-wsp-form-title">
+          <svg viewBox="0 0 24 24" fill="#c4e76c" width="20" height="20" style="vertical-align:middle;margin-right:6px" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h11v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.45 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>Equipo Usado
+        </h3>
+        <form onsubmit="cgmWspSend(event,'usados')" novalidate>
+          <div class="cgm-wsp-field">
+            <label for="wspUsdDoc">RUC / DNI <small>(8 o 11 d&#237;gitos)</small></label>
+            <input type="text" id="wspUsdDoc" inputmode="numeric" maxlength="11" placeholder="DNI o RUC" autocomplete="off"
+                   oninput="this.value=this.value.replace(/\D/g,'')">
+            <span class="cgm-wsp-err-msg" id="wspUsdDocErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label for="wspUsdNombre">Nombre</label>
+            <input type="text" id="wspUsdNombre" placeholder="Tu nombre completo" autocomplete="off"
+                   oninput="this.value=this.value.replace(/[^a-zA-ZÀ-ɏ\s]/g,'')"
+                   onblur="this.value=cgmTitleCase(this.value)">
+            <span class="cgm-wsp-err-msg" id="wspUsdNombreErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label>Equipo(s) de inter&#233;s</label>
+            <div class="cgm-msel" id="cgmMselUsd">
+              <div class="cgm-msel-trigger" onclick="cgmMselToggle('cgmMselUsd')">
+                <span class="cgm-msel-lbl">&#8212; Selecciona uno o m&#225;s &#8212;</span>
+                <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="#666" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+              </div>
+              <div class="cgm-msel-drop">
+                {% for tipo in tipos_usd %}
+                <label><input type="checkbox" value="{{ tipo }}"> {{ tipo }}</label>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="cgm-msel-models" id="cgmModelsUsd"></div>
+            <span class="cgm-wsp-err-msg" id="wspUsdEquipoErr"></span>
+          </div>
+          <button type="submit" class="cgm-wsp-send-btn">Enviar por WhatsApp &#8594;</button>
+        </form>
+      </div>
+
+      <!-- Paso 2c: Otras consultas -->
+      <div id="cgmWspFormOtras" class="cgm-wsp-step" style="display:none">
+        <button onclick="cgmWspBack()" class="cgm-wsp-back">&#8592; Volver</button>
+        <h3 class="cgm-wsp-form-title">
+          <svg viewBox="0 0 24 24" fill="#c4e76c" width="20" height="20" style="vertical-align:middle;margin-right:6px" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Otras Consultas
+        </h3>
+        <form onsubmit="cgmWspSend(event,'otras')" novalidate>
+          <div class="cgm-wsp-field">
+            <label for="wspOtrasTexto">¿En qué podemos ayudarte?</label>
+            <textarea id="wspOtrasTexto" rows="4" placeholder="{% if country_code == 'ar' %}Escribí tu consulta aquí...{% else %}Escribe tu consulta aquí...{% endif %}"></textarea>
+            <span class="cgm-wsp-err-msg" id="wspOtrasTextoErr"></span>
+          </div>
+          <button type="submit" class="cgm-wsp-send-btn">Enviar por WhatsApp &#8594;</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+  <!-- ── /Modal WhatsApp ─────────────────────────────────────────────────────── -->
+
+  <script>
+    window.CGM_COUNTRY    = "{{ country_code }}";
+    window.CGM_WSP_PHONE  = {{ country.telefono | tojson }}.replace(/\D/g, '');
+    window.CGM_WSP_MODELOS = {{ modelos | tojson | safe }};
+  </script>
+
+  <!-- ── Estilos modal WhatsApp ────────────────────────────────────────────── -->
+  <style>
+    .cgm-wsp-overlay {
+      position: fixed; inset: 0; z-index: 99998;
+      background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .cgm-wsp-modal {
+      background: #fff;
+      border-radius: 16px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      overflow: hidden;
+      animation: cgmWspIn .2s ease;
+      max-height: calc(100dvh - 40px);
+      display: flex;
+      flex-direction: column;
+    }
+    .cgm-wsp-step { overflow-y: auto; flex: 1; min-height: 0; }
+    @keyframes cgmWspIn {
+      from { transform: scale(.93); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .cgm-wsp-header {
+      background: #02534c;
+      color: #fff;
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px;
+      font-family: 'Estricta', sans-serif;
+      font-size: 15px; font-weight: 700;
+    }
+    .cgm-wsp-header > span { flex: 1; }
+    .cgm-wsp-close {
+      background: transparent; border: none; color: #fff;
+      font-size: 18px; cursor: pointer; line-height: 1;
+      padding: 4px 8px; border-radius: 6px;
+      transition: background .15s;
+    }
+    .cgm-wsp-close:hover { background: rgba(255,255,255,.15); }
+    .cgm-wsp-subtitle {
+      text-align: center; color: #555; margin: 0;
+      font-size: 14px; padding: 20px 20px 4px;
+      font-family: 'Estricta', sans-serif;
+    }
+    .cgm-wsp-options {
+      display: flex; gap: 10px;
+      padding: 16px 20px 24px;
+    }
+    .cgm-wsp-option {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 8px; padding: 18px 8px;
+      border: 2px solid #e0e0e0; border-radius: 12px;
+      background: #fff; cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s;
+      font-family: 'Estricta', sans-serif;
+    }
+    .cgm-wsp-option:hover {
+      border-color: #02534c; background: #f0f9f7; transform: translateY(-2px);
+    }
+    .cgm-wsp-opt-icon {
+      display: flex; align-items: center; justify-content: center;
+      color: #c4e76c;
+      transition: transform .2s;
+    }
+    .cgm-wsp-option:hover .cgm-wsp-opt-icon { transform: scale(1.1); }
+    .cgm-wsp-opt-label { font-size: 11px; font-weight: 700; color: #02534c; text-align: center; line-height: 1.3; }
+    .cgm-wsp-back {
+      background: none; border: none; color: #02534c; cursor: pointer;
+      font-family: 'Estricta', sans-serif; font-size: 13px;
+      padding: 16px 20px 0; display: block; font-weight: 700;
+    }
+    .cgm-wsp-back:hover { text-decoration: underline; }
+    .cgm-wsp-form-title {
+      font-family: 'Estricta', sans-serif; font-size: 16px; font-weight: 700;
+      color: #02534c; padding: 8px 20px 14px; margin: 0;
+    }
+    .cgm-wsp-field {
+      padding: 0 20px 14px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .cgm-wsp-field label {
+      font-size: 12px; font-weight: 700; color: #555;
+      font-family: 'Estricta', sans-serif; letter-spacing: .3px;
+    }
+    .cgm-wsp-field input,
+    .cgm-wsp-field textarea {
+      border: 1.5px solid #ddd; border-radius: 8px;
+      padding: 9px 12px; font-size: 14px; outline: none;
+      font-family: 'Estricta', sans-serif;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    .cgm-wsp-field input:focus,
+    .cgm-wsp-field textarea:focus { border-color: #02534c; }
+    .cgm-wsp-field input.wsp-err,
+    .cgm-wsp-field select.wsp-err,
+    .cgm-wsp-field textarea.wsp-err { border-color: #e53e3e; }
+    .cgm-wsp-field textarea { resize: vertical; min-height: 90px; }
+    .cgm-wsp-field select {
+      border: 1.5px solid #ddd; border-radius: 8px;
+      padding: 9px 12px; font-size: 14px; outline: none;
+      font-family: 'Estricta', sans-serif;
+      background: #fff; width: 100%; cursor: pointer;
+      transition: border-color .2s; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .cgm-wsp-field select:focus { border-color: #02534c; }
+    .cgm-wsp-err-msg {
+      font-size: 11px; color: #e53e3e;
+      font-family: 'Estricta', sans-serif;
+      min-height: 14px; display: block; margin-top: 2px;
+    }
+    .cgm-wsp-field label small {
+      font-weight: 400; color: #999; font-size: 10px;
+    }
+    /* ── Multi-select equipos ── */
+    .cgm-msel { position: relative; }
+    .cgm-msel-trigger {
+      border: 1.5px solid #ddd; border-radius: 8px;
+      padding: 9px 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fff; font-size: 14px; font-family: 'Estricta', sans-serif;
+      transition: border-color .2s; user-select: none;
+    }
+    .cgm-msel.open .cgm-msel-trigger,
+    .cgm-msel-trigger:hover { border-color: #02534c; }
+    .cgm-msel.wsp-err .cgm-msel-trigger { border-color: #e53e3e; }
+    .cgm-msel-lbl { color: #888; font-size: 13px; }
+    .cgm-msel.has-val .cgm-msel-lbl { color: #1a1a1a; }
+    .cgm-msel-drop {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: #fff; border: 1.5px solid #02534c; border-radius: 8px;
+      max-height: 190px; overflow-y: auto; z-index: 200;
+      box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    }
+    .cgm-msel.open .cgm-msel-drop { display: block; }
+    .cgm-msel-drop label {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 14px; cursor: pointer;
+      font-size: 13px; font-family: 'Estricta', sans-serif;
+      font-weight: 400; color: #333;
+      transition: background .1s;
+    }
+    .cgm-msel-drop label:hover { background: #f0f9f7; }
+    .cgm-msel-drop input[type="checkbox"] {
+      accent-color: #02534c; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0;
+    }
+    .cgm-msel-chips {
+      display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px;
+    }
+    .cgm-msel-chip {
+      background: #f0f9f7; border: 1px solid #02534c;
+      color: #02534c; border-radius: 20px; padding: 3px 8px 3px 10px;
+      font-size: 11px; font-family: 'Estricta', sans-serif; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .cgm-msel-chip-x {
+      cursor: pointer; font-size: 14px; line-height: 1;
+      color: #02534c; background: none; border: none; padding: 0;
+      transition: color .15s;
+    }
+    .cgm-msel-chip-x:hover { color: #e53e3e; }
+    /* ── Sección modelos por equipo (cards) ── */
+    .cgm-msel-models { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .cgm-msel-model-row {
+      background: #f4faf8; border: 1px solid #c8e0da;
+      border-radius: 8px; padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    .cgm-msel-row-top {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .cgm-msel-model-lbl {
+      font-size: 12px; font-weight: 700; color: #02534c;
+      font-family: 'Estricta', sans-serif;
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .cgm-msel-stepper {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .cgm-stepper-btn {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid #02534c; background: transparent; color: #02534c;
+      font-size: 16px; font-weight: 700; cursor: pointer; line-height: 1;
+      display: flex; align-items: center; justify-content: center; padding: 0;
+      transition: background .15s, color .15s; flex-shrink: 0;
+    }
+    .cgm-stepper-btn:hover { background: #02534c; color: #fff; }
+    .cgm-stepper-val {
+      font-size: 15px; font-weight: 700; color: #1a1a1a;
+      min-width: 22px; text-align: center; font-family: 'Estricta', sans-serif;
+    }
+    .cgm-msel-model-sel {
+      width: 100%; border: 1.5px solid #c8e0da; border-radius: 6px;
+      padding: 6px 28px 6px 10px; font-size: 12px; font-family: 'Estricta', sans-serif;
+      background: #fff; outline: none; cursor: pointer;
+      transition: border-color .2s; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23666' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 8px center;
+      box-sizing: border-box;
+    }
+    .cgm-msel-model-sel:focus { border-color: #02534c; }
+    .cgm-msel-model-single {
+      appearance: none; -webkit-appearance: none;
+      border: none; background: transparent;
+      width: 100%; padding: 2px 0;
+      font-size: 12px; color: #666; font-style: italic;
+      cursor: default; pointer-events: none; outline: none;
+    }
+    .cgm-wsp-send-btn {
+      display: block; width: calc(100% - 40px); margin: 4px 20px 22px;
+      background: #25d366; color: #fff; border: none;
+      padding: 13px; border-radius: 10px;
+      font-family: 'Estricta', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .2s, transform .15s;
+    }
+    .cgm-wsp-send-btn:hover { background: #1ebe5d; transform: scale(1.01); }
+  </style>
+
+  <!-- ── JS modal WhatsApp ──────────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      var _steps = ['cgmWspStep1','cgmWspFormAlquiler','cgmWspFormUsados','cgmWspFormOtras'];
+
+      /* ── helpers ─────────────────────────────────────────────────────── */
+      window.cgmTitleCase = function (str) {
+        return (str || '').toLowerCase().replace(/(?:^|\s)\S/g, function(c){ return c.toUpperCase(); });
+      };
+
+      function _val(id) { return (document.getElementById(id).value || '').trim(); }
+
+      function _showStep(id) {
+        _steps.forEach(function(s){ document.getElementById(s).style.display = s === id ? 'block' : 'none'; });
+      }
+
+      function _setErr(errId, msg) {
+        var el = document.getElementById(errId);
+        if (!el) return;
+        el.textContent = msg || '';
+        var input = el.previousElementSibling;
+        if (input) {
+          if (msg) { input.classList.add('wsp-err'); }
+          else      { input.classList.remove('wsp-err'); }
+        }
+      }
+
+      function _clearErrs(ids) {
+        ids.forEach(function(id){ _setErr(id + 'Err', ''); });
+      }
+
+      /* ── validaciones ────────────────────────────────────────────────── */
+      var _esAr = window.CGM_COUNTRY === 'ar';
+
+      function _validarRuc20(val) {
+        if (!val)              return 'Ingresa el RUC de tu empresa.';
+        if (val.length !== 11) return 'El RUC debe tener 11 dígitos.';
+        if (val.slice(0,2) !== '20') return 'Para alquiler solo se acepta RUC empresa (inicia con 20).';
+        return null;
+      }
+
+      function _validarCuit(val) {
+        if (!val)              return 'Ingresá el CUIT de tu empresa.';
+        if (val.length !== 11) return 'El CUIT debe tener 11 dígitos.';
+        return null;
+      }
+
+      function _validarDoc(val) {
+        if (!val)              return 'Ingresa tu RUC o DNI.';
+        if (val.length === 8)  return null;
+        if (val.length === 11 && (val.slice(0,2) === '10' || val.slice(0,2) === '20')) return null;
+        if (val.length === 11) return 'RUC inválido: debe iniciar con 10 (persona) o 20 (empresa).';
+        return 'Ingresa un DNI (8 dígitos) o RUC (11 dígitos).';
+      }
+
+      function _validarNombre(val) {
+        if (!val) return _esAr ? 'Ingresá tu nombre.' : 'Ingresa tu nombre.';
+        return null;
+      }
+
+      function _validarSelect(val, label) {
+        if (!val) return (_esAr ? 'Seleccioná ' : 'Selecciona ') + (label || 'una opción') + '.';
+        return null;
+      }
+
+      function _validarModelos(mselId) {
+        var divId = mselId === 'cgmMselAlq' ? 'cgmModelsAlq' : 'cgmModelsUsd';
+        var modelsDiv = document.getElementById(divId);
+        if (!modelsDiv) return null;
+        var sels = Array.from(modelsDiv.querySelectorAll('.cgm-msel-model-sel:not([disabled])'));
+        var sinModelo = sels.filter(function(s){ return !s.value; });
+        sels.forEach(function(s){ s.classList.toggle('wsp-err', !s.value); });
+        if (sinModelo.length) {
+          return _esAr ? 'Seleccioná un modelo para cada equipo.' : 'Selecciona un modelo para cada equipo.';
+        }
+        return null;
+      }
+
+      /* ── multi-select ────────────────────────────────────────────────── */
+      window.cgmMselToggle = function (id) {
+        var el = document.getElementById(id);
+        var isOpen = el.classList.contains('open');
+        document.querySelectorAll('.cgm-msel.open').forEach(function(m){ m.classList.remove('open'); });
+        if (!isOpen) el.classList.add('open');
+      };
+
+      function _mselVals(id) {
+        return Array.from(document.querySelectorAll('#' + id + ' input[type="checkbox"]:checked'))
+                    .map(function(c){ return c.value; });
+      }
+
+      function _mselUpdateChips(id) {
+        var vals = _mselVals(id);
+        var el   = document.getElementById(id);
+        var lbl  = el.querySelector('.cgm-msel-lbl');
+        var container = el.parentNode.querySelector('.cgm-msel-chips');
+
+        lbl.textContent = vals.length
+          ? vals.length + ' equipo' + (vals.length > 1 ? 's' : '') + ' seleccionado' + (vals.length > 1 ? 's' : '')
+          : (_esAr ? '— Seleccioná uno o más —' : '— Selecciona uno o más —');
+        el.classList.toggle('has-val', vals.length > 0);
+
+        if (container) {
+          container.innerHTML = vals.map(function(v){
+            return '<span class="cgm-msel-chip">' + v +
+                   '<button type="button" class="cgm-msel-chip-x" onclick="cgmMselRemove(\'' + id + '\',\'' + v.replace(/'/g,"\\'") + '\')">&times;</button>' +
+                   '</span>';
+          }).join('');
+        }
+      }
+
+      /* Renderiza los selects de modelo debajo de los chips */
+      function _mselUpdateModels(mselId, tag) {
+        var vals      = _mselVals(mselId);
+        var modelsDiv = document.getElementById(
+          mselId === 'cgmMselAlq' ? 'cgmModelsAlq' : 'cgmModelsUsd'
+        );
+        if (!modelsDiv) return;
+        if (!vals.length) { modelsDiv.innerHTML = ''; return; }
+
+        /* preservar cantidades y modelos seleccionados antes de reconstruir */
+        var prevQty = {}, prevModel = {};
+        Array.from(modelsDiv.querySelectorAll('.cgm-msel-qty')).forEach(function(q){
+          prevQty[q.dataset.equipo] = q.value;
+        });
+        Array.from(modelsDiv.querySelectorAll('.cgm-msel-model-sel')).forEach(function(s){
+          prevModel[s.dataset.equipo] = s.value;
+        });
+        var modelos = window.CGM_WSP_MODELOS || {};
+        modelsDiv.innerHTML = vals.map(function(v) {
+          var opts   = (modelos[v] && modelos[v][tag]) ? modelos[v][tag] : [];
+          var safeId = 'cgmModel_' + mselId + '_' + v.replace(/\W/g,'_');
+          var qty    = prevQty[v] || '1';
+          var selHtml = '';
+          if (opts.length === 1) {
+            /* un solo modelo: auto-seleccionado, sin dropdown */
+            selHtml = '<select class="cgm-msel-model-sel cgm-msel-model-single" data-equipo="' + v + '" disabled>' +
+                      '<option selected>' + opts[0] + '</option>' +
+                      '</select>';
+          } else if (opts.length > 1) {
+            var saved = prevModel[v] || '';
+            var optsH = '<option value="">' + (_esAr ? '— Seleccioná el modelo —' : '— Selecciona el modelo —') + '</option>' +
+                        opts.map(function(m){
+                          return '<option' + (m === saved ? ' selected' : '') + '>' + m + '</option>';
+                        }).join('');
+            selHtml = '<select class="cgm-msel-model-sel" id="' + safeId + '" data-equipo="' + v + '" onchange="this.classList.remove(\'wsp-err\')">' +
+                      optsH + '</select>';
+          }
+          return '<div class="cgm-msel-model-row">' +
+                   '<div class="cgm-msel-row-top">' +
+                     '<span class="cgm-msel-model-lbl" title="' + v + '">' + v + '</span>' +
+                     '<div class="cgm-msel-stepper">' +
+                       '<button type="button" class="cgm-stepper-btn" onclick="cgmQtyChange(this,-1)">&#8722;</button>' +
+                       '<span class="cgm-stepper-val">' + qty + '</span>' +
+                       '<button type="button" class="cgm-stepper-btn" onclick="cgmQtyChange(this,+1)">+</button>' +
+                     '</div>' +
+                   '</div>' +
+                   '<input type="hidden" class="cgm-msel-qty" value="' + qty + '" data-equipo="' + v + '">' +
+                   selHtml +
+                 '</div>';
+        }).join('');
+      }
+
+      function _mselEquiposConModelo(mselId) {
+        var vals      = _mselVals(mselId);
+        var modelsDiv = document.getElementById(
+          mselId === 'cgmMselAlq' ? 'cgmModelsAlq' : 'cgmModelsUsd'
+        );
+        return vals.map(function(v) {
+          var modelo = '', cant = 1;
+          if (modelsDiv) {
+            var sel = Array.from(modelsDiv.querySelectorAll('.cgm-msel-model-sel'))
+                          .find(function(s){ return s.dataset.equipo === v; });
+            if (sel) modelo = sel.value.trim();
+            var qtyEl = Array.from(modelsDiv.querySelectorAll('.cgm-msel-qty'))
+                            .find(function(q){ return q.dataset.equipo === v; });
+            if (qtyEl) cant = Math.max(1, parseInt(qtyEl.value, 10) || 1);
+          }
+          return { equipo: v, modelo: modelo, cant: cant };
+        });
+      }
+
+      window.cgmMselRemove = function (id, val) {
+        var cb = Array.from(document.querySelectorAll('#' + id + ' input[type="checkbox"]'))
+                      .find(function(c){ return c.value === val; });
+        if (cb) {
+          cb.checked = false;
+          var tag = _mselConfig ? _mselConfig[id] : (id === 'cgmMselAlq' ? 'alquiler' : 'usados');
+          _mselUpdateChips(id);
+          _mselUpdateModels(id, tag);
+        }
+      };
+
+      /* wiring checkboxes → chips + models on change */
+      var _mselConfig = { cgmMselAlq: 'alquiler', cgmMselUsd: 'usados' };
+      Object.keys(_mselConfig).forEach(function(id) {
+        var tag = _mselConfig[id];
+        document.addEventListener('change', function(e) {
+          if (e.target.closest && e.target.closest('#' + id)) {
+            _mselUpdateChips(id);
+            _mselUpdateModels(id, tag);
+          }
+        });
+        /* chips container: inject sibling div after the .cgm-msel */
+        var el = document.getElementById(id);
+        if (el) {
+          var chips = document.createElement('div');
+          chips.className = 'cgm-msel-chips';
+          el.parentNode.insertBefore(chips, el.nextSibling);
+        }
+      });
+
+      /* close dropdown on outside click */
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.cgm-msel')) {
+          document.querySelectorAll('.cgm-msel.open').forEach(function(m){ m.classList.remove('open'); });
+        }
+      });
+
+      /* ── flujo modal ─────────────────────────────────────────────────── */
+      window.cgmWspOpen = function () {
+        _showStep('cgmWspStep1');
+        document.getElementById('cgmWspModal').style.display = 'flex';
+      };
+      window.cgmWspClose = function () {
+        document.getElementById('cgmWspModal').style.display = 'none';
+        document.querySelectorAll('.cgm-msel.open').forEach(function(m){ m.classList.remove('open'); });
+      };
+      window.cgmWspSelect = function (type) {
+        var map = { alquiler:'cgmWspFormAlquiler', usados:'cgmWspFormUsados', otras:'cgmWspFormOtras' };
+        _showStep(map[type]);
+      };
+      window.cgmWspBack = function () {
+        document.querySelectorAll('.cgm-msel.open').forEach(function(m){ m.classList.remove('open'); });
+        _showStep('cgmWspStep1');
+      };
+
+      /* ── envío ───────────────────────────────────────────────────────── */
+      window.cgmWspSend = function (e, type) {
+        e.preventDefault();
+        var base = 'Hola, vengo desde la Web de CGM Rental, quisiera mayor información.';
+        var extra = '', ok = true;
+
+        if (type === 'alquiler') {
+          var ruc     = _val('wspAlqRuc');
+          var nombre  = cgmTitleCase(_val('wspAlqNombre'));
+          var equipos = _mselVals('cgmMselAlq');
+          var tiempo  = _val('wspAlqTiempo');
+
+          var eRuc = _esAr ? _validarCuit(ruc) : _validarRuc20(ruc);
+          var eNom = _validarNombre(nombre);
+          var eEqp = equipos.length ? null : (_esAr ? 'Seleccioná al menos un equipo.' : 'Selecciona al menos un equipo.');
+          var eMod = eEqp ? null : _validarModelos('cgmMselAlq');
+          var eTmp = _validarSelect(tiempo, _esAr ? 'el período' : 'el periodo');
+
+          _setErr('wspAlqRucErr',    eRuc);
+          _setErr('wspAlqNombreErr', eNom);
+          _setErr('wspAlqEquipoErr', eEqp || eMod);
+          if (eEqp) document.getElementById('cgmMselAlq').classList.add('wsp-err');
+          else      document.getElementById('cgmMselAlq').classList.remove('wsp-err');
+          _setErr('wspAlqTiempoErr', eTmp);
+          if (eRuc || eNom || eEqp || eMod || eTmp) return;
+
+          document.getElementById('wspAlqNombre').value = nombre;
+          base = _esAr
+            ? 'Hola, me comunico desde la web de CGM Rental para consultar por *alquiler de equipo*.'
+            : 'Hola, me contacto desde la web de CGM Rental para consultar por *alquiler de equipo*.';
+          var eqData  = _mselEquiposConModelo('cgmMselAlq');
+          var eVerbo  = eqData.length === 1 ? 'Me interesa el siguiente equipo:' : 'Me interesan los siguientes equipos:';
+          var eLineas = eqData.map(function(e){
+            return '• ' + e.cant + 'x ' + (e.modelo || e.equipo);
+          }).join('\n');
+          extra = '\n\n*Datos de contacto:*' +
+                  '\n• ' + (_esAr ? 'CUIT empresa' : 'RUC empresa') + ': ' + ruc +
+                  '\n• Contacto: ' + nombre +
+                  '\n\n*' + eVerbo + '*' +
+                  '\n' + eLineas +
+                  '\n\n*Tiempo estimado:* ' + tiempo +
+                  '\n\n¡Gracias, quedo a la espera de su respuesta!';
+
+        } else if (type === 'usados') {
+          var doc     = _val('wspUsdDoc');
+          var nombre  = cgmTitleCase(_val('wspUsdNombre'));
+          var equipos = _mselVals('cgmMselUsd');
+
+          var eDoc = _validarDoc(doc);
+          var eNom = _validarNombre(nombre);
+          var eEqp = equipos.length ? null : 'Selecciona al menos un equipo.';
+          var eMod = eEqp ? null : _validarModelos('cgmMselUsd');
+
+          _setErr('wspUsdDocErr',    eDoc);
+          _setErr('wspUsdNombreErr', eNom);
+          _setErr('wspUsdEquipoErr', eEqp || eMod);
+          if (eEqp) document.getElementById('cgmMselUsd').classList.add('wsp-err');
+          else      document.getElementById('cgmMselUsd').classList.remove('wsp-err');
+          if (eDoc || eNom || eEqp || eMod) return;
+
+          document.getElementById('wspUsdNombre').value = nombre;
+          base = 'Hola, me contacto desde la web de CGM Rental para consultar por *equipos usados*.';
+          var docLabel = doc.length === 8 ? 'DNI' : 'RUC';
+          var uqData  = _mselEquiposConModelo('cgmMselUsd');
+          var uVerbo  = uqData.length === 1 ? 'Me interesa el siguiente equipo:' : 'Me interesan los siguientes equipos:';
+          var uLineas = uqData.map(function(e){
+            return '• ' + e.cant + 'x ' + (e.modelo || e.equipo);
+          }).join('\n');
+          extra = '\n\n*Mis datos:*' +
+                  '\n• ' + docLabel + ': ' + doc +
+                  '\n• Nombre: ' + nombre +
+                  '\n\n*' + uVerbo + '*' +
+                  '\n' + uLineas +
+                  '\n\n¡Gracias, quedo a la espera de su respuesta!';
+
+        } else if (type === 'otras') {
+          var consulta = _val('wspOtrasTexto');
+          _setErr('wspOtrasTextoErr', consulta ? '' : (_esAr ? 'Escribí tu consulta.' : 'Escribe tu consulta.'));
+          if (!consulta) { document.getElementById('wspOtrasTexto').classList.add('wsp-err'); return; }
+          fetch('/api/validar-consulta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texto: consulta })
+          })
+          .then(function(r){ return r.json(); })
+          .then(function(data) {
+            if (!data.ok) {
+              _setErr('wspOtrasTextoErr', data.error || 'Por favor usa un lenguaje apropiado.');
+              document.getElementById('wspOtrasTexto').classList.add('wsp-err');
+              return;
+            }
+            var msgOtras = base + '\n\nTengo la siguiente consulta:' +
+                           '\n\n' + consulta +
+                           '\n\n¡Gracias, quedo a la espera de su respuesta!';
+            window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), '_blank');
+            cgmWspClose();
+          })
+          .catch(function() {
+            var msgOtras = base + '\n\nTengo la siguiente consulta:' +
+                           '\n\n' + consulta +
+                           '\n\n¡Gracias, quedo a la espera de su respuesta!';
+            window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), '_blank');
+            cgmWspClose();
+          });
+          return;
+        }
+
+        var msg = encodeURIComponent(base + extra);
+        window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + msg, '_blank');
+        cgmWspClose();
+      };
+
+      /* ── stepper de cantidad ─────────────────────────────────────────────── */
+      window.cgmQtyChange = function(btn, delta) {
+        var stepper = btn.parentNode;
+        var display = stepper.querySelector('.cgm-stepper-val');
+        var val = parseInt(display.textContent, 10) || 1;
+        val = Math.max(1, Math.min(99, val + delta));
+        display.textContent = val;
+        var hidden = btn.closest('.cgm-msel-model-row').querySelector('.cgm-msel-qty');
+        if (hidden) hidden.value = val;
+      };
+    })();
+  </script>
 
   <!-- ── Sistema global de notificaciones decoradas (cgmNotify) ─────────────── -->
   <style>
@@ -373,6 +1135,16 @@
     lines.forEach(function (el) { obs.observe(el); });
   })();
 
+  </script>
+  <script>
+    (function() {
+      var _titulo = document.title;
+      document.addEventListener('visibilitychange', function() {
+        document.title = document.hidden
+          ? '👋 ¡Vuelve pronto! Te esperamos'
+          : _titulo;
+      });
+    })();
   </script>
 </body>
 </html>
