@@ -273,6 +273,25 @@
             <span class="cgm-wsp-err-msg" id="wspAlqEquipoErr"></span>
           </div>
           <div class="cgm-wsp-field">
+            <label class="cgm-wsp-radio-title">¿En qué plazo necesitas alquilar la maquinaria?</label>
+            <div class="cgm-wsp-radio-group" id="wspAlqPlazoGroup">
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_alquiler" value="De inmediato / en esta semana"> De inmediato / en esta semana</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_alquiler" value="Dentro de 1 a 3 meses"> Dentro de 1 a 3 meses</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_alquiler" value="Más adelante (cotización referencial)"> Más adelante (cotización referencial)</label>
+            </div>
+            <span class="cgm-wsp-err-msg" id="wspAlqPlazoErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label class="cgm-wsp-radio-title">¿En qué etapa se encuentra tu proyecto?</label>
+            <div class="cgm-wsp-radio-group" id="wspAlqEtapaGroup">
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="etapa_proyecto" value="Proyecto en ejecución"> Proyecto en ejecución</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="etapa_proyecto" value="Proyecto adjudicado, próximo a iniciar"> Proyecto adjudicado, próximo a iniciar</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="etapa_proyecto" value="En evaluación técnica o presupuestal"> En evaluación técnica o presupuestal</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="etapa_proyecto" value="Solo estoy comparando precios"> Solo estoy comparando precios</label>
+            </div>
+            <span class="cgm-wsp-err-msg" id="wspAlqEtapaErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
             <label for="wspAlqTiempo">Tiempo de alquiler</label>
             <select id="wspAlqTiempo">
               <option value="">&#8212; {% if country_code == 'ar' %}Seleccioná{% else %}Selecciona{% endif %} el período &#8212;</option>
@@ -323,6 +342,36 @@
             </div>
             <div class="cgm-msel-models" id="cgmModelsUsd"></div>
             <span class="cgm-wsp-err-msg" id="wspUsdEquipoErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label class="cgm-wsp-radio-title">¿Cuándo tienes previsto comprar la maquinaria?</label>
+            <div class="cgm-wsp-radio-group" id="wspUsdPlazoGroup">
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_compra" value="De inmediato / esta semana"> De inmediato / esta semana</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_compra" value="En las próximas 2 a 4 semanas"> En las próximas 2 a 4 semanas</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_compra" value="Dentro de 1 a 3 meses"> Dentro de 1 a 3 meses</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="plazo_compra" value="Más adelante / solo cotización referencial"> Más adelante / solo cotización referencial</label>
+            </div>
+            <span class="cgm-wsp-err-msg" id="wspUsdPlazoErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label class="cgm-wsp-radio-title">¿Ya cuentas con presupuesto aprobado para la compra?</label>
+            <div class="cgm-wsp-radio-group" id="wspUsdPresuGroup">
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="presupuesto" value="Sí, cuento con presupuesto aprobado"> Sí, cuento con presupuesto aprobado</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="presupuesto" value="Estoy evaluando opciones según precio y estado del equipo"> Estoy evaluando opciones según precio y estado del equipo</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="presupuesto" value="Necesito financiamiento"> Necesito financiamiento</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="presupuesto" value="Solo estoy cotizando de manera referencial"> Solo estoy cotizando de manera referencial</label>
+            </div>
+            <span class="cgm-wsp-err-msg" id="wspUsdPresuErr"></span>
+          </div>
+          <div class="cgm-wsp-field">
+            <label class="cgm-wsp-radio-title">¿Qué modalidad de compra prefieres?</label>
+            <div class="cgm-wsp-radio-group" id="wspUsdModalGroup">
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="modalidad_compra" value="Pago al contado"> Pago al contado</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="modalidad_compra" value="Inicial + financiamiento"> Inicial + financiamiento</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="modalidad_compra" value="Financiamiento completo"> Financiamiento completo</label>
+              <label class="cgm-wsp-radio-opt"><input type="radio" name="modalidad_compra" value="Aún estoy evaluando la mejor opción"> Aún estoy evaluando la mejor opción</label>
+            </div>
+            <span class="cgm-wsp-err-msg" id="wspUsdModalErr"></span>
           </div>
           <button type="submit" class="cgm-wsp-send-btn">Enviar por WhatsApp &#8594;</button>
         </form>
@@ -470,6 +519,28 @@
     }
     .cgm-wsp-field label small {
       font-weight: 400; color: #999; font-size: 10px;
+    }
+    /* ── Preguntas de calificación (radio) ── */
+    .cgm-wsp-radio-title {
+      font-size: 12px; font-weight: 700; color: #555;
+      font-family: 'Estricta', sans-serif; letter-spacing: .3px;
+      display: block; margin-bottom: 2px;
+    }
+    .cgm-wsp-radio-group {
+      display: flex; flex-direction: column; gap: 6px;
+      border-radius: 8px; transition: outline-color .2s;
+    }
+    .cgm-wsp-radio-opt {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 13px; font-family: 'Estricta', sans-serif;
+      font-weight: 400; color: #333; cursor: pointer;
+    }
+    .cgm-wsp-radio-opt input[type="radio"] {
+      accent-color: #02534c; width: 15px; height: 15px; cursor: pointer;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .cgm-wsp-radio-group.wsp-err {
+      outline: 1.5px solid #e53e3e; outline-offset: 4px;
     }
     /* ── Multi-select equipos ── */
     .cgm-msel { position: relative; }
@@ -638,6 +709,21 @@
       function _validarSelect(val, label) {
         if (!val) return (_esAr ? 'Seleccioná ' : 'Selecciona ') + (label || 'una opción') + '.';
         return null;
+      }
+
+      function _radioVal(name) {
+        var checked = document.querySelector('input[name="' + name + '"]:checked');
+        return checked ? checked.value : '';
+      }
+
+      function _validarRadio(name) {
+        if (!_radioVal(name)) return _esAr ? 'Seleccioná una opción.' : 'Selecciona una opción.';
+        return null;
+      }
+
+      function _setRadioGroupErr(groupId, hasErr) {
+        var el = document.getElementById(groupId);
+        if (el) el.classList.toggle('wsp-err', !!hasErr);
       }
 
       function _validarModelos(mselId) {
@@ -822,21 +908,29 @@
           var ruc     = _val('wspAlqRuc');
           var nombre  = cgmTitleCase(_val('wspAlqNombre'));
           var equipos = _mselVals('cgmMselAlq');
+          var plazo   = _radioVal('plazo_alquiler');
+          var etapa   = _radioVal('etapa_proyecto');
           var tiempo  = _val('wspAlqTiempo');
 
-          var eRuc = _esAr ? _validarCuit(ruc) : _validarRuc20(ruc);
-          var eNom = _validarNombre(nombre);
-          var eEqp = equipos.length ? null : (_esAr ? 'Seleccioná al menos un equipo.' : 'Selecciona al menos un equipo.');
-          var eMod = eEqp ? null : _validarModelos('cgmMselAlq');
-          var eTmp = _validarSelect(tiempo, _esAr ? 'el período' : 'el periodo');
+          var eRuc   = _esAr ? _validarCuit(ruc) : _validarRuc20(ruc);
+          var eNom   = _validarNombre(nombre);
+          var eEqp   = equipos.length ? null : (_esAr ? 'Seleccioná al menos un equipo.' : 'Selecciona al menos un equipo.');
+          var eMod   = eEqp ? null : _validarModelos('cgmMselAlq');
+          var ePlazo = _validarRadio('plazo_alquiler');
+          var eEtapa = _validarRadio('etapa_proyecto');
+          var eTmp   = _validarSelect(tiempo, _esAr ? 'el período' : 'el periodo');
 
           _setErr('wspAlqRucErr',    eRuc);
           _setErr('wspAlqNombreErr', eNom);
           _setErr('wspAlqEquipoErr', eEqp || eMod);
           if (eEqp) document.getElementById('cgmMselAlq').classList.add('wsp-err');
           else      document.getElementById('cgmMselAlq').classList.remove('wsp-err');
+          _setErr('wspAlqPlazoErr', ePlazo);
+          _setRadioGroupErr('wspAlqPlazoGroup', ePlazo);
+          _setErr('wspAlqEtapaErr', eEtapa);
+          _setRadioGroupErr('wspAlqEtapaGroup', eEtapa);
           _setErr('wspAlqTiempoErr', eTmp);
-          if (eRuc || eNom || eEqp || eMod || eTmp) return;
+          if (eRuc || eNom || eEqp || eMod || ePlazo || eEtapa || eTmp) return;
 
           document.getElementById('wspAlqNombre').value = nombre;
           base = _esAr
@@ -852,25 +946,39 @@
                   '\n• Contacto: ' + nombre +
                   '\n\n*' + eVerbo + '*' +
                   '\n' + eLineas +
-                  '\n\n*Tiempo estimado:* ' + tiempo +
+                  '\n\n*Plazo para alquilar:* ' + plazo +
+                  '\n*Etapa del proyecto:* ' + etapa +
+                  '\n*Tiempo estimado:* ' + tiempo +
                   '\n\n¡Gracias, quedo a la espera de su respuesta!';
 
         } else if (type === 'usados') {
           var doc     = _val('wspUsdDoc');
           var nombre  = cgmTitleCase(_val('wspUsdNombre'));
           var equipos = _mselVals('cgmMselUsd');
+          var plazoC  = _radioVal('plazo_compra');
+          var presu   = _radioVal('presupuesto');
+          var modal   = _radioVal('modalidad_compra');
 
-          var eDoc = _validarDoc(doc);
-          var eNom = _validarNombre(nombre);
-          var eEqp = equipos.length ? null : 'Selecciona al menos un equipo.';
-          var eMod = eEqp ? null : _validarModelos('cgmMselUsd');
+          var eDoc    = _validarDoc(doc);
+          var eNom    = _validarNombre(nombre);
+          var eEqp    = equipos.length ? null : 'Selecciona al menos un equipo.';
+          var eMod    = eEqp ? null : _validarModelos('cgmMselUsd');
+          var ePlazoC = _validarRadio('plazo_compra');
+          var ePresu  = _validarRadio('presupuesto');
+          var eModal  = _validarRadio('modalidad_compra');
 
           _setErr('wspUsdDocErr',    eDoc);
           _setErr('wspUsdNombreErr', eNom);
           _setErr('wspUsdEquipoErr', eEqp || eMod);
           if (eEqp) document.getElementById('cgmMselUsd').classList.add('wsp-err');
           else      document.getElementById('cgmMselUsd').classList.remove('wsp-err');
-          if (eDoc || eNom || eEqp || eMod) return;
+          _setErr('wspUsdPlazoErr', ePlazoC);
+          _setRadioGroupErr('wspUsdPlazoGroup', ePlazoC);
+          _setErr('wspUsdPresuErr', ePresu);
+          _setRadioGroupErr('wspUsdPresuGroup', ePresu);
+          _setErr('wspUsdModalErr', eModal);
+          _setRadioGroupErr('wspUsdModalGroup', eModal);
+          if (eDoc || eNom || eEqp || eMod || ePlazoC || ePresu || eModal) return;
 
           document.getElementById('wspUsdNombre').value = nombre;
           base = 'Hola, me contacto desde la web de CGM Rental para consultar por *equipos usados*.';
@@ -885,6 +993,9 @@
                   '\n• Nombre: ' + nombre +
                   '\n\n*' + uVerbo + '*' +
                   '\n' + uLineas +
+                  '\n\n*Plazo de compra:* ' + plazoC +
+                  '\n*Presupuesto:* ' + presu +
+                  '\n*Modalidad de compra:* ' + modal +
                   '\n\n¡Gracias, quedo a la espera de su respuesta!';
 
         } else if (type === 'otras') {
