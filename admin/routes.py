@@ -462,6 +462,29 @@ def _save_producto(pid):
         flash("Advertencia: el producto no tiene ningún país seleccionado y no será visible en ningún sitio.", "warning")
 
     conn = get_conn()
+
+    # Verificar que el slug no esté en uso por OTRO producto antes de tocar
+    # nada (evita IntegrityError feo cuando dos equipos comparten el mismo
+    # nombre base y solo se diferencian por el código CIP).
+    query = "SELECT id, nombre FROM products WHERE slug=?"
+    params = [slug]
+    if pid is not None:
+        query += " AND id != ?"
+        params.append(pid)
+    conflicto = conn.execute(query, params).fetchone()
+    if conflicto:
+        conn.close()
+        flash(
+            f"No se pudo guardar: el nombre/slug \"{slug}\" ya lo usa el producto "
+            f"\"{conflicto['nombre']}\" (ID {conflicto['id']}). Cambia el nombre o "
+            f"edita el campo Slug manualmente para diferenciarlos (por ejemplo, "
+            f"agregando el código CIP al slug).",
+            "danger",
+        )
+        if pid is None:
+            return redirect(request.referrer or url_for("admin.productos"))
+        return redirect(url_for("admin.producto_editar", pid=pid))
+
     if pid is None:
         conn.execute(
             """INSERT INTO products
