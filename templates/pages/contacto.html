@@ -99,6 +99,97 @@
   .cgm-sunat-fb.loading { color:#9aa; }
   .cgm-sunat-fb.ok      { color:#22a36b; }
   .cgm-sunat-fb.err     { color:#d94f4f; }
+
+  /* ── Paso 3: resumen de confirmación ── */
+  .cgm-resumen-badge-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .cgm-resumen-badge-titulo {
+    color: rgba(255,255,255,.6);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .cgm-resumen-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cgm-lima, #c4e76c);
+    color: #02534c;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(196,231,108,.25);
+  }
+  .cgm-resumen-badge--compra {
+    background: var(--cgm-verde, #02534c);
+    color: var(--cgm-lima, #c4e76c);
+    border: 1.5px solid var(--cgm-lima, #c4e76c);
+    box-shadow: none;
+  }
+  .cgm-resumen-box {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .cgm-resumen-seccion {
+    color: var(--cgm-lima, #c4e76c);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: 12px 16px 4px;
+    opacity: .85;
+  }
+  .cgm-resumen-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    font-size: 13px;
+  }
+  .cgm-resumen-fila:last-child { border-bottom: none; }
+  .cgm-resumen-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,.65);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .cgm-resumen-label i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(196,231,108,.14);
+    color: var(--cgm-lima, #c4e76c);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .cgm-resumen-valor {
+    color: #fff;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+  }
+  @media (max-width: 500px) {
+    .cgm-resumen-fila { flex-direction: column; gap: 3px; }
+    .cgm-resumen-valor { text-align: left; padding-left: 24px; }
+  }
 </style>
 {% endblock %}
 
@@ -423,10 +514,34 @@
                   <i class="bi bi-arrow-left me-1"></i>Volver
                 </button>
                 <button type="submit" id="sfcSubmitBtn" class="cgm-btn cgm-btn-lima" disabled>
-                  SOLICITAR INFORMACIÓN
+                  REVISAR PEDIDO <i class="bi bi-arrow-right ms-1"></i>
                 </button>
               </div>
             </div>{# /sfcStep2 #}
+
+            {# ══════════ PASO 3 — Confirmación antes de enviar ══════════ #}
+            <div class="row g-3" id="sfcStep3" style="display:none;">
+              <div class="col-12">
+                <p class="cgm-contacto-card-title">Revisa tus datos antes de enviar</p>
+              </div>
+              <div class="col-12">
+                <div class="cgm-resumen-box">
+                  <div class="cgm-resumen-badge-wrap">
+                    <span class="cgm-resumen-badge-titulo">Tipo de operación</span>
+                    <span class="cgm-resumen-badge" id="sfcResumenTipo"></span>
+                  </div>
+                  <div id="sfcResumen"></div>
+                </div>
+              </div>
+              <div class="col-12 d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <button type="button" id="sfcBtnAtras2" class="cgm-btn-volver-sfc">
+                  <i class="bi bi-arrow-left me-1"></i>Volver a editar
+                </button>
+                <button type="submit" id="sfcConfirmBtn" class="cgm-btn cgm-btn-lima">
+                  <i class="bi bi-check2-circle me-1"></i>Confirmar y Enviar
+                </button>
+              </div>
+            </div>{# /sfcStep3 #}
           </form>
         </div>
       </div>
@@ -823,12 +938,17 @@
   var pregAlquiler  = document.getElementById('sfcPreguntasAlquiler');
   var pregCompra    = document.getElementById('sfcPreguntasCompra');
   var btnSubmit     = document.getElementById('sfcSubmitBtn');
+  var step3Wrapper  = document.getElementById('sfcStep3');
+  var btnAtras2     = document.getElementById('sfcBtnAtras2');
+  var btnConfirm    = document.getElementById('sfcConfirmBtn');
+  var resumenBox    = document.getElementById('sfcResumen');
 
   function mostrarPaso2() {
     /* Muestra las preguntas correspondientes según tipo seleccionado */
     if (pregAlquiler) pregAlquiler.style.display = (chkAlq && chkAlq.checked) ? '' : 'none';
     if (pregCompra)   pregCompra.style.display   = (chkCom && chkCom.checked) ? '' : 'none';
     step1Wrapper.style.display = 'none';
+    step3Wrapper.style.display = 'none';
     step2Wrapper.style.display = '';
     actualizarEstadoSubmit();
     /* Scroll suave al inicio del paso 2 */
@@ -839,9 +959,89 @@
 
   function mostrarPaso1() {
     step2Wrapper.style.display = 'none';
+    step3Wrapper.style.display = 'none';
     step1Wrapper.style.display = '';
     if (step1Wrapper.scrollIntoView) {
       step1Wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  /* ════════ Paso 3: resumen de confirmación ════════ */
+  function _campo(name) {
+    var el = form.querySelector('[name="' + name + '"]:not([disabled])') ||
+             form.querySelector('[name="' + name + '"]');
+    return el ? el.value.trim() : '';
+  }
+  function _checked(name) {
+    var el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+  function _fila(icon, label, valor) {
+    if (!valor) return '';
+    var safe = String(valor).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="cgm-resumen-fila">' +
+           '<span class="cgm-resumen-label"><i class="bi ' + icon + '"></i>' + label + '</span>' +
+           '<span class="cgm-resumen-valor">' + safe + '</span></div>';
+  }
+  function _seccion(titulo) {
+    return '<div class="cgm-resumen-seccion">' + titulo + '</div>';
+  }
+
+  function poblarResumen() {
+    var esAlquiler = !!(chkAlq && chkAlq.checked);
+    var esCompra   = !!(chkCom && chkCom.checked);
+    var tipos = [];
+    if (esAlquiler) tipos.push('Alquiler');
+    if (esCompra)   tipos.push('Compra');
+    var tipoBadge = document.getElementById('sfcResumenTipo');
+    if (tipoBadge) {
+      var soloCompra = esCompra && !esAlquiler;
+      var icono = soloCompra ? 'bi-cart-check' : 'bi-key-fill';
+      tipoBadge.innerHTML = '<i class="bi ' + icono + '"></i> ' + (tipos.join(' + ') || '—');
+      tipoBadge.className = 'cgm-resumen-badge' + (soloCompra ? ' cgm-resumen-badge--compra' : '');
+    }
+
+    var pais = _campo('pais');
+
+    var html = '';
+    html += _seccion('Datos de contacto');
+    html += _fila('bi-card-text', '{% if country_code == "ar" %}CUIT / CUIL{% else %}RUC / DNI{% endif %}', _campo('ruc_dni'));
+    html += _fila('bi-person', 'Nombres y Apellidos', _campo('nombre_apellido'));
+    html += _fila('bi-building', 'Razón Social', _campo('razon_social'));
+    html += _fila('bi-envelope', 'Email', _campo('email'));
+    html += _fila('bi-telephone', 'Celular', _campo('celular'));
+
+    html += _seccion('Detalles del proyecto');
+    html += _fila('bi-flag', 'País del proyecto', pais === 'Otro' ? _campo('otro_pais') : pais);
+    html += _fila('bi-geo-alt', '{% if country_code == "ar" %}Provincia{% else %}Departamento{% endif %} del proyecto', _campo('departamento'));
+    html += _fila('bi-tools', 'Equipo requerido', _campo('equipo_requerido'));
+    if (esAlquiler) {
+      html += _fila('bi-calendar-event', 'Plazo para alquilar', _checked('plazo_alquiler'));
+      html += _fila('bi-signpost-split', 'Etapa del proyecto', _checked('etapa_proyecto'));
+      html += _fila('bi-clock-history', 'Tiempo de alquiler', _checked('tiempo_alquiler'));
+    }
+    if (esCompra) {
+      html += _fila('bi-calendar-event', 'Plazo de compra', _checked('plazo_compra'));
+      html += _fila('bi-cash-coin', 'Presupuesto', _checked('presupuesto'));
+      html += _fila('bi-credit-card', 'Modalidad de compra', _checked('modalidad_compra'));
+    }
+    if (resumenBox) resumenBox.innerHTML = html;
+  }
+
+  function mostrarPaso3() {
+    poblarResumen();
+    step2Wrapper.style.display = 'none';
+    step3Wrapper.style.display = '';
+    if (step3Wrapper.scrollIntoView) {
+      step3Wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function volverAPaso2() {
+    step3Wrapper.style.display = 'none';
+    step2Wrapper.style.display = '';
+    if (step2Wrapper.scrollIntoView) {
+      step2Wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -858,6 +1058,9 @@
   if (btnAtras) {
     btnAtras.addEventListener('click', mostrarPaso1);
   }
+  if (btnAtras2) {
+    btnAtras2.addEventListener('click', volverAPaso2);
+  }
 
   /* Cada vez que cambia un radio o el checkbox de política → actualizar botón */
   form.querySelectorAll('input[type="radio"], #sfcPolitica').forEach(function (el) {
@@ -866,7 +1069,7 @@
   /* Estado inicial del botón submit */
   actualizarEstadoSubmit();
 
-  /* ════════ Submit del formulario (paso 2) ════════ */
+  /* ════════ Submit del formulario (paso 1 → 2 → 3 → envío real) ════════ */
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -876,15 +1079,23 @@
       return;
     }
 
-    /* Validar paso 1 nuevamente (por si el user volvió y cambió algo) y paso 2 */
+    /* Si estamos en el paso 2, validar y pasar a la revisión (paso 3) */
+    if (step2Wrapper.style.display !== 'none') {
+      if (!validarPaso1()) { mostrarPaso1(); return; }
+      if (!validarPaso2(true)) return;
+      mostrarPaso3();
+      return;
+    }
+
+    /* Paso 3: confirmar y enviar de verdad */
     if (!validarPaso1()) { mostrarPaso1(); return; }
-    if (!validarPaso2(true)) return;
+    if (!validarPaso2(true)) { volverAPaso2(); return; }
 
     /* AJAX */
-    var btnTextoOriginal = btnSubmit ? btnSubmit.innerHTML : '';
-    if (btnSubmit) {
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = 'Enviando...';
+    var btnTextoOriginal = btnConfirm ? btnConfirm.innerHTML : '';
+    if (btnConfirm) {
+      btnConfirm.disabled = true;
+      btnConfirm.innerHTML = 'Enviando...';
     }
 
     var fd = new FormData(form);
@@ -903,9 +1114,9 @@
       if (data === null) return;
       if (!data.ok) {
         cgmNotify(data.error || 'No pudimos enviar tu mensaje. Intenta nuevamente.');
-        if (btnSubmit) {
-          btnSubmit.disabled = false;
-          btnSubmit.innerHTML = btnTextoOriginal;
+        if (btnConfirm) {
+          btnConfirm.disabled = false;
+          btnConfirm.innerHTML = btnTextoOriginal;
         }
         return;
       }
@@ -915,9 +1126,9 @@
     })
     .catch(function () {
       cgmNotify('Error de conexión. Verifica tu internet e intenta nuevamente.');
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = btnTextoOriginal;
+      if (btnConfirm) {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = btnTextoOriginal;
       }
     });
   });

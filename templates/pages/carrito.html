@@ -92,6 +92,113 @@
     background: var(--cgm-verde);
     color: #fff;
   }
+
+  /* ── Paso 3: resumen de confirmación ── */
+  .cgm-resumen-badge-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .cgm-resumen-badge-titulo {
+    color: #888;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .cgm-resumen-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--cgm-verde, #02534c);
+    color: #fff;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(2,83,76,.25);
+  }
+  .cgm-resumen-badge--compra {
+    background: var(--cgm-lima, #c4e76c);
+    color: var(--cgm-verde, #02534c);
+    box-shadow: 0 2px 8px rgba(196,231,108,.4);
+  }
+  .cgm-resumen-box {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .cgm-resumen-seccion {
+    color: var(--cgm-verde, #02534c);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: 12px 16px 4px;
+  }
+  .cgm-resumen-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e9e9e9;
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .cgm-resumen-fila:last-child { border-bottom: none; }
+  .cgm-resumen-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #667;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .cgm-resumen-label i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(2,83,76,.09);
+    color: var(--cgm-verde, #02534c);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .cgm-resumen-valor {
+    color: #1a1a1a;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+  }
+  /* Sección de equipos: resaltada, es lo más importante de revisar */
+  .cgm-resumen-seccion--equipos {
+    color: #b5860f;
+    background: rgba(196,231,108,.28);
+    margin-top: 4px;
+  }
+  .cgm-resumen-fila--equipo {
+    background: rgba(196,231,108,.16);
+  }
+  .cgm-resumen-fila--equipo .cgm-resumen-label i {
+    background: var(--cgm-verde, #02534c);
+    color: #fff;
+  }
+  .cgm-resumen-fila--equipo .cgm-resumen-valor {
+    color: var(--cgm-verde, #02534c);
+    font-weight: 800;
+  }
+  @media (max-width: 500px) {
+    .cgm-resumen-fila { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .cgm-resumen-valor { text-align: left; padding-left: 34px; }
+  }
 </style>
 {% endblock %}
 
@@ -562,11 +669,39 @@
                         class="cgm-btn cgm-btn-lima justify-content-center"
                         style="font-size:14px;padding:14px;"
                         disabled>
-                  <i class="bi bi-send-fill me-2"></i>SOLICITAR COTIZACIÓN
+                  REVISAR PEDIDO <i class="bi bi-arrow-right ms-2"></i>
                 </button>
               </div>
 
             </div>{# /sfStep2Cart #}
+
+            {# ══════════ PASO 3 — Confirmación antes de enviar ══════════ #}
+            <div class="row g-3" id="sfStep3Cart" style="display:none;">
+              <div class="col-12">
+                <h3 style="font-size:16px;color:var(--cgm-verde);margin-bottom:6px;font-weight:700;">
+                  Revisa tu cotización antes de enviar
+                </h3>
+              </div>
+              <div class="col-12">
+                <div class="cgm-resumen-box">
+                  <div class="cgm-resumen-badge-wrap">
+                    <span class="cgm-resumen-badge-titulo">Tipo de operación</span>
+                    <span class="cgm-resumen-badge" id="sfResumenTipoCart"></span>
+                  </div>
+                  <div id="sfResumenCart"></div>
+                </div>
+              </div>
+              <div class="col-12 d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <button type="button" id="sfBtnAtras2Cart" class="cgm-btn-volver-cart">
+                  <i class="bi bi-arrow-left me-1"></i>Volver a editar
+                </button>
+                <button type="submit" id="sfConfirmBtnCart"
+                        class="cgm-btn cgm-btn-lima justify-content-center"
+                        style="font-size:14px;padding:14px;">
+                  <i class="bi bi-check2-circle me-2"></i>Confirmar y Enviar
+                </button>
+              </div>
+            </div>{# /sfStep3Cart #}
           </form>
 
         </div>
@@ -749,7 +884,6 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
 (function () {
   /* ── Referencias DOM ────────────────────────────────────────────────── */
   var form         = document.getElementById('sfCartForm');
-  var btnSubmit    = form ? form.querySelector('button[type="submit"]') : null;
   var chkAlq       = document.getElementById('chkAlquiler');
   var chkCom       = document.getElementById('chkCompra');
   var hiddenTipo   = document.getElementById('sfTipoEnvio');
@@ -928,9 +1062,10 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
     if (nuevo === tipoActivo) return;
     tipoActivo = nuevo;
     renderizar();
-    /* Si el usuario ya estaba en Step 2, enviarlo de vuelta al Step 1
-       para que las reglas de RUC y las preguntas del nuevo tipo se apliquen correctamente. */
-    if (step2WrapCart && step2WrapCart.style.display !== 'none') {
+    /* Si el usuario ya estaba en Step 2 o Step 3, enviarlo de vuelta al Step 1
+       para que las reglas de RUC, las preguntas y el resumen del nuevo tipo se apliquen correctamente. */
+    if ((step2WrapCart && step2WrapCart.style.display !== 'none') ||
+        (step3WrapCart && step3WrapCart.style.display !== 'none')) {
       mostrarPaso1Cart();
     }
   }
@@ -1138,11 +1273,17 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
   var pregAlqCart = document.getElementById('sfPreguntasAlquiler');
   var pregComCart = document.getElementById('sfPreguntasCompra');
   var btnSubmitCart = document.getElementById('sfSubmitBtnCart');
+  var step3WrapCart = document.getElementById('sfStep3Cart');
+  var btnAtras2Cart = document.getElementById('sfBtnAtras2Cart');
+  var btnConfirmCart = document.getElementById('sfConfirmBtnCart');
+  var resumenBoxCart = document.getElementById('sfResumenCart');
+  var _itemsParaEnviarCart = [];
 
   function mostrarPaso2Cart() {
     if (pregAlqCart) pregAlqCart.style.display = (tipoActivo === 'alquiler') ? '' : 'none';
     if (pregComCart) pregComCart.style.display = (tipoActivo === 'compra')   ? '' : 'none';
     step1WrapCart.style.display = 'none';
+    step3WrapCart.style.display = 'none';
     step2WrapCart.style.display = '';
     actualizarEstadoSubmitCart();
     if (step2WrapCart.scrollIntoView) {
@@ -1151,11 +1292,112 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
   }
   function mostrarPaso1Cart() {
     step2WrapCart.style.display = 'none';
+    step3WrapCart.style.display = 'none';
     step1WrapCart.style.display = '';
     if (step1WrapCart.scrollIntoView) {
       step1WrapCart.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+
+  /* ════════ Paso 3: resumen de confirmación ════════ */
+  function _campoCart(name) {
+    var el = form.querySelector('[name="' + name + '"]:not([disabled])') ||
+             form.querySelector('[name="' + name + '"]');
+    return el ? el.value.trim() : '';
+  }
+  function _checkedCart(name) {
+    var el = form.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+  function _filaCart(icon, label, valor, modClass) {
+    if (!valor) return '';
+    var safe = String(valor).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="cgm-resumen-fila' + (modClass ? ' ' + modClass : '') + '">' +
+           '<span class="cgm-resumen-label"><i class="bi ' + icon + '"></i>' + label + '</span>' +
+           '<span class="cgm-resumen-valor">' + safe + '</span></div>';
+  }
+  function _seccionCart(titulo, modClass) {
+    return '<div class="cgm-resumen-seccion' + (modClass ? ' ' + modClass : '') + '">' + titulo + '</div>';
+  }
+
+  /* Construye la lista de equipos del tipo activo. Devuelve null si no hay ninguno. */
+  function _construirItemsCart() {
+    var tagDeseado = (tipoActivo === 'compra') ? 'usados' : 'alquiler';
+    var rowsActivas = cartTable.querySelectorAll('tr.cart-item-row[data-tag="' + tagDeseado + '"]');
+    if (rowsActivas.length === 0) return null;
+    var items = [];
+    rowsActivas.forEach(function (row) {
+      var n = row.querySelector('.cgm-item-nombre');
+      var q = row.querySelector('td:nth-child(2) span');
+      if (n) items.push((q ? q.textContent.trim() : '1') + ' x ' + n.textContent.trim().toUpperCase());
+    });
+    return items;
+  }
+
+  function poblarResumenCart() {
+    var tipoBadge = document.getElementById('sfResumenTipoCart');
+    if (tipoBadge) {
+      var esCompraBadge = tipoActivo === 'compra';
+      tipoBadge.innerHTML = '<i class="bi ' + (esCompraBadge ? 'bi-cart-check' : 'bi-key-fill') + '"></i> ' +
+                             (esCompraBadge ? 'Compra' : 'Alquiler');
+      tipoBadge.className = 'cgm-resumen-badge' + (esCompraBadge ? ' cgm-resumen-badge--compra' : '');
+    }
+
+    var pais = _campoCart('pais');
+
+    var html = '';
+    html += _seccionCart('Datos de contacto');
+    html += _filaCart('bi-card-text', '{% if country_code == "ar" %}CUIT / CUIL{% else %}RUC / DNI{% endif %}', _campoCart('ruc_dni'));
+    html += _filaCart('bi-person', 'Nombres y Apellidos', _campoCart('nombre_apellido'));
+    html += _filaCart('bi-building', 'Razón Social', _campoCart('razon_social'));
+    html += _filaCart('bi-envelope', 'Email', _campoCart('email'));
+    html += _filaCart('bi-telephone', 'Celular', _campoCart('celular'));
+
+    html += _seccionCart('Detalles del proyecto');
+    html += _filaCart('bi-flag', 'País del proyecto', pais === 'Otro' ? _campoCart('otro_pais') : pais);
+    html += _filaCart('bi-geo-alt', '{% if country_code == "ar" %}Provincia{% else %}Departamento{% endif %} del proyecto', _campoCart('departamento'));
+    if (tipoActivo === 'alquiler') {
+      html += _filaCart('bi-calendar-event', 'Plazo para alquilar', _checkedCart('plazo_alquiler'));
+      html += _filaCart('bi-signpost-split', 'Etapa del proyecto', _checkedCart('etapa_proyecto'));
+      html += _filaCart('bi-clock-history', 'Tiempo de alquiler', _checkedCart('tiempo_alquiler'));
+    } else {
+      html += _filaCart('bi-calendar-event', 'Plazo de compra', _checkedCart('plazo_compra'));
+      html += _filaCart('bi-cash-coin', 'Presupuesto', _checkedCart('presupuesto'));
+      html += _filaCart('bi-credit-card', 'Modalidad de compra', _checkedCart('modalidad_compra'));
+    }
+
+    if (_itemsParaEnviarCart.length) {
+      html += _seccionCart('Equipos a cotizar', 'cgm-resumen-seccion--equipos');
+      _itemsParaEnviarCart.forEach(function (it) {
+        html += _filaCart('bi-truck', '', it, 'cgm-resumen-fila--equipo')
+                  .replace('<span class="cgm-resumen-label">', '<span class="cgm-resumen-label" style="flex:1">');
+      });
+    }
+    if (resumenBoxCart) resumenBoxCart.innerHTML = html;
+  }
+
+  function mostrarPaso3Cart() {
+    var items = _construirItemsCart();
+    if (!items) {
+      cgmNotify('No hay equipos del tipo seleccionado en el carrito.');
+      return;
+    }
+    _itemsParaEnviarCart = items;
+    poblarResumenCart();
+    step2WrapCart.style.display = 'none';
+    step3WrapCart.style.display = '';
+    if (step3WrapCart.scrollIntoView) {
+      step3WrapCart.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  function volverAPaso2Cart() {
+    step3WrapCart.style.display = 'none';
+    step2WrapCart.style.display = '';
+    if (step2WrapCart.scrollIntoView) {
+      step2WrapCart.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   function actualizarEstadoSubmitCart() {
     if (!btnSubmitCart) return;
     btnSubmitCart.disabled = !validarPaso2Cart(false);
@@ -1167,6 +1409,9 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
   }
   if (btnAtrasCart) {
     btnAtrasCart.addEventListener('click', mostrarPaso1Cart);
+  }
+  if (btnAtras2Cart) {
+    btnAtras2Cart.addEventListener('click', volverAPaso2Cart);
   }
   form.querySelectorAll('input[type="radio"], #sfPolitica').forEach(function (el) {
     el.addEventListener('change', actualizarEstadoSubmitCart);
@@ -1183,30 +1428,31 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
       return;
     }
 
-    /* Validar paso 1 nuevamente (por si volvieron y cambiaron algo) */
-    if (!validarPaso1Cart()) { mostrarPaso1Cart(); return; }
-    /* Validar paso 2: preguntas filtro + política */
-    if (!validarPaso2Cart(true)) return;
-
-    /* Construir detalle_equipos solo con los del tipo activo */
-    var tagDeseado = (tipoActivo === 'compra') ? 'usados' : 'alquiler';
-    var rowsActivas = cartTable.querySelectorAll('tr.cart-item-row[data-tag="' + tagDeseado + '"]');
-    if (rowsActivas.length === 0) {
-      cgmNotify('No hay equipos del tipo seleccionado en el carrito.'); return;
+    /* Si estamos en el paso 2, validar y pasar a la revisión (paso 3) */
+    if (step2WrapCart.style.display !== 'none') {
+      if (!validarPaso1Cart()) { mostrarPaso1Cart(); return; }
+      if (!validarPaso2Cart(true)) return;
+      mostrarPaso3Cart();
+      return;
     }
-    var items = [];
-    rowsActivas.forEach(function (row) {
-      var n = row.querySelector('.cgm-item-nombre');
-      var q = row.querySelector('td:nth-child(2) span');
-      if (n) items.push((q ? q.textContent.trim() : '1') + ' x ' + n.textContent.trim().toUpperCase());
-    });
-    if (hiddenDetalle) hiddenDetalle.value = items.join('<br>');
+
+    /* Paso 3: confirmar y enviar de verdad */
+    if (!validarPaso1Cart()) { mostrarPaso1Cart(); return; }
+    if (!validarPaso2Cart(true)) { volverAPaso2Cart(); return; }
+
+    /* Reutiliza los equipos ya calculados/mostrados en el resumen (paso 3) */
+    if (!_itemsParaEnviarCart.length) {
+      cgmNotify('No hay equipos del tipo seleccionado en el carrito.');
+      volverAPaso2Cart();
+      return;
+    }
+    if (hiddenDetalle) hiddenDetalle.value = _itemsParaEnviarCart.join('<br>');
 
     /* Mitigación #1: deshabilitar botón + spinner */
-    var btnOriginalHtml = btnSubmit ? btnSubmit.innerHTML : '';
-    if (btnSubmit) {
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Enviando...';
+    var btnOriginalHtml = btnConfirmCart ? btnConfirmCart.innerHTML : '';
+    if (btnConfirmCart) {
+      btnConfirmCart.disabled = true;
+      btnConfirmCart.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Enviando...';
     }
 
     /* AJAX submit */
@@ -1226,7 +1472,7 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
           return;
         }
         cgmNotify(res.body.error || 'No pudimos enviar tu cotización.');
-        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
+        if (btnConfirmCart) { btnConfirmCart.disabled = false; btnConfirmCart.innerHTML = btnOriginalHtml; }
         return;
       }
 
@@ -1265,7 +1511,7 @@ function mostrarModalMixto(tipoEnviado, tiposRestantes) {
     .catch(function (err) {
       console.error('Error al enviar cotización:', err);
       cgmNotify('Error de conexión. Verifica tu internet e intenta nuevamente.');
-      if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = btnOriginalHtml; }
+      if (btnConfirmCart) { btnConfirmCart.disabled = false; btnConfirmCart.innerHTML = btnOriginalHtml; }
       /* Reset Turnstile para que el siguiente intento sea válido */
       if (window.turnstile) { try { turnstile.reset(); } catch(e) {} }
     });
