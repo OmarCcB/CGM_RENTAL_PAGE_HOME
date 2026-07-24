@@ -45,6 +45,16 @@ def _slugify(text):
     return text
 
 
+def _slug_en_uso(conn, candidate, excluir_pid=None):
+    """Devuelve la fila (id, nombre) del producto que ya usa ese slug, o None si está libre."""
+    query = "SELECT id, nombre FROM products WHERE slug=?"
+    params = [candidate]
+    if excluir_pid is not None:
+        query += " AND id != ?"
+        params.append(excluir_pid)
+    return conn.execute(query, params).fetchone()
+
+
 # ── Audit helper ──────────────────────────────────────────────────────────────
 def log_action(usuario, accion, detalle=""):
     conn = get_conn()
@@ -463,37 +473,34 @@ def _save_producto(pid):
 
     conn = get_conn()
 
-    # Verificar que el slug no esté en uso por OTRO producto antes de tocar
-    # nada (evita IntegrityError feo cuando dos equipos comparten el mismo
-    # nombre base y solo se diferencian por el código CIP).
-    query = "SELECT id, nombre FROM products WHERE slug=?"
-    params = [slug]
-    if pid is not None:
-        query += " AND id != ?"
-        params.append(pid)
-    conflicto = conn.execute(query, params).fetchone()
-    if conflicto:
-        conn.close()
-        flash(
-            f"No se pudo guardar: el nombre/slug \"{slug}\" ya lo usa el producto "
-            f"\"{conflicto['nombre']}\" (ID {conflicto['id']}). Cambia el nombre o "
-            f"edita el campo Slug manualmente para diferenciarlos (por ejemplo, "
-            f"agregando el código CIP al slug).",
-            "danger",
-        )
-        if pid is None:
-            return redirect(request.referrer or url_for("admin.productos"))
-        return redirect(url_for("admin.producto_editar", pid=pid))
+    # Si el slug generado ya lo usa OTRO producto (típico cuando dos equipos
+    # comparten el mismo nombre base y solo se diferencian por el código CIP),
+    # no bloqueamos: se resuelve solo agregando un sufijo único al slug.
+    conflicto = _slug_en_uso(conn, slug, excluir_pid=pid)
 
     if pid is None:
+        # Producto nuevo: todavía no existe un ID para desambiguar, así que si
+        # hay choque se inserta primero con un slug temporal único, y apenas
+        # SQLite asigna el ID real se renombra a "slug-ID".
+        insert_slug = slug if not conflicto else f"{slug}-{os.urandom(4).hex()}"
         conn.execute(
             """INSERT INTO products
                (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, ficha_url)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, ficha_url),
+            (insert_slug, nombre, marca, descripcion, descripcion_texto, tags, tipo, unidad, activo, show_pe, show_arg, a_solicitud, ficha_url),
         )
         conn.commit()
         pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
+        if conflicto:
+            slug = f"{slug}-{pid}"
+            conn.execute("UPDATE products SET slug=? WHERE id=?", (slug, pid))
+            conn.commit()
+            flash(
+                f"Nota: el nombre ya lo usaba el producto \"{conflicto['nombre']}\" "
+                f"(ID {conflicto['id']}), así que a este se le asignó el slug "
+                f"\"{slug}\" para diferenciarlos.",
+                "warning",
+            )
         # Releer la fila completa para sincronizar con el JSON
         new_row = conn.execute("SELECT * FROM products WHERE id=?", (pid,)).fetchone()
         conn.close()
@@ -505,6 +512,26 @@ def _save_producto(pid):
         log_action(current_user().get("email", "?"), "crear_producto", f"ID={pid} nombre={nombre}")
         flash("Producto creado exitosamente.", "success")
     else:
+        if conflicto:
+            slug_alterno = f"{slug}-{pid}"
+            if _slug_en_uso(conn, slug_alterno, excluir_pid=pid):
+                # Caso extremadamente raro: hasta el slug con sufijo de ID choca.
+                conn.close()
+                flash(
+                    f"No se pudo guardar: el nombre ya lo usa el producto "
+                    f"\"{conflicto['nombre']}\" (ID {conflicto['id']}) y no fue posible "
+                    f"generar un slug único automáticamente. Edita el campo Slug manualmente.",
+                    "danger",
+                )
+                return redirect(url_for("admin.producto_editar", pid=pid))
+            slug = slug_alterno
+            flash(
+                f"Nota: el nombre ya lo usaba el producto \"{conflicto['nombre']}\" "
+                f"(ID {conflicto['id']}), así que se le asignó el slug "
+                f"\"{slug}\" a este para diferenciarlos.",
+                "warning",
+            )
+
         # Leer slug ANTERIOR antes de actualizar
         old_row = conn.execute("SELECT slug, imagen, ficha_url FROM products WHERE id=?", (pid,)).fetchone()
         old_slug = old_row["slug"] if old_row else None
