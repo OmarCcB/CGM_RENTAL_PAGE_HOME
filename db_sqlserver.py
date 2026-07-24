@@ -24,7 +24,12 @@ def get_conn():
         "TrustServerCertificate=no;"
         "Connection Timeout=8;"
     )
-    return pyodbc.connect(conn_str, autocommit=False)
+    conn = pyodbc.connect(conn_str, autocommit=False)
+    # Limite de tiempo para CUALQUIER consulta (no solo el login). Sin esto,
+    # una consulta lenta puede bloquear el worker de gunicorn indefinidamente
+    # y evitar que suelte el puerto al reiniciar el servicio.
+    conn.timeout = 10
+    return conn
 
 
 def init_tables():
