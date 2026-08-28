@@ -1320,14 +1320,10 @@
   </div>
   <script>
   (function() {
-    var key = 'cgmPopup_{{ _pa.id }}_{{ _pa.fecha_inicio }}';
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, '1');
-      setTimeout(function() {
-        var el = document.getElementById('cgmPopupOverlay');
-        if (el) el.style.display = 'flex';
-      }, 800);
-    }
+    setTimeout(function() {
+      var el = document.getElementById('cgmPopupOverlay');
+      if (el) el.style.display = 'flex';
+    }, 800);
   })();
   function cgmPopupClose() {
     var el = document.getElementById('cgmPopupOverlay');
