@@ -1905,6 +1905,17 @@ def _save_popup(pid):
     fecha_inicio        = f.get("fecha_inicio", "").strip()
     fecha_fin           = f.get("fecha_fin", "").strip()
     activo              = 1 if f.get("activo") else 0
+    imagen_fit          = f.get("imagen_fit", "cover").strip()
+    boton_activo        = 1 if f.get("boton_activo") else 0
+    boton_texto         = f.get("boton_texto", "Ver más").strip() or "Ver más"
+    boton_color_fondo   = f.get("boton_color_fondo", "#02534C").strip()
+    boton_color_texto   = f.get("boton_color_texto", "#ffffff").strip()
+    boton_tamano        = f.get("boton_tamano", "md").strip()
+    try:
+        boton_pos_x = int(f.get("boton_pos_x", 50))
+        boton_pos_y = int(f.get("boton_pos_y", 85))
+    except (ValueError, TypeError):
+        boton_pos_x, boton_pos_y = 50, 85
 
     if not fecha_inicio or not fecha_fin:
         flash("Las fechas de inicio y fin son obligatorias.", "danger")
@@ -1938,13 +1949,17 @@ def _save_popup(pid):
 
     if pid is None:
         conn.execute(
-            """INSERT INTO popups (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo),
+            """INSERT INTO popups
+               (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
+                imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+                boton_tamano, boton_pos_x, boton_pos_y)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
+             imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             boton_tamano, boton_pos_x, boton_pos_y),
         )
         conn.commit()
         pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
-        # Renombrar imagen con el id real si fue subida como 'new'
         if imagen and "popup_new_" in imagen:
             old_path = os.path.join(current_app.root_path, POPUP_IMAGES_DIR, imagen)
             new_name = imagen.replace("popup_new_", f"popup_{pid}_")
@@ -1959,8 +1974,13 @@ def _save_popup(pid):
     else:
         conn.execute(
             """UPDATE popups SET titulo=?, imagen=?, link_url=?, abrir_nueva_ventana=?,
-               fecha_inicio=?, fecha_fin=?, activo=? WHERE id=?""",
-            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo, pid),
+               fecha_inicio=?, fecha_fin=?, activo=?,
+               imagen_fit=?, boton_activo=?, boton_texto=?, boton_color_fondo=?,
+               boton_color_texto=?, boton_tamano=?, boton_pos_x=?, boton_pos_y=?
+               WHERE id=?""",
+            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
+             imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             boton_tamano, boton_pos_x, boton_pos_y, pid),
         )
         conn.commit()
         log_action(current_user().get("email", "?"), "editar_popup", f"ID={pid}")

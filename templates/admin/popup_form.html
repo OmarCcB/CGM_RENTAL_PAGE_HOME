@@ -7,6 +7,8 @@
 {% endblock %}
 
 {% block content %}
+{% set p = popup or {} %}
+
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
   <h1 class="adm-page-title mb-0">
     <i class="bi bi-megaphone me-2"></i>{{ 'Editar Popup' if popup else 'Nuevo Popup' }}
@@ -17,145 +19,454 @@
 </div>
 
 <form method="post"
-      action="{{ url_for('admin.popup_editar', pid=popup.id) if popup else url_for('admin.popup_nuevo') }}"
-      enctype="multipart/form-data">
+      action="{{ url_for('admin.popup_editar', pid=p.id) if popup else url_for('admin.popup_nuevo') }}"
+      enctype="multipart/form-data"
+      id="popupForm">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="imagen_actual" value="{{ popup.imagen or '' if popup else '' }}">
+  <input type="hidden" name="imagen_actual" value="{{ p.get('imagen','') }}">
+  <input type="hidden" name="boton_pos_x" id="inputPosX" value="{{ p.get('boton_pos_x', 50) }}">
+  <input type="hidden" name="boton_pos_y" id="inputPosY" value="{{ p.get('boton_pos_y', 85) }}">
 
   <div class="row g-4">
-    <!-- Columna principal -->
-    <div class="col-12 col-lg-8">
-      <div class="adm-card">
-        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-info-circle me-1"></i>Información del popup</h6>
+
+    <!-- ── COLUMNA IZQUIERDA: ajustes ──────────────────────── -->
+    <div class="col-12 col-xl-5">
+
+      <!-- Info básica -->
+      <div class="adm-card mb-3">
+        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-info-circle me-1"></i>Información</h6>
 
         <div class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:.85rem;">Título <span style="color:#888;font-weight:400;">(opcional, solo para referencia interna)</span></label>
+          <label class="form-label fw-semibold" style="font-size:.85rem;">Título interno <span style="color:#888;font-weight:400;">(referencia)</span></label>
           <input type="text" name="titulo" class="form-control"
-                 value="{{ popup.titulo or '' if popup else '' }}"
-                 placeholder="Ej: Campaña agosto 2026">
+                 value="{{ p.get('titulo','') }}" placeholder="Ej: Campaña Expomina 2026">
         </div>
 
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.85rem;">Link al hacer clic <span style="color:#888;font-weight:400;">(opcional)</span></label>
-          <input type="url" name="link_url" class="form-control"
-                 value="{{ popup.link_url or '' if popup else '' }}"
-                 placeholder="https://www.ejemplo.com/pagina"
-                 id="linkUrlInput">
-          <div style="font-size:0.78rem;color:#888;margin-top:4px;">
-            Si no se indica link, el popup solo mostrará la imagen y se cierra con la X.
-          </div>
+          <input type="url" name="link_url" id="linkUrlInput" class="form-control"
+                 value="{{ p.get('link_url','') }}" placeholder="https://...">
         </div>
 
         <div class="mb-3" id="nuevaVentanaRow">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="abrir_nueva_ventana"
                    id="abrirNuevaVentana" value="1"
-                   {{ 'checked' if (popup and popup.abrir_nueva_ventana) or not popup else '' }}>
+                   {{ 'checked' if p.get('abrir_nueva_ventana',1) else '' }}>
             <label class="form-check-label" for="abrirNuevaVentana" style="font-size:.85rem;">
               Abrir link en nueva pestaña
             </label>
           </div>
         </div>
 
-        <div class="row g-3">
+        <div class="row g-2">
           <div class="col-6">
             <label class="form-label fw-semibold" style="font-size:.85rem;">Fecha inicio <span class="text-danger">*</span></label>
             <input type="date" name="fecha_inicio" class="form-control" required
-                   value="{{ popup.fecha_inicio or '' if popup else '' }}">
+                   value="{{ p.get('fecha_inicio','') }}">
           </div>
           <div class="col-6">
             <label class="form-label fw-semibold" style="font-size:.85rem;">Fecha fin <span class="text-danger">*</span></label>
             <input type="date" name="fecha_fin" class="form-control" required
-                   value="{{ popup.fecha_fin or '' if popup else '' }}">
+                   value="{{ p.get('fecha_fin','') }}">
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Columna lateral: imagen + estado -->
-    <div class="col-12 col-lg-4">
-      <!-- Imagen -->
+      <!-- Imagen + fit -->
       <div class="adm-card mb-3">
-        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-image me-1"></i>Imagen del popup</h6>
+        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-image me-1"></i>Imagen</h6>
 
-        {% if popup and popup.imagen %}
-        <div class="mb-3 text-center">
-          <img src="{{ url_for('static', filename='images/popups/' + popup.imagen) }}"
-               id="previewImg"
-               style="max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;"
-               onerror="this.style.display='none'">
-          <div style="font-size:0.72rem;color:#888;margin-top:4px;">Imagen actual</div>
-        </div>
-        {% else %}
-        <div id="previewWrapper" style="display:none;margin-bottom:12px;text-align:center;">
-          <img id="previewImg" src="" style="max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;">
-        </div>
-        {% endif %}
-
-        <label class="btn-upload-sm" style="display:flex;align-items:center;gap:8px;cursor:pointer;
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;
                background:#02534C;color:#fff;border:none;border-radius:8px;padding:8px 14px;
-               font-size:0.83rem;justify-content:center;">
+               font-size:0.83rem;justify-content:center;margin-bottom:10px;">
           <i class="bi bi-upload"></i>
-          {{ 'Cambiar imagen' if (popup and popup.imagen) else 'Subir imagen' }}
+          {{ 'Cambiar imagen' if p.get('imagen') else 'Subir imagen' }}
           <input type="file" name="imagen_file" accept=".jpg,.jpeg,.png,.webp"
-                 style="display:none;" onchange="previewPopupImg(this)">
+                 style="display:none;" onchange="onImgChange(this)">
         </label>
-        <div style="font-size:0.75rem;color:#888;margin-top:6px;">
-          JPG, PNG o WebP. Se convierte a WebP automáticamente.
+        <div style="font-size:0.75rem;color:#888;margin-bottom:12px;">JPG, PNG o WebP → se guarda como WebP.</div>
+
+        <label class="form-label fw-semibold" style="font-size:.85rem;">Ajuste de imagen</label>
+        <div class="d-flex gap-2">
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="imagen_fit" value="cover" id="fitCover"
+                   {{ 'checked' if p.get('imagen_fit','cover') == 'cover' else '' }}
+                   onchange="updatePreview()">
+            <div class="fit-option" id="optCover">
+              <i class="bi bi-fullscreen"></i><br>
+              <strong>Extender</strong><br>
+              <span>Llena el espacio (puede recortar)</span>
+            </div>
+          </label>
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="imagen_fit" value="contain" id="fitContain"
+                   {{ 'checked' if p.get('imagen_fit','cover') == 'contain' else '' }}
+                   onchange="updatePreview()">
+            <div class="fit-option" id="optContain">
+              <i class="bi bi-aspect-ratio"></i><br>
+              <strong>Ajustar</strong><br>
+              <span>Imagen completa con márgenes</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Botón CTA -->
+      <div class="adm-card mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-bold mb-0" style="color:#02534C;"><i class="bi bi-cursor me-1"></i>Botón CTA</h6>
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" role="switch"
+                   name="boton_activo" id="botonActivoSwitch" value="1"
+                   {{ 'checked' if p.get('boton_activo') else '' }}
+                   onchange="toggleBotonConfig(); updatePreview();">
+            <label class="form-check-label" for="botonActivoSwitch" style="font-size:.85rem;">Activar botón</label>
+          </div>
+        </div>
+
+        <div id="botonConfig" style="{{ '' if p.get('boton_activo') else 'display:none;' }}">
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.82rem;">Texto del botón</label>
+            <input type="text" name="boton_texto" id="botonTexto" class="form-control form-control-sm"
+                   value="{{ p.get('boton_texto','Ver más') }}" placeholder="Ver más"
+                   oninput="updatePreview()">
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Color fondo</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="color" name="boton_color_fondo" id="botonColorFondo"
+                       value="{{ p.get('boton_color_fondo','#02534C') }}"
+                       style="width:40px;height:32px;border:1px solid #ddd;border-radius:6px;cursor:pointer;padding:2px;"
+                       oninput="updatePreview()">
+                <input type="text" id="botonColorFondoHex"
+                       value="{{ p.get('boton_color_fondo','#02534C') }}"
+                       style="width:80px;font-size:.78rem;" class="form-control form-control-sm"
+                       oninput="document.getElementById('botonColorFondo').value=this.value;updatePreview()">
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Color texto</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="color" name="boton_color_texto" id="botonColorTexto"
+                       value="{{ p.get('boton_color_texto','#ffffff') }}"
+                       style="width:40px;height:32px;border:1px solid #ddd;border-radius:6px;cursor:pointer;padding:2px;"
+                       oninput="updatePreview()">
+                <input type="text" id="botonColorTextoHex"
+                       value="{{ p.get('boton_color_texto','#ffffff') }}"
+                       style="width:80px;font-size:.78rem;" class="form-control form-control-sm"
+                       oninput="document.getElementById('botonColorTexto').value=this.value;updatePreview()">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.82rem;">Tamaño del botón</label>
+            <div class="d-flex gap-2">
+              {% for sz, label in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
+              <label style="flex:1;cursor:pointer;text-align:center;">
+                <input type="radio" name="boton_tamano" value="{{ sz }}" class="d-none"
+                       {{ 'checked' if p.get('boton_tamano','md') == sz else '' }}
+                       onchange="updatePreview()">
+                <div class="size-option size-{{ sz }}">{{ label }}</div>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div style="background:#f0f9f7;border-radius:8px;padding:10px 12px;font-size:.8rem;color:#02534C;">
+            <i class="bi bi-hand-index me-1"></i>
+            <strong>Arrastra el botón</strong> en la vista previa para ajustar su posición.
+          </div>
+        </div>
+
+        <div id="botonInfoSinBoton" style="{{ 'display:none;' if p.get('boton_activo') else '' }}font-size:.8rem;color:#888;">
+          Sin botón: si hay link, la imagen completa es clickeable.
         </div>
       </div>
 
       <!-- Estado -->
-      <div class="adm-card">
+      <div class="adm-card mb-3">
         <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-toggle-on me-1"></i>Estado</h6>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch"
                  name="activo" id="activoSwitch" value="1"
-                 {{ 'checked' if (popup and popup.activo) or not popup else '' }}>
-          <label class="form-check-label" for="activoSwitch" style="font-size:.85rem;">
-            Popup activo
-          </label>
+                 {{ 'checked' if p.get('activo',1) else '' }}>
+          <label class="form-check-label" for="activoSwitch" style="font-size:.85rem;">Popup activo</label>
         </div>
-        <div style="font-size:0.78rem;color:#888;margin-top:6px;">
-          El popup aparece mientras esté activo y dentro del rango de fechas.
+      </div>
+
+      <div class="d-flex gap-3">
+        <button type="submit" class="btn-adm-primary">
+          <i class="bi bi-check-lg me-1"></i>{{ 'Guardar cambios' if popup else 'Crear popup' }}
+        </button>
+        <a href="{{ url_for('admin.popups_list') }}" class="btn-adm-ghost">Cancelar</a>
+      </div>
+    </div>
+
+    <!-- ── COLUMNA DERECHA: vista previa ───────────────────── -->
+    <div class="col-12 col-xl-7">
+      <div class="adm-card" style="position:sticky;top:80px;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-bold mb-0" style="color:#02534C;"><i class="bi bi-eye me-1"></i>Vista previa</h6>
+          <span style="font-size:.75rem;color:#888;">Así se verá en la página</span>
+        </div>
+
+        <!-- Simulación de la página web detrás -->
+        <div id="previewOuter"
+             style="background:#e8e8e8;border-radius:10px;padding:20px;
+                    display:flex;align-items:center;justify-content:center;
+                    min-height:380px;position:relative;overflow:hidden;">
+          <!-- Fondo simulado de la web -->
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,#f5f5f5 0%,#e0e0e0 100%);"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:36px;background:#02534C;border-radius:10px 10px 0 0;"></div>
+
+          <!-- Overlay oscuro del popup -->
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:10px;z-index:1;"></div>
+
+          <!-- El popup en sí -->
+          <div style="position:relative;z-index:2;width:100%;max-width:340px;">
+            <div id="previewCard"
+                 style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);
+                        background:#fff;position:relative;">
+
+              <!-- X cerrar (decorativo) -->
+              <div style="position:absolute;top:8px;right:8px;z-index:10;
+                          background:rgba(0,0,0,.5);color:#fff;border-radius:50%;
+                          width:28px;height:28px;display:flex;align-items:center;
+                          justify-content:center;font-size:16px;cursor:not-allowed;">
+                &times;
+              </div>
+
+              <!-- Contenedor de imagen + botón -->
+              <div id="previewImgWrap" style="position:relative;line-height:0;min-height:120px;
+                                              background:#ddd;overflow:hidden;">
+                <!-- Placeholder si no hay imagen -->
+                <div id="previewPlaceholder"
+                     style="{{ 'display:none;' if p.get('imagen') else '' }}width:100%;height:200px;
+                            background:#ccc;display:flex;align-items:center;justify-content:center;
+                            flex-direction:column;color:#888;font-size:.85rem;gap:8px;">
+                  <i class="bi bi-image" style="font-size:2.5rem;"></i>
+                  Sube una imagen para ver la vista previa
+                </div>
+
+                <img id="previewImg"
+                     src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
+                     style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
+                            height:220px;object-fit:{{ p.get('imagen_fit','cover') }};"
+                     onerror="this.style.display='none';document.getElementById('previewPlaceholder').style.display='flex'">
+
+                <!-- Botón arrastrable -->
+                <div id="previewBtn"
+                     style="position:absolute;
+                            left:{{ p.get('boton_pos_x',50) }}%;
+                            top:{{ p.get('boton_pos_y',85) }}%;
+                            transform:translate(-50%,-50%);
+                            display:{{ 'flex' if p.get('boton_activo') else 'none' }};
+                            align-items:center;justify-content:center;
+                            cursor:grab;user-select:none;white-space:nowrap;
+                            border-radius:6px;font-weight:700;border:none;
+                            box-shadow:0 2px 8px rgba(0,0,0,.35);">
+                  Botón
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:center;margin-top:10px;font-size:.72rem;color:#ddd;">
+              Esta es una vista previa — el aspecto real puede variar levemente
+            </div>
+          </div>
+        </div>
+
+        <!-- Indicador de posición -->
+        <div id="posIndicator" style="margin-top:10px;font-size:.78rem;color:#666;text-align:center;">
+          Posición del botón: X = <strong id="posXLabel">{{ p.get('boton_pos_x',50) }}</strong>% &nbsp;|&nbsp;
+          Y = <strong id="posYLabel">{{ p.get('boton_pos_y',85) }}</strong>%
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="mt-4 d-flex gap-3 align-items-center">
-    <button type="submit" class="btn-adm-primary">
-      <i class="bi bi-check-lg me-1"></i>{{ 'Guardar cambios' if popup else 'Crear popup' }}
-    </button>
-    <a href="{{ url_for('admin.popups_list') }}" class="btn-adm-ghost">Cancelar</a>
   </div>
 </form>
 
+<style>
+.fit-option {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: .78rem;
+  cursor: pointer;
+  transition: all .15s;
+  color: #555;
+  line-height: 1.4;
+}
+.fit-option i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
+input[type="radio"]:checked + .fit-option {
+  border-color: #02534C;
+  background: #e8f5f3;
+  color: #02534C;
+}
+.size-option {
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 4px;
+  font-size: .78rem;
+  cursor: pointer;
+  transition: all .15s;
+  color: #555;
+  text-align: center;
+}
+input[type="radio"]:checked + .size-option {
+  border-color: #02534C;
+  background: #e8f5f3;
+  color: #02534C;
+  font-weight: 700;
+}
+.size-sm { font-size: .72rem; }
+.size-md { font-size: .80rem; }
+.size-lg { font-size: .88rem; }
+</style>
+
 <script>
-function previewPopupImg(input) {
+/* ── Tamaños del botón ─────────────────────────────────── */
+var BTN_SIZES = {
+  sm: { padding: '5px 14px',  fontSize: '12px', borderRadius: '4px' },
+  md: { padding: '9px 22px',  fontSize: '14px', borderRadius: '6px' },
+  lg: { padding: '13px 30px', fontSize: '17px', borderRadius: '8px' },
+};
+
+/* ── updatePreview ─────────────────────────────────────── */
+function updatePreview() {
+  var btn      = document.getElementById('previewBtn');
+  var img      = document.getElementById('previewImg');
+  var active   = document.getElementById('botonActivoSwitch').checked;
+  var texto    = document.getElementById('botonTexto') ? document.getElementById('botonTexto').value || 'Ver más' : 'Ver más';
+  var colorFondo = document.getElementById('botonColorFondo') ? document.getElementById('botonColorFondo').value : '#02534C';
+  var colorTexto = document.getElementById('botonColorTexto') ? document.getElementById('botonColorTexto').value : '#ffffff';
+  var tamano   = (document.querySelector('input[name="boton_tamano"]:checked') || {}).value || 'md';
+  var fit      = (document.querySelector('input[name="imagen_fit"]:checked') || {}).value || 'cover';
+
+  // imagen fit
+  if (img) img.style.objectFit = fit;
+
+  // botón
+  btn.style.display = active ? 'flex' : 'none';
+  if (active) {
+    var s = BTN_SIZES[tamano] || BTN_SIZES.md;
+    btn.textContent     = texto;
+    btn.style.background    = colorFondo;
+    btn.style.color         = colorTexto;
+    btn.style.padding       = s.padding;
+    btn.style.fontSize      = s.fontSize;
+    btn.style.borderRadius  = s.borderRadius;
+  }
+}
+
+/* ── Toggle sección botón ──────────────────────────────── */
+function toggleBotonConfig() {
+  var on = document.getElementById('botonActivoSwitch').checked;
+  document.getElementById('botonConfig').style.display      = on ? '' : 'none';
+  document.getElementById('botonInfoSinBoton').style.display = on ? 'none' : '';
+}
+
+/* ── Sincronizar color picker ↔ hex input ─────────────── */
+document.getElementById('botonColorFondo') && document.getElementById('botonColorFondo').addEventListener('input', function() {
+  document.getElementById('botonColorFondoHex').value = this.value;
+});
+document.getElementById('botonColorTexto') && document.getElementById('botonColorTexto').addEventListener('input', function() {
+  document.getElementById('botonColorTextoHex').value = this.value;
+});
+
+/* ── Preview imagen al subir archivo ──────────────────── */
+function onImgChange(input) {
   if (!input.files || !input.files[0]) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     var img = document.getElementById('previewImg');
-    var wrapper = document.getElementById('previewWrapper');
-    if (img) {
-      img.src = e.target.result;
-      img.style.display = 'block';
-    }
-    if (wrapper) wrapper.style.display = 'block';
+    var ph  = document.getElementById('previewPlaceholder');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    if (ph) ph.style.display = 'none';
   };
   reader.readAsDataURL(input.files[0]);
 }
 
-// Mostrar/ocultar "abrir nueva ventana" según si hay link
-var linkInput = document.getElementById('linkUrlInput');
-var nVRow = document.getElementById('nuevaVentanaRow');
-function toggleNuevaVentana() {
-  if (nVRow) nVRow.style.opacity = linkInput.value.trim() ? '1' : '0.4';
-}
-if (linkInput) {
-  toggleNuevaVentana();
-  linkInput.addEventListener('input', toggleNuevaVentana);
-}
+/* ── Arrastrar botón en la preview ────────────────────── */
+(function() {
+  var btn  = document.getElementById('previewBtn');
+  var wrap = document.getElementById('previewImgWrap');
+  var inputX = document.getElementById('inputPosX');
+  var inputY = document.getElementById('inputPosY');
+  var posXLabel = document.getElementById('posXLabel');
+  var posYLabel = document.getElementById('posYLabel');
+  var dragging = false, startMouseX, startMouseY, startLeft, startTop;
+
+  btn.addEventListener('mousedown', function(e) {
+    dragging = true;
+    btn.style.cursor = 'grabbing';
+    startMouseX = e.clientX;
+    startMouseY = e.clientY;
+    var rect = wrap.getBoundingClientRect();
+    var btnRect = btn.getBoundingClientRect();
+    startLeft = ((btnRect.left + btnRect.width/2 - rect.left) / rect.width) * 100;
+    startTop  = ((btnRect.top  + btnRect.height/2 - rect.top) / rect.height) * 100;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    var rect = wrap.getBoundingClientRect();
+    var dx = ((e.clientX - startMouseX) / rect.width)  * 100;
+    var dy = ((e.clientY - startMouseY) / rect.height) * 100;
+    var nx = Math.min(95, Math.max(5, startLeft + dx));
+    var ny = Math.min(95, Math.max(5, startTop  + dy));
+    btn.style.left = nx + '%';
+    btn.style.top  = ny + '%';
+    inputX.value = Math.round(nx);
+    inputY.value = Math.round(ny);
+    posXLabel.textContent = Math.round(nx);
+    posYLabel.textContent = Math.round(ny);
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (dragging) { dragging = false; btn.style.cursor = 'grab'; }
+  });
+
+  // Touch support
+  btn.addEventListener('touchstart', function(e) {
+    dragging = true;
+    var t = e.touches[0];
+    startMouseX = t.clientX; startMouseY = t.clientY;
+    var rect = wrap.getBoundingClientRect();
+    var btnRect = btn.getBoundingClientRect();
+    startLeft = ((btnRect.left + btnRect.width/2 - rect.left) / rect.width) * 100;
+    startTop  = ((btnRect.top  + btnRect.height/2 - rect.top) / rect.height) * 100;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    var t = e.touches[0];
+    var rect = wrap.getBoundingClientRect();
+    var dx = ((t.clientX - startMouseX) / rect.width)  * 100;
+    var dy = ((t.clientY - startMouseY) / rect.height) * 100;
+    var nx = Math.min(95, Math.max(5, startLeft + dx));
+    var ny = Math.min(95, Math.max(5, startTop  + dy));
+    btn.style.left = nx + '%';
+    btn.style.top  = ny + '%';
+    inputX.value = Math.round(nx);
+    inputY.value = Math.round(ny);
+    posXLabel.textContent = Math.round(nx);
+    posYLabel.textContent = Math.round(ny);
+  }, { passive: false });
+
+  document.addEventListener('touchend', function() { dragging = false; });
+})();
+
+/* ── Init ──────────────────────────────────────────────── */
+updatePreview();
 </script>
 {% endblock %}

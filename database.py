@@ -341,9 +341,33 @@ def init_admin_tables(conn=None):
         fecha_inicio        TEXT NOT NULL,
         fecha_fin           TEXT NOT NULL,
         activo              INTEGER DEFAULT 1,
-        fecha_creacion      TEXT DEFAULT (datetime('now'))
+        fecha_creacion      TEXT DEFAULT (datetime('now')),
+        imagen_fit          TEXT DEFAULT 'cover',
+        boton_activo        INTEGER DEFAULT 0,
+        boton_texto         TEXT DEFAULT 'Ver más',
+        boton_color_fondo   TEXT DEFAULT '#02534C',
+        boton_color_texto   TEXT DEFAULT '#ffffff',
+        boton_tamano        TEXT DEFAULT 'md',
+        boton_pos_x         INTEGER DEFAULT 50,
+        boton_pos_y         INTEGER DEFAULT 85
     );
     """)
+    conn.commit()
+    # Migraciones para popups ya existentes
+    for sql in [
+        "ALTER TABLE popups ADD COLUMN imagen_fit TEXT DEFAULT 'cover'",
+        "ALTER TABLE popups ADD COLUMN boton_activo INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN boton_texto TEXT DEFAULT 'Ver más'",
+        "ALTER TABLE popups ADD COLUMN boton_color_fondo TEXT DEFAULT '#02534C'",
+        "ALTER TABLE popups ADD COLUMN boton_color_texto TEXT DEFAULT '#ffffff'",
+        "ALTER TABLE popups ADD COLUMN boton_tamano TEXT DEFAULT 'md'",
+        "ALTER TABLE popups ADD COLUMN boton_pos_x INTEGER DEFAULT 50",
+        "ALTER TABLE popups ADD COLUMN boton_pos_y INTEGER DEFAULT 85",
+    ]:
+        try:
+            conn.execute(sql)
+        except Exception:
+            pass
     conn.commit()
     if close_after:
         conn.close()

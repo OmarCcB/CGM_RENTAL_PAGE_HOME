@@ -1256,11 +1256,17 @@
 
   {% if popup_activo %}
   <!-- ── Popup modal ─────────────────────────────────────────────────────────── -->
+  {% set _pa = popup_activo %}
+  {% set _fit = _pa.get('imagen_fit','cover') if _pa.get('imagen_fit') else 'cover' %}
+  {% set _btn_on = _pa.get('boton_activo') %}
+  {% set _btn_sz = {'sm':'6px 16px;font-size:13px;border-radius:4px', 'md':'10px 24px;font-size:15px;border-radius:6px', 'lg':'14px 32px;font-size:17px;border-radius:8px'} %}
+  {% set _sz_key = _pa.get('boton_tamano','md') if _pa.get('boton_tamano') in ['sm','md','lg'] else 'md' %}
   <div id="cgmPopupOverlay"
        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
               align-items:center;justify-content:center;padding:16px;">
     <div style="position:relative;max-width:520px;width:100%;border-radius:14px;overflow:hidden;
-                box-shadow:0 8px 40px rgba(0,0,0,.4);background:#fff;">
+                box-shadow:0 8px 40px rgba(0,0,0,.4);background:#000;">
+      <!-- X cerrar -->
       <button onclick="cgmPopupClose()" aria-label="Cerrar popup"
               style="position:absolute;top:10px;right:10px;z-index:10;
                      background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;
@@ -1268,28 +1274,53 @@
                      display:flex;align-items:center;justify-content:center;line-height:1;">
         &times;
       </button>
-      {% if popup_activo.link_url %}
-      <a href="{{ popup_activo.link_url }}"
-         target="{{ '_blank' if popup_activo.abrir_nueva_ventana else '_self' }}"
-         rel="noopener"
-         onclick="cgmPopupClose()"
-         style="display:block;">
-        <img src="{{ url_for('static', filename='images/popups/' + popup_activo.imagen) }}"
-             alt="{{ popup_activo.titulo or 'Popup' }}"
-             style="width:100%;display:block;cursor:pointer;"
+      <!-- Imagen + botón dentro de un wrapper relativo -->
+      <div style="position:relative;line-height:0;">
+        {% if _pa.get('link_url') and not _btn_on %}
+        {# Sin botón: imagen entera clickeable #}
+        <a href="{{ _pa.link_url }}"
+           target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}"
+           rel="noopener" onclick="cgmPopupClose()" style="display:block;">
+          <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
+               alt="{{ _pa.get('titulo') or 'Popup' }}"
+               style="width:100%;display:block;cursor:pointer;object-fit:{{ _fit }};"
+               onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+        </a>
+        {% else %}
+        <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
+             alt="{{ _pa.get('titulo') or 'Popup' }}"
+             style="width:100%;display:block;object-fit:{{ _fit }};"
              onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
-      </a>
-      {% else %}
-      <img src="{{ url_for('static', filename='images/popups/' + popup_activo.imagen) }}"
-           alt="{{ popup_activo.titulo or 'Popup' }}"
-           style="width:100%;display:block;"
-           onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
-      {% endif %}
+        {% endif %}
+        {% if _btn_on %}
+        {# Botón CTA posicionado sobre la imagen #}
+        <a href="{{ _pa.get('link_url') or '#' }}"
+           {% if _pa.get('link_url') %}
+           target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}" rel="noopener"
+           onclick="cgmPopupClose()"
+           {% else %}
+           onclick="cgmPopupClose();return false;"
+           {% endif %}
+           style="position:absolute;
+                  left:{{ _pa.get('boton_pos_x',50) }}%;
+                  top:{{ _pa.get('boton_pos_y',85) }}%;
+                  transform:translate(-50%,-50%);
+                  display:inline-flex;align-items:center;justify-content:center;
+                  text-decoration:none;font-weight:700;line-height:1;
+                  background:{{ _pa.get('boton_color_fondo','#02534C') }};
+                  color:{{ _pa.get('boton_color_texto','#ffffff') }};
+                  padding:{{ _btn_sz[_sz_key] }};
+                  box-shadow:0 2px 10px rgba(0,0,0,.35);
+                  white-space:nowrap;">
+          {{ _pa.get('boton_texto','Ver más') }}
+        </a>
+        {% endif %}
+      </div>
     </div>
   </div>
   <script>
   (function() {
-    var key = 'cgmPopup_{{ popup_activo.id }}_{{ popup_activo.fecha_inicio }}';
+    var key = 'cgmPopup_{{ _pa.id }}_{{ _pa.fecha_inicio }}';
     if (!sessionStorage.getItem(key)) {
       sessionStorage.setItem(key, '1');
       setTimeout(function() {
