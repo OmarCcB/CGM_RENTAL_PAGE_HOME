@@ -1,0 +1,161 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Editar Popup' if popup else 'Nuevo Popup' }}{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('admin.popups_list') }}">Popups</a>
+  <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
+  {{ 'Editar' if popup else 'Nuevo' }}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <h1 class="adm-page-title mb-0">
+    <i class="bi bi-megaphone me-2"></i>{{ 'Editar Popup' if popup else 'Nuevo Popup' }}
+  </h1>
+  <a href="{{ url_for('admin.popups_list') }}" class="btn-adm-ghost">
+    <i class="bi bi-arrow-left me-1"></i>Volver
+  </a>
+</div>
+
+<form method="post"
+      action="{{ url_for('admin.popup_editar', pid=popup.id) if popup else url_for('admin.popup_nuevo') }}"
+      enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="imagen_actual" value="{{ popup.imagen or '' if popup else '' }}">
+
+  <div class="row g-4">
+    <!-- Columna principal -->
+    <div class="col-12 col-lg-8">
+      <div class="adm-card">
+        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-info-circle me-1"></i>Información del popup</h6>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:.85rem;">Título <span style="color:#888;font-weight:400;">(opcional, solo para referencia interna)</span></label>
+          <input type="text" name="titulo" class="form-control"
+                 value="{{ popup.titulo or '' if popup else '' }}"
+                 placeholder="Ej: Campaña agosto 2026">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" style="font-size:.85rem;">Link al hacer clic <span style="color:#888;font-weight:400;">(opcional)</span></label>
+          <input type="url" name="link_url" class="form-control"
+                 value="{{ popup.link_url or '' if popup else '' }}"
+                 placeholder="https://www.ejemplo.com/pagina"
+                 id="linkUrlInput">
+          <div style="font-size:0.78rem;color:#888;margin-top:4px;">
+            Si no se indica link, el popup solo mostrará la imagen y se cierra con la X.
+          </div>
+        </div>
+
+        <div class="mb-3" id="nuevaVentanaRow">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="abrir_nueva_ventana"
+                   id="abrirNuevaVentana" value="1"
+                   {{ 'checked' if (popup and popup.abrir_nueva_ventana) or not popup else '' }}>
+            <label class="form-check-label" for="abrirNuevaVentana" style="font-size:.85rem;">
+              Abrir link en nueva pestaña
+            </label>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label fw-semibold" style="font-size:.85rem;">Fecha inicio <span class="text-danger">*</span></label>
+            <input type="date" name="fecha_inicio" class="form-control" required
+                   value="{{ popup.fecha_inicio or '' if popup else '' }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-semibold" style="font-size:.85rem;">Fecha fin <span class="text-danger">*</span></label>
+            <input type="date" name="fecha_fin" class="form-control" required
+                   value="{{ popup.fecha_fin or '' if popup else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna lateral: imagen + estado -->
+    <div class="col-12 col-lg-4">
+      <!-- Imagen -->
+      <div class="adm-card mb-3">
+        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-image me-1"></i>Imagen del popup</h6>
+
+        {% if popup and popup.imagen %}
+        <div class="mb-3 text-center">
+          <img src="{{ url_for('static', filename='images/popups/' + popup.imagen) }}"
+               id="previewImg"
+               style="max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;"
+               onerror="this.style.display='none'">
+          <div style="font-size:0.72rem;color:#888;margin-top:4px;">Imagen actual</div>
+        </div>
+        {% else %}
+        <div id="previewWrapper" style="display:none;margin-bottom:12px;text-align:center;">
+          <img id="previewImg" src="" style="max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;">
+        </div>
+        {% endif %}
+
+        <label class="btn-upload-sm" style="display:flex;align-items:center;gap:8px;cursor:pointer;
+               background:#02534C;color:#fff;border:none;border-radius:8px;padding:8px 14px;
+               font-size:0.83rem;justify-content:center;">
+          <i class="bi bi-upload"></i>
+          {{ 'Cambiar imagen' if (popup and popup.imagen) else 'Subir imagen' }}
+          <input type="file" name="imagen_file" accept=".jpg,.jpeg,.png,.webp"
+                 style="display:none;" onchange="previewPopupImg(this)">
+        </label>
+        <div style="font-size:0.75rem;color:#888;margin-top:6px;">
+          JPG, PNG o WebP. Se convierte a WebP automáticamente.
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="adm-card">
+        <h6 class="fw-bold mb-3" style="color:#02534C;"><i class="bi bi-toggle-on me-1"></i>Estado</h6>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch"
+                 name="activo" id="activoSwitch" value="1"
+                 {{ 'checked' if (popup and popup.activo) or not popup else '' }}>
+          <label class="form-check-label" for="activoSwitch" style="font-size:.85rem;">
+            Popup activo
+          </label>
+        </div>
+        <div style="font-size:0.78rem;color:#888;margin-top:6px;">
+          El popup aparece mientras esté activo y dentro del rango de fechas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex gap-3 align-items-center">
+    <button type="submit" class="btn-adm-primary">
+      <i class="bi bi-check-lg me-1"></i>{{ 'Guardar cambios' if popup else 'Crear popup' }}
+    </button>
+    <a href="{{ url_for('admin.popups_list') }}" class="btn-adm-ghost">Cancelar</a>
+  </div>
+</form>
+
+<script>
+function previewPopupImg(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('previewImg');
+    var wrapper = document.getElementById('previewWrapper');
+    if (img) {
+      img.src = e.target.result;
+      img.style.display = 'block';
+    }
+    if (wrapper) wrapper.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Mostrar/ocultar "abrir nueva ventana" según si hay link
+var linkInput = document.getElementById('linkUrlInput');
+var nVRow = document.getElementById('nuevaVentanaRow');
+function toggleNuevaVentana() {
+  if (nVRow) nVRow.style.opacity = linkInput.value.trim() ? '1' : '0.4';
+}
+if (linkInput) {
+  toggleNuevaVentana();
+  linkInput.addEventListener('input', toggleNuevaVentana);
+}
+</script>
+{% endblock %}

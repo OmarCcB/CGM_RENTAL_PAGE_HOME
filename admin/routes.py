@@ -1855,3 +1855,142 @@ def categoria_eliminar(cid):
     conn.close()
     flash("Categoría eliminada.", "warning")
     return redirect(url_for("admin.categorias"))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# POPUPS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+POPUP_IMAGES_DIR = "static/images/popups"
+
+
+@admin_bp.route("/popups")
+@admin_required
+def popups_list():
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM popups ORDER BY id DESC"
+    ).fetchall()
+    conn.close()
+    return render_template("admin/popups_list.html", user=current_user(), popups=[dict(r) for r in rows])
+
+
+@admin_bp.route("/popups/nuevo", methods=["GET", "POST"])
+@admin_required
+def popup_nuevo():
+    if request.method == "POST":
+        return _save_popup(None)
+    return render_template("admin/popup_form.html", user=current_user(), popup=None)
+
+
+@admin_bp.route("/popups/<int:pid>/editar", methods=["GET", "POST"])
+@admin_required
+def popup_editar(pid):
+    conn = get_conn()
+    row = conn.execute("SELECT * FROM popups WHERE id=?", (pid,)).fetchone()
+    conn.close()
+    if not row:
+        flash("Popup no encontrado.", "danger")
+        return redirect(url_for("admin.popups_list"))
+    if request.method == "POST":
+        return _save_popup(pid)
+    return render_template("admin/popup_form.html", user=current_user(), popup=dict(row))
+
+
+def _save_popup(pid):
+    f = request.form
+    titulo              = f.get("titulo", "").strip()
+    link_url            = f.get("link_url", "").strip() or None
+    abrir_nueva_ventana = 1 if f.get("abrir_nueva_ventana") else 0
+    fecha_inicio        = f.get("fecha_inicio", "").strip()
+    fecha_fin           = f.get("fecha_fin", "").strip()
+    activo              = 1 if f.get("activo") else 0
+
+    if not fecha_inicio or not fecha_fin:
+        flash("Las fechas de inicio y fin son obligatorias.", "danger")
+        return redirect(request.referrer or url_for("admin.popups_list"))
+
+    conn = get_conn()
+
+    # Manejar imagen subida
+    imagen_actual = f.get("imagen_actual", "").strip() or None
+    imagen = imagen_actual
+    file = request.files.get("imagen_file")
+    if file and file.filename:
+        popups_dir = os.path.join(current_app.root_path, POPUP_IMAGES_DIR)
+        os.makedirs(popups_dir, exist_ok=True)
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        base_name = f"popup_{pid or 'new'}_{int(datetime.now().timestamp())}"
+        filename = f"{base_name}.{ext}"
+        filepath = os.path.join(popups_dir, filename)
+        file.save(filepath)
+        if ext != "webp":
+            try:
+                from PIL import Image as PILImage
+                img = PILImage.open(filepath).convert("RGB")
+                webp_path = os.path.join(popups_dir, f"{base_name}.webp")
+                img.save(webp_path, "WEBP", quality=90)
+                os.remove(filepath)
+                filename = f"{base_name}.webp"
+            except Exception:
+                pass
+        imagen = filename
+
+    if pid is None:
+        conn.execute(
+            """INSERT INTO popups (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo),
+        )
+        conn.commit()
+        pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
+        # Renombrar imagen con el id real si fue subida como 'new'
+        if imagen and "popup_new_" in imagen:
+            old_path = os.path.join(current_app.root_path, POPUP_IMAGES_DIR, imagen)
+            new_name = imagen.replace("popup_new_", f"popup_{pid}_")
+            new_path = os.path.join(current_app.root_path, POPUP_IMAGES_DIR, new_name)
+            if os.path.exists(old_path):
+                os.rename(old_path, new_path)
+                imagen = new_name
+                conn.execute("UPDATE popups SET imagen=? WHERE id=?", (imagen, pid))
+                conn.commit()
+        log_action(current_user().get("email", "?"), "crear_popup", f"ID={pid}")
+        flash("Popup creado exitosamente.", "success")
+    else:
+        conn.execute(
+            """UPDATE popups SET titulo=?, imagen=?, link_url=?, abrir_nueva_ventana=?,
+               fecha_inicio=?, fecha_fin=?, activo=? WHERE id=?""",
+            (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo, pid),
+        )
+        conn.commit()
+        log_action(current_user().get("email", "?"), "editar_popup", f"ID={pid}")
+        flash("Popup actualizado.", "success")
+    conn.close()
+    return redirect(url_for("admin.popup_editar", pid=pid))
+
+
+@admin_bp.route("/popups/<int:pid>/toggle", methods=["POST"])
+@admin_required
+def popup_toggle(pid):
+    conn = get_conn()
+    conn.execute("UPDATE popups SET activo = 1 - activo WHERE id=?", (pid,))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
+@admin_bp.route("/popups/<int:pid>/eliminar", methods=["POST"])
+@admin_required
+def popup_eliminar(pid):
+    conn = get_conn()
+    row = conn.execute("SELECT imagen FROM popups WHERE id=?", (pid,)).fetchone()
+    if row and row["imagen"]:
+        img_path = os.path.join(current_app.root_path, POPUP_IMAGES_DIR, row["imagen"])
+        if os.path.exists(img_path):
+            os.remove(img_path)
+    conn.execute("DELETE FROM popups WHERE id=?", (pid,))
+    conn.commit()
+    log_action(current_user().get("email", "?"), "eliminar_popup", f"ID={pid}")
+    conn.close()
+    flash("Popup eliminado.", "success")
+    return redirect(url_for("admin.popups_list"))

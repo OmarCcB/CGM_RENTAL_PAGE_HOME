@@ -331,6 +331,18 @@ def init_admin_tables(conn=None):
         pages        TEXT,
         activo       INTEGER DEFAULT 1
     );
+
+    CREATE TABLE IF NOT EXISTS popups (
+        id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo              TEXT,
+        imagen              TEXT,
+        link_url            TEXT,
+        abrir_nueva_ventana INTEGER DEFAULT 1,
+        fecha_inicio        TEXT NOT NULL,
+        fecha_fin           TEXT NOT NULL,
+        activo              INTEGER DEFAULT 1,
+        fecha_creacion      TEXT DEFAULT (datetime('now'))
+    );
     """)
     conn.commit()
     if close_after:

@@ -1,0 +1,110 @@
+{% extends "admin/base.html" %}
+{% block title %}Popups{% endblock %}
+{% block breadcrumb %}Popups{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="adm-page-title mb-0"><i class="bi bi-megaphone me-2"></i>Popups</h1>
+    <p class="adm-page-sub mb-0">Gestiona los popups que aparecen al entrar a la página.</p>
+  </div>
+  <a href="{{ url_for('admin.popup_nuevo') }}" class="btn-adm-primary">
+    <i class="bi bi-plus-circle me-1"></i>Nuevo popup
+  </a>
+</div>
+
+{% if popups %}
+<div class="adm-card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" style="font-size:0.88rem;">
+      <thead style="background:#f5f5f5;">
+        <tr>
+          <th style="width:90px;">Imagen</th>
+          <th>Título</th>
+          <th>Link</th>
+          <th>Vigente</th>
+          <th style="width:80px;">Estado</th>
+          <th style="width:120px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in popups %}
+        <tr>
+          <td>
+            {% if p.imagen %}
+            <img src="{{ url_for('static', filename='images/popups/' + p.imagen) }}"
+                 style="width:80px;height:52px;object-fit:cover;border-radius:6px;border:1px solid #eee;"
+                 onerror="this.style.display='none'">
+            {% else %}
+            <div style="width:80px;height:52px;background:#f5f5f5;border-radius:6px;
+                        display:flex;align-items:center;justify-content:center;color:#bbb;">
+              <i class="bi bi-image" style="font-size:1.4rem;"></i>
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-weight:600;color:#02534C;">{{ p.titulo or '(sin título)' }}</span>
+          </td>
+          <td>
+            {% if p.link_url %}
+            <a href="{{ p.link_url }}" target="_blank" rel="noopener"
+               style="font-size:0.8rem;color:#02534C;word-break:break-all;">
+              <i class="bi bi-link-45deg me-1"></i>{{ p.link_url | truncate(40) }}
+            </a>
+            {% else %}
+            <span style="color:#bbb;font-size:0.8rem;"><i class="bi bi-dash"></i> Sin link</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;font-size:0.82rem;">
+            <i class="bi bi-calendar3 me-1" style="color:#888;"></i>
+            {{ p.fecha_inicio }} → {{ p.fecha_fin }}
+          </td>
+          <td>
+            <label class="adm-toggle" title="Activar / Desactivar">
+              <input type="checkbox" {{ 'checked' if p.activo else '' }}
+                     onchange="togglePopup({{ p.id }}, this)">
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </td>
+          <td>
+            <div class="d-flex gap-2 flex-wrap">
+              <a href="{{ url_for('admin.popup_editar', pid=p.id) }}"
+                 class="btn-adm-ghost" style="padding:5px 10px;font-size:0.8rem;" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="post" action="{{ url_for('admin.popup_eliminar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Eliminar este popup? Esta acción no se puede deshacer.')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-adm-danger" style="padding:5px 10px;font-size:0.8rem;" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="adm-card text-center py-5" style="color:#999;">
+  <i class="bi bi-megaphone" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+  <p style="font-size:1rem;margin-bottom:16px;">No hay popups creados aún.</p>
+  <a href="{{ url_for('admin.popup_nuevo') }}" class="btn-adm-primary">
+    <i class="bi bi-plus-circle me-1"></i>Crear primer popup
+  </a>
+</div>
+{% endif %}
+
+<script>
+async function togglePopup(id, checkbox) {
+  const resp = await fetch('/admin/popups/' + id + '/toggle', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
+  });
+  const data = await resp.json();
+  if (!data.ok) checkbox.checked = !checkbox.checked;
+}
+</script>
+{% endblock %}

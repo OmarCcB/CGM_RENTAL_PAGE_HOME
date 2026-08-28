@@ -70,6 +70,12 @@
       </a>
     </li>
     <li class="adm-nav-item">
+      <a href="{{ url_for('admin.popups_list') }}"
+         class="adm-nav-link {% if 'popup' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-megaphone"></i> Popups
+      </a>
+    </li>
+    <li class="adm-nav-item">
       <a href="{{ url_for('admin.historial') }}"
          class="adm-nav-link {% if request.endpoint == 'admin.historial' %}active{% endif %}">
         <i class="bi bi-journal-text"></i> Historial

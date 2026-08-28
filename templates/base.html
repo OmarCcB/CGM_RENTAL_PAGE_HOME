@@ -899,6 +899,29 @@
       };
 
       /* ── envío ───────────────────────────────────────────────────────── */
+      /* Abre el link de WhatsApp como un clic real sobre un <a href="wa.me/...">
+         (en vez de window.open puro) para que un trigger de GTM tipo
+         "Solo enlaces" (Click URL contiene wa.me) pueda detectarlo. Además
+         empuja un evento a dataLayer para un trigger de Evento personalizado,
+         más confiable y con el tipo de consulta como parámetro. */
+      function _sendWspLink(waUrl, tipo) {
+        if (window.dataLayer) {
+          window.dataLayer.push({
+            event: 'whatsapp_enviar_click',
+            wsp_tipo: tipo,
+            wsp_url: waUrl
+          });
+        }
+        var a = document.createElement('a');
+        a.href = waUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        cgmWspClose();
+      }
+
       window.cgmWspSend = function (e, type) {
         e.preventDefault();
         var base = 'Hola, vengo desde la Web de CGM Rental, quisiera mayor información.';
@@ -1017,22 +1040,19 @@
             var msgOtras = base + '\n\nTengo la siguiente consulta:' +
                            '\n\n' + consulta +
                            '\n\n¡Gracias, quedo a la espera de su respuesta!';
-            window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), '_blank');
-            cgmWspClose();
+            _sendWspLink('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), 'otras');
           })
           .catch(function() {
             var msgOtras = base + '\n\nTengo la siguiente consulta:' +
                            '\n\n' + consulta +
                            '\n\n¡Gracias, quedo a la espera de su respuesta!';
-            window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), '_blank');
-            cgmWspClose();
+            _sendWspLink('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + encodeURIComponent(msgOtras), 'otras');
           });
           return;
         }
 
         var msg = encodeURIComponent(base + extra);
-        window.open('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + msg, '_blank');
-        cgmWspClose();
+        _sendWspLink('https://wa.me/' + window.CGM_WSP_PHONE + '?text=' + msg, type);
       };
 
       /* ── stepper de cantidad ─────────────────────────────────────────────── */
@@ -1233,6 +1253,63 @@
   <script src="{{ url_for('static', filename='js/cart.js') }}" defer></script>
 
   {% block extra_scripts %}{% endblock %}
+
+  {% if popup_activo %}
+  <!-- ── Popup modal ─────────────────────────────────────────────────────────── -->
+  <div id="cgmPopupOverlay"
+       style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
+              align-items:center;justify-content:center;padding:16px;">
+    <div style="position:relative;max-width:520px;width:100%;border-radius:14px;overflow:hidden;
+                box-shadow:0 8px 40px rgba(0,0,0,.4);background:#fff;">
+      <button onclick="cgmPopupClose()" aria-label="Cerrar popup"
+              style="position:absolute;top:10px;right:10px;z-index:10;
+                     background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;
+                     width:34px;height:34px;font-size:18px;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;line-height:1;">
+        &times;
+      </button>
+      {% if popup_activo.link_url %}
+      <a href="{{ popup_activo.link_url }}"
+         target="{{ '_blank' if popup_activo.abrir_nueva_ventana else '_self' }}"
+         rel="noopener"
+         onclick="cgmPopupClose()"
+         style="display:block;">
+        <img src="{{ url_for('static', filename='images/popups/' + popup_activo.imagen) }}"
+             alt="{{ popup_activo.titulo or 'Popup' }}"
+             style="width:100%;display:block;cursor:pointer;"
+             onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+      </a>
+      {% else %}
+      <img src="{{ url_for('static', filename='images/popups/' + popup_activo.imagen) }}"
+           alt="{{ popup_activo.titulo or 'Popup' }}"
+           style="width:100%;display:block;"
+           onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+      {% endif %}
+    </div>
+  </div>
+  <script>
+  (function() {
+    var key = 'cgmPopup_{{ popup_activo.id }}_{{ popup_activo.fecha_inicio }}';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1');
+      setTimeout(function() {
+        var el = document.getElementById('cgmPopupOverlay');
+        if (el) el.style.display = 'flex';
+      }, 800);
+    }
+  })();
+  function cgmPopupClose() {
+    var el = document.getElementById('cgmPopupOverlay');
+    if (el) el.style.display = 'none';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') cgmPopupClose();
+  });
+  document.getElementById('cgmPopupOverlay').addEventListener('click', function(e) {
+    if (e.target === this) cgmPopupClose();
+  });
+  </script>
+  {% endif %}
 
    <script>
   (function () {

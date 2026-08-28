@@ -769,9 +769,22 @@ def inject_globals():
         mobile_filename = stem + "_mobile" + ext
         return _uf("static", filename="images/banners/" + mobile_filename)
 
-    from datetime import datetime as _dt
+    from datetime import datetime as _dt, date as _date
+    _today = _date.today().isoformat()
+    try:
+        _pc = get_conn()
+        _popup_row = _pc.execute(
+            "SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=? ORDER BY id DESC LIMIT 1",
+            (_today, _today),
+        ).fetchone()
+        popup_activo = dict(_popup_row) if _popup_row else None
+        _pc.close()
+    except Exception:
+        popup_activo = None
+
     return {
         "cart_count": cart_count(cc),
+        "popup_activo": popup_activo,
         "COUNTRIES": COUNTRIES,
         "PARTNERS": PARTNERS,
         "banners": bans,
