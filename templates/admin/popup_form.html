@@ -447,7 +447,8 @@ input[type="radio"]:checked + .popt-opt {
             <div id="previewCard"
                  style="border-radius:12px;overflow:hidden;
                         box-shadow:0 12px 40px rgba(0,0,0,.7);background:#000;
-                        width:90%;margin:0 auto;position:relative;perspective:600px;
+                        width:{{ [(p.get('popup_ancho') or 520)|int * 100 // 1280, 98]|min }}%;
+                        margin:0 auto;position:relative;perspective:600px;
                         transition:width .2s;">
               <!-- X decorativo -->
               <div style="position:absolute;top:8px;right:8px;z-index:10;
@@ -509,7 +510,7 @@ input[type="radio"]:checked + .popt-opt {
               </div>
             </div>
             <div style="text-align:center;margin-top:8px;font-size:.68rem;color:#bbb;position:relative;z-index:2;">
-              Vista previa fiel al popup real
+              <i class="bi bi-display me-1"></i>Escala proporcional a pantalla 1280px
             </div>
           </div>
         </div>
@@ -554,15 +555,20 @@ function onAlturaChange(val) {
   if (img) img.style.height = val + 'px';
 }
 
+function calcAnchoPercent(val, isMobile) {
+  /* proporcional a pantalla real: popup_ancho / ancho_pantalla_ref */
+  var ref = isMobile ? 390 : 1280;
+  return Math.min(98, Math.round(parseInt(val) / ref * 100));
+}
+
 function onAnchoChange(val) {
   var lbl = document.getElementById('anchoLabel');
   lbl.textContent = val + 'px';
   var card = document.getElementById('previewCard');
   var btnM = document.getElementById('btnMobile');
-  if (card && !(btnM && btnM.classList.contains('active'))) {
-    /* mapear 300-700 → 55%-95% del panel */
-    var pct = Math.round(55 + (parseInt(val) - 300) * (95 - 55) / (700 - 300));
-    card.style.width = pct + '%';
+  var isMob = btnM && btnM.classList.contains('active');
+  if (card) {
+    card.style.width = calcAnchoPercent(val, isMob) + '%';
   }
 }
 
@@ -581,13 +587,13 @@ function updatePreview() {
     if (alturaR) img.style.height = alturaR.value + 'px';
   }
 
-  /* ancho preview */
+  /* ancho preview proporcional */
   var anchoR = document.getElementById('anchoRange');
   var card   = document.getElementById('previewCard');
   var btnM2  = document.getElementById('btnMobile');
-  if (anchoR && card && !(btnM2 && btnM2.classList.contains('active'))) {
-    var pct2 = Math.round(55 + (parseInt(anchoR.value) - 300) * (95 - 55) / (700 - 300));
-    card.style.width = pct2 + '%';
+  if (anchoR && card) {
+    var isMob2 = btnM2 && btnM2.classList.contains('active');
+    card.style.width = calcAnchoPercent(anchoR.value, isMob2) + '%';
   }
 
   /* overlay */
@@ -670,12 +676,12 @@ function setPreviewMode(mode) {
   var btnD   = document.getElementById('btnDesktop');
   var btnM   = document.getElementById('btnMobile');
   var anchoR = document.getElementById('anchoRange');
+  var val    = anchoR ? anchoR.value : 520;
   if (mode === 'mobile') {
-    card.style.width = '55%';
+    card.style.width = calcAnchoPercent(val, true) + '%';
     btnM.classList.add('active'); btnD.classList.remove('active');
   } else {
-    var pct = anchoR ? Math.round(55 + (parseInt(anchoR.value) - 300) * (95 - 55) / (700 - 300)) : 90;
-    card.style.width = pct + '%';
+    card.style.width = calcAnchoPercent(val, false) + '%';
     btnD.classList.add('active'); btnM.classList.remove('active');
   }
 }
