@@ -349,7 +349,13 @@ def init_admin_tables(conn=None):
         boton_color_texto   TEXT DEFAULT '#ffffff',
         boton_tamano        TEXT DEFAULT 'md',
         boton_pos_x         INTEGER DEFAULT 50,
-        boton_pos_y         INTEGER DEFAULT 85
+        boton_pos_y         INTEGER DEFAULT 85,
+        frecuencia          TEXT DEFAULT 'siempre',
+        delay_ms            INTEGER DEFAULT 800,
+        pais_filtro         TEXT DEFAULT 'todos',
+        animacion           TEXT DEFAULT 'fade',
+        total_vistas        INTEGER DEFAULT 0,
+        total_clics         INTEGER DEFAULT 0
     );
     """)
     conn.commit()
@@ -363,6 +369,12 @@ def init_admin_tables(conn=None):
         "ALTER TABLE popups ADD COLUMN boton_tamano TEXT DEFAULT 'md'",
         "ALTER TABLE popups ADD COLUMN boton_pos_x INTEGER DEFAULT 50",
         "ALTER TABLE popups ADD COLUMN boton_pos_y INTEGER DEFAULT 85",
+        "ALTER TABLE popups ADD COLUMN frecuencia TEXT DEFAULT 'siempre'",
+        "ALTER TABLE popups ADD COLUMN delay_ms INTEGER DEFAULT 800",
+        "ALTER TABLE popups ADD COLUMN pais_filtro TEXT DEFAULT 'todos'",
+        "ALTER TABLE popups ADD COLUMN animacion TEXT DEFAULT 'fade'",
+        "ALTER TABLE popups ADD COLUMN total_vistas INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN total_clics INTEGER DEFAULT 0",
     ]:
         try:
             conn.execute(sql)

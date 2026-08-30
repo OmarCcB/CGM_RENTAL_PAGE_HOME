@@ -21,10 +21,13 @@
         <tr>
           <th style="width:90px;">Imagen</th>
           <th>Título</th>
-          <th>Link</th>
+          <th style="width:70px;">País</th>
           <th>Vigente</th>
+          <th style="width:80px;text-align:center;">
+            <i class="bi bi-eye" title="Vistas"></i> / <i class="bi bi-cursor" title="Clics"></i>
+          </th>
           <th style="width:80px;">Estado</th>
-          <th style="width:120px;">Acciones</th>
+          <th style="width:140px;">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -43,21 +46,36 @@
             {% endif %}
           </td>
           <td>
-            <span style="font-weight:600;color:#02534C;">{{ p.titulo or '(sin título)' }}</span>
-          </td>
-          <td>
+            <div style="font-weight:600;color:#02534C;">{{ p.titulo or '(sin título)' }}</div>
             {% if p.link_url %}
             <a href="{{ p.link_url }}" target="_blank" rel="noopener"
-               style="font-size:0.8rem;color:#02534C;word-break:break-all;">
-              <i class="bi bi-link-45deg me-1"></i>{{ p.link_url | truncate(40) }}
+               style="font-size:0.75rem;color:#888;word-break:break-all;">
+              <i class="bi bi-link-45deg"></i>{{ p.link_url | truncate(35) }}
             </a>
-            {% else %}
-            <span style="color:#bbb;font-size:0.8rem;"><i class="bi bi-dash"></i> Sin link</span>
             {% endif %}
+            <div style="font-size:.72rem;color:#aaa;margin-top:2px;">
+              {% set freq_labels = {'siempre':'Siempre','sesion':'Por sesión','dia':'Por día'} %}
+              {% set anim_labels = {'fade':'Fade','slide':'Slide','zoom':'Zoom'} %}
+              <i class="bi bi-arrow-repeat"></i> {{ freq_labels.get(p.frecuencia or 'siempre','Siempre') }}
+              &nbsp;·&nbsp;
+              <i class="bi bi-play"></i> {{ anim_labels.get(p.animacion or 'fade','Fade') }}
+              &nbsp;·&nbsp;
+              <i class="bi bi-hourglass"></i> {{ p.delay_ms or 800 }}ms
+            </div>
+          </td>
+          <td>
+            {% set pais_labels = {'todos':'🌎','pe':'🇵🇪 PE','ar':'🇦🇷 AR'} %}
+            <span style="font-size:.8rem;">{{ pais_labels.get(p.pais_filtro or 'todos','🌎') }}</span>
           </td>
           <td style="white-space:nowrap;font-size:0.82rem;">
             <i class="bi bi-calendar3 me-1" style="color:#888;"></i>
             {{ p.fecha_inicio }} → {{ p.fecha_fin }}
+          </td>
+          <td style="text-align:center;">
+            <div style="font-size:.82rem;color:#555;line-height:1.8;">
+              <span style="color:#666;"><i class="bi bi-eye"></i> {{ p.total_vistas or 0 }}</span><br>
+              <span style="color:#02534C;"><i class="bi bi-cursor"></i> {{ p.total_clics or 0 }}</span>
+            </div>
           </td>
           <td>
             <label class="adm-toggle" title="Activar / Desactivar">
@@ -67,15 +85,22 @@
             </label>
           </td>
           <td>
-            <div class="d-flex gap-2 flex-wrap">
+            <div class="d-flex gap-1 flex-wrap">
               <a href="{{ url_for('admin.popup_editar', pid=p.id) }}"
-                 class="btn-adm-ghost" style="padding:5px 10px;font-size:0.8rem;" title="Editar">
+                 class="btn-adm-ghost" style="padding:5px 9px;font-size:0.8rem;" title="Editar">
                 <i class="bi bi-pencil"></i>
               </a>
-              <form method="post" action="{{ url_for('admin.popup_eliminar', pid=p.id) }}"
-                    onsubmit="return confirm('¿Eliminar este popup? Esta acción no se puede deshacer.')">
+              <form method="post" action="{{ url_for('admin.popup_duplicar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Duplicar «{{ p.titulo or 'Popup' }}»? Se creará inactivo.')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn-adm-danger" style="padding:5px 10px;font-size:0.8rem;" title="Eliminar">
+                <button type="submit" class="btn-adm-ghost" style="padding:5px 9px;font-size:0.8rem;" title="Duplicar">
+                  <i class="bi bi-copy"></i>
+                </button>
+              </form>
+              <form method="post" action="{{ url_for('admin.popup_eliminar', pid=p.id) }}"
+                    onsubmit="return confirm('¿Eliminar este popup? No se puede deshacer.')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-adm-danger" style="padding:5px 9px;font-size:0.8rem;" title="Eliminar">
                   <i class="bi bi-trash"></i>
                 </button>
               </form>

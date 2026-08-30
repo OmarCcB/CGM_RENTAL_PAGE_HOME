@@ -774,8 +774,10 @@ def inject_globals():
     try:
         _pc = get_conn()
         _popup_row = _pc.execute(
-            "SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=? ORDER BY id DESC LIMIT 1",
-            (_today, _today),
+            """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
+               AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
+               ORDER BY id DESC LIMIT 1""",
+            (_today, _today, cc),
         ).fetchone()
         popup_activo = dict(_popup_row) if _popup_row else None
         _pc.close()
@@ -2410,6 +2412,34 @@ def api_sunat(numero):
         return jsonify(_lookup_dni_eldni(numero))
 
     return jsonify(_lookup_ruc_sunat(numero))
+
+
+@app.route("/api/popup-vista", methods=["POST"])
+def api_popup_vista():
+    try:
+        pid = (request.json or {}).get("popup_id")
+        if pid:
+            conn = get_conn()
+            conn.execute("UPDATE popups SET total_vistas=total_vistas+1 WHERE id=?", (pid,))
+            conn.commit()
+            conn.close()
+    except Exception:
+        pass
+    return jsonify({"ok": True})
+
+
+@app.route("/api/popup-clic", methods=["POST"])
+def api_popup_clic():
+    try:
+        pid = (request.json or {}).get("popup_id")
+        if pid:
+            conn = get_conn()
+            conn.execute("UPDATE popups SET total_clics=total_clics+1 WHERE id=?", (pid,))
+            conn.commit()
+            conn.close()
+    except Exception:
+        pass
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
