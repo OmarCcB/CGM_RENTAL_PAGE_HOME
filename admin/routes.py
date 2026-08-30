@@ -1921,12 +1921,13 @@ def _save_popup(pid):
     overlay_color_texto = f.get("overlay_color_texto", "#ffffff").strip()
     overlay_posicion    = f.get("overlay_posicion", "bottom").strip()
     try:
-        boton_pos_x  = int(f.get("boton_pos_x", 50))
-        boton_pos_y  = int(f.get("boton_pos_y", 85))
-        delay_ms     = max(0, min(10000, int(f.get("delay_ms", 800) or 800)))
-        imagen_altura = max(0, min(600, int(f.get("imagen_altura", 0) or 0)))
+        boton_pos_x   = int(f.get("boton_pos_x", 50))
+        boton_pos_y   = int(f.get("boton_pos_y", 85))
+        delay_ms      = max(0, min(10000, int(f.get("delay_ms", 800) or 800)))
+        imagen_altura = max(80, min(600, int(f.get("imagen_altura", 280) or 280)))
+        popup_ancho   = max(300, min(700, int(f.get("popup_ancho", 520) or 520)))
     except (ValueError, TypeError):
-        boton_pos_x, boton_pos_y, delay_ms, imagen_altura = 50, 85, 800, 0
+        boton_pos_x, boton_pos_y, delay_ms, imagen_altura, popup_ancho = 50, 85, 800, 280, 520
 
     if not fecha_inicio or not fecha_fin:
         flash("Las fechas de inicio y fin son obligatorias.", "danger")
@@ -1962,13 +1963,13 @@ def _save_popup(pid):
         conn.execute(
             """INSERT INTO popups
                (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-                imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+                imagen_fit, imagen_altura, popup_ancho, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
                 boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
                 overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
                 overlay_color_texto, overlay_posicion)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-             imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             imagen_fit, imagen_altura, popup_ancho, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
              boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
              overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
              overlay_color_texto, overlay_posicion),
@@ -1990,14 +1991,14 @@ def _save_popup(pid):
         conn.execute(
             """UPDATE popups SET titulo=?, imagen=?, link_url=?, abrir_nueva_ventana=?,
                fecha_inicio=?, fecha_fin=?, activo=?,
-               imagen_fit=?, imagen_altura=?, boton_activo=?, boton_texto=?, boton_color_fondo=?,
+               imagen_fit=?, imagen_altura=?, popup_ancho=?, boton_activo=?, boton_texto=?, boton_color_fondo=?,
                boton_color_texto=?, boton_tamano=?, boton_pos_x=?, boton_pos_y=?,
                frecuencia=?, delay_ms=?, pais_filtro=?, animacion=?,
                overlay_activo=?, overlay_titulo=?, overlay_subtitulo=?, overlay_color_fondo=?,
                overlay_color_texto=?, overlay_posicion=?
                WHERE id=?""",
             (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-             imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             imagen_fit, imagen_altura, popup_ancho, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
              boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
              overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
              overlay_color_texto, overlay_posicion, pid),
@@ -2019,15 +2020,15 @@ def popup_duplicar(pid):
         conn.execute(
             """INSERT INTO popups
                (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-                imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+                imagen_fit, imagen_altura, popup_ancho, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
                 boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
                 overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
                 overlay_color_texto, overlay_posicion)
-               VALUES (?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (f"Copia de {d.get('titulo') or 'Popup'}",
              d.get('imagen'), d.get('link_url'), d.get('abrir_nueva_ventana', 1),
              d.get('fecha_inicio'), d.get('fecha_fin'),
-             d.get('imagen_fit', 'cover'), d.get('imagen_altura', 0),
+             d.get('imagen_fit', 'cover'), d.get('imagen_altura', 280), d.get('popup_ancho', 520),
              d.get('boton_activo', 0), d.get('boton_texto', 'Ver más'),
              d.get('boton_color_fondo', '#02534C'), d.get('boton_color_texto', '#ffffff'),
              d.get('boton_tamano', 'md'), d.get('boton_pos_x', 50), d.get('boton_pos_y', 85),

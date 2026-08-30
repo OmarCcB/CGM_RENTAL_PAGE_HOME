@@ -123,9 +123,9 @@ input[type="radio"]:checked + .popt-opt {
         <label class="form-label fw-semibold" style="font-size:.83rem;">Ajuste de imagen</label>
         <div class="popt-radio-group mb-3">
           {% for val, label, icon, desc in [
-            ('cover','Rellenar','bi-fullscreen','Ocupa todo el espacio'),
-            ('contain','Ajustar','bi-aspect-ratio','Imagen completa visible'),
-            ('fill','Estirar','bi-arrows-fullscreen','Distorsiona para llenar')
+            ('cover','Recortar','bi-fullscreen','Rellena; puede recortar bordes'),
+            ('contain','Ver completa','bi-aspect-ratio','Muestra todo; puede dejar franjas'),
+            ('fill','Estirar','bi-arrows-fullscreen','Deforma para llenar todo')
           ] %}
           <label style="flex:1;cursor:pointer;">
             <input type="radio" name="imagen_fit" value="{{ val }}" class="d-none"
@@ -133,27 +133,40 @@ input[type="radio"]:checked + .popt-opt {
                    onchange="updatePreview()">
             <div class="popt-opt">
               <i class="bi {{ icon }}"></i>
-              <strong style="font-size:.74rem;">{{ label }}</strong>
+              <strong style="font-size:.74rem;">{{ label }}</strong><br>
+              <span style="font-size:.67rem;color:#888;">{{ desc }}</span>
             </div>
           </label>
           {% endfor %}
         </div>
 
-        <!-- Altura -->
-        <div>
+        <!-- Altura de imagen -->
+        <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.83rem;">
-            Altura de la imagen:
-            <strong id="alturaLabel">
-              {% if p.get('imagen_altura') %}{{ p.imagen_altura }}px{% else %}Auto{% endif %}
-            </strong>
+            Altura imagen: <strong id="alturaLabel">{{ (p.get('imagen_altura') or 280) }}px</strong>
           </label>
           <input type="range" name="imagen_altura" id="alturaRange"
-                 min="0" max="550" step="10"
-                 value="{{ p.get('imagen_altura', 0) }}"
+                 min="80" max="550" step="10"
+                 value="{{ p.get('imagen_altura') or 280 }}"
                  oninput="onAlturaChange(this.value)"
                  class="form-range">
           <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>Auto</span><span>550px</span>
+            <span>80px</span><span>550px</span>
+          </div>
+        </div>
+
+        <!-- Ancho del popup -->
+        <div>
+          <label class="form-label fw-semibold" style="font-size:.83rem;">
+            Ancho máximo: <strong id="anchoLabel">{{ (p.get('popup_ancho') or 520) }}px</strong>
+          </label>
+          <input type="range" name="popup_ancho" id="anchoRange"
+                 min="300" max="700" step="10"
+                 value="{{ p.get('popup_ancho') or 520 }}"
+                 oninput="onAnchoChange(this.value)"
+                 class="form-range">
+          <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
+            <span>Compacto (300px)</span><span>Amplio (700px)</span>
           </div>
         </div>
       </div>
@@ -528,8 +541,20 @@ function syncPicker(hexId, pickerId) {
 function onAlturaChange(val) {
   var lbl = document.getElementById('alturaLabel');
   var img = document.getElementById('previewImg');
-  lbl.textContent = val == 0 ? 'Auto' : val + 'px';
-  if (img) img.style.height = val == 0 ? '220px' : val + 'px';
+  lbl.textContent = val + 'px';
+  if (img) img.style.height = val + 'px';
+}
+
+function onAnchoChange(val) {
+  var lbl = document.getElementById('anchoLabel');
+  lbl.textContent = val + 'px';
+  /* en modo desktop, escalar al preview (max 340px visual) */
+  var card = document.getElementById('previewCard');
+  var btnD = document.getElementById('btnDesktop');
+  if (card && btnD && btnD.classList.contains('active')) {
+    var scaled = Math.min(340, Math.round(parseInt(val) * 340 / 700));
+    card.style.maxWidth = scaled + 'px';
+  }
 }
 
 function updatePreview() {
@@ -539,9 +564,22 @@ function updatePreview() {
   var ovTit  = document.getElementById('previewOverlayTit');
   var ovSub  = document.getElementById('previewOverlaySub');
 
-  /* image fit */
-  var fit = (document.querySelector('input[name="imagen_fit"]:checked') || {}).value || 'cover';
-  if (img) img.style.objectFit = fit;
+  /* image fit + altura */
+  var fit     = (document.querySelector('input[name="imagen_fit"]:checked') || {}).value || 'cover';
+  var alturaR = document.getElementById('alturaRange');
+  if (img) {
+    img.style.objectFit = fit;
+    if (alturaR) img.style.height = alturaR.value + 'px';
+  }
+
+  /* ancho preview (desktop) */
+  var anchoR = document.getElementById('anchoRange');
+  var card   = document.getElementById('previewCard');
+  var btnD   = document.getElementById('btnDesktop');
+  if (anchoR && card && btnD && btnD.classList.contains('active')) {
+    var scaled = Math.min(340, Math.round(parseInt(anchoR.value) * 340 / 700));
+    card.style.maxWidth = scaled + 'px';
+  }
 
   /* overlay */
   var ovOn = document.getElementById('overlayActivoSwitch').checked;
@@ -619,14 +657,16 @@ function previewAnim() {
 }
 
 function setPreviewMode(mode) {
-  var card = document.getElementById('previewCard');
-  var btnD = document.getElementById('btnDesktop');
-  var btnM = document.getElementById('btnMobile');
+  var card   = document.getElementById('previewCard');
+  var btnD   = document.getElementById('btnDesktop');
+  var btnM   = document.getElementById('btnMobile');
+  var anchoR = document.getElementById('anchoRange');
   if (mode === 'mobile') {
     card.style.maxWidth = '210px';
     btnM.classList.add('active'); btnD.classList.remove('active');
   } else {
-    card.style.maxWidth = '340px';
+    var scaled = anchoR ? Math.min(340, Math.round(parseInt(anchoR.value) * 340 / 700)) : 340;
+    card.style.maxWidth = scaled + 'px';
     btnD.classList.add('active'); btnM.classList.remove('active');
   }
 }
@@ -667,6 +707,13 @@ function setPreviewMode(mode) {
   document.addEventListener('touchend', endDrag);
 })();
 
-updatePreview();
+/* init sliders */
+(function() {
+  var ar = document.getElementById('alturaRange');
+  var nr = document.getElementById('anchoRange');
+  if (ar) onAlturaChange(ar.value);
+  if (nr) onAnchoChange(nr.value);
+  updatePreview();
+})();
 </script>
 {% endblock %}

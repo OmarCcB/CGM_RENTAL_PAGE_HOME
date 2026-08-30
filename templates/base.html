@@ -1266,7 +1266,8 @@
   {% set _delay = _pa.get('delay_ms', 800) | int %}
   {% set _freq  = _pa.get('frecuencia','siempre') if _pa.get('frecuencia') in ['siempre','sesion','dia'] else 'siempre' %}
   {% set _pid   = _pa.get('id') | int %}
-  {% set _altura = _pa.get('imagen_altura', 0) | int %}
+  {% set _altura = (_pa.get('imagen_altura') or 280) | int %}
+  {% set _ancho  = (_pa.get('popup_ancho') or 520) | int %}
   <style>
   @keyframes cgmPfade   { from{opacity:0} to{opacity:1} }
   @keyframes cgmPslide  { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
@@ -1281,7 +1282,7 @@
        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
               align-items:center;justify-content:center;padding:16px;">
     <div id="cgmPopupCard"
-         style="position:relative;max-width:520px;width:100%;border-radius:14px;overflow:hidden;
+         style="position:relative;max-width:{{ _ancho }}px;width:100%;border-radius:14px;overflow:hidden;
                 box-shadow:0 8px 40px rgba(0,0,0,.4);background:#000;">
       <!-- X cerrar -->
       <button onclick="cgmPopupClose()" aria-label="Cerrar popup"
@@ -1293,20 +1294,19 @@
       </button>
       <!-- Imagen + overlay + botón -->
       <div style="position:relative;line-height:0;">
-        {% set _img_h = ('height:' ~ _altura ~ 'px;') if _altura else '' %}
         {% if _pa.get('link_url') and not _btn_on %}
         <a href="{{ _pa.link_url }}"
            target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}"
            rel="noopener" onclick="cgmPopupClic();cgmPopupClose()" style="display:block;">
           <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
                alt="{{ _pa.get('titulo') or 'Popup' }}"
-               style="width:100%;display:block;cursor:pointer;object-fit:{{ _fit }};{{ _img_h }}"
+               style="width:100%;display:block;cursor:pointer;height:{{ _altura }}px;object-fit:{{ _fit }};"
                onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
         </a>
         {% else %}
         <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
              alt="{{ _pa.get('titulo') or 'Popup' }}"
-             style="width:100%;display:block;object-fit:{{ _fit }};{{ _img_h }}"
+             style="width:100%;display:block;height:{{ _altura }}px;object-fit:{{ _fit }};"
              onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
         {% endif %}
         {% if _pa.get('overlay_activo') and (_pa.get('overlay_titulo') or _pa.get('overlay_subtitulo')) %}
