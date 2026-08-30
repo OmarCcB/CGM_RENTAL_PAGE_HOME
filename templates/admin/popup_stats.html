@@ -1,0 +1,189 @@
+{% extends "admin/base.html" %}
+{% block title %}Estadísticas — {{ popup.titulo or 'Popup #' ~ popup.id }}{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('admin.popups_list') }}">Popups</a>
+  <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
+  <a href="{{ url_for('admin.popup_editar', pid=popup.id) }}">{{ popup.titulo or 'Popup #' ~ popup.id }}</a>
+  <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
+  Estadísticas
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div>
+    <h1 class="adm-page-title mb-0">
+      <i class="bi bi-bar-chart-line me-2"></i>Estadísticas
+    </h1>
+    <p class="adm-page-sub mb-0">{{ popup.titulo or 'Popup #' ~ popup.id }}</p>
+  </div>
+  <a href="{{ url_for('admin.popup_editar', pid=popup.id) }}" class="btn-adm-ghost">
+    <i class="bi bi-arrow-left me-1"></i>Volver al popup
+  </a>
+</div>
+
+<!-- KPIs resumen -->
+<div class="row g-3 mb-4" id="kpiRow">
+  {% set ctr = ((popup.total_clics / popup.total_vistas * 100) | round(1)) if popup.total_vistas else 0 %}
+  {% for icon, label, val, color in [
+    ('bi-eye', 'Vistas totales', popup.total_vistas or 0, '#02534C'),
+    ('bi-cursor', 'Clics totales', popup.total_clics or 0, '#0d6efd'),
+    ('bi-percent', 'CTR', ctr ~ '%', '#6f42c1'),
+  ] %}
+  <div class="col-12 col-sm-4">
+    <div class="adm-card text-center py-3">
+      <i class="bi {{ icon }}" style="font-size:1.6rem;color:{{ color }};"></i>
+      <div style="font-size:1.8rem;font-weight:800;color:{{ color }};margin:4px 0;">{{ val }}</div>
+      <div style="font-size:.8rem;color:#888;">{{ label }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Gráfico diario -->
+<div class="adm-card mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h6 class="fw-bold mb-0" style="color:#02534C;">
+      <i class="bi bi-graph-up me-1"></i>Vistas y clics — últimos 30 días
+    </h6>
+    <div id="mejorDia" style="font-size:.8rem;color:#888;"></div>
+  </div>
+  <div style="position:relative;height:260px;">
+    <canvas id="statsChart"></canvas>
+  </div>
+  <div id="noData" style="display:none;text-align:center;padding:40px;color:#aaa;">
+    <i class="bi bi-clock-history" style="font-size:2.5rem;display:block;margin-bottom:8px;"></i>
+    Aún no hay datos. Los datos se registran a partir de la primera vista.
+  </div>
+</div>
+
+<!-- Tabla de últimos 30 días -->
+<div class="adm-card">
+  <h6 class="fw-bold mb-3" style="color:#02534C;">
+    <i class="bi bi-table me-1"></i>Detalle por día
+  </h6>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0" style="font-size:.84rem;">
+      <thead style="background:#f5f5f5;">
+        <tr>
+          <th>Fecha</th>
+          <th class="text-center"><i class="bi bi-eye me-1"></i>Vistas</th>
+          <th class="text-center"><i class="bi bi-cursor me-1"></i>Clics</th>
+          <th class="text-center"><i class="bi bi-percent me-1"></i>CTR</th>
+          <th>Proporción</th>
+        </tr>
+      </thead>
+      <tbody id="statsBody">
+        <tr><td colspan="5" class="text-center py-3" style="color:#aaa;">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function() {
+  var URL = '/admin/popups/{{ popup.id }}/stats-data';
+  var ctx = document.getElementById('statsChart').getContext('2d');
+
+  fetch(URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var canvas = document.getElementById('statsChart');
+      var noData = document.getElementById('noData');
+      var tbody  = document.getElementById('statsBody');
+
+      if (!data.length) {
+        canvas.style.display = 'none';
+        noData.style.display = 'block';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3" style="color:#aaa;">Sin datos aún.</td></tr>';
+        return;
+      }
+
+      var labels  = data.map(function(d) { return d.fecha.slice(5); });
+      var vistas  = data.map(function(d) { return d.vistas; });
+      var clics   = data.map(function(d) { return d.clics; });
+
+      /* mejor día */
+      var maxV = Math.max.apply(null, vistas);
+      var maxIdx = vistas.indexOf(maxV);
+      if (maxV > 0) {
+        document.getElementById('mejorDia').innerHTML =
+          'Mejor día: <strong>' + data[maxIdx].fecha + '</strong> (' + maxV + ' vistas)';
+      }
+
+      /* Chart.js */
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Vistas',
+              data: vistas,
+              backgroundColor: 'rgba(2,83,76,.6)',
+              borderColor: '#02534C',
+              borderWidth: 1,
+              borderRadius: 4,
+              order: 2,
+            },
+            {
+              label: 'Clics',
+              data: clics,
+              backgroundColor: 'rgba(13,110,253,.7)',
+              borderColor: '#0d6efd',
+              borderWidth: 1,
+              borderRadius: 4,
+              order: 1,
+            },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { font: { size: 12 } } },
+            tooltip: {
+              callbacks: {
+                afterBody: function(items) {
+                  var v = items[0].raw, c = items[1] ? items[1].raw : 0;
+                  return v > 0 ? 'CTR: ' + (c/v*100).toFixed(1) + '%' : '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 45 } },
+            y: { beginAtZero: true, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+
+      /* tabla */
+      var html = '';
+      var dataRev = data.slice().reverse();
+      dataRev.forEach(function(d) {
+        var ctr = d.vistas > 0 ? (d.clics / d.vistas * 100).toFixed(1) : '—';
+        var pct = d.vistas > 0 ? Math.round(d.clics / d.vistas * 100) : 0;
+        html += '<tr>'
+          + '<td><strong>' + d.fecha + '</strong></td>'
+          + '<td class="text-center">' + d.vistas + '</td>'
+          + '<td class="text-center" style="color:#0d6efd;">' + d.clics + '</td>'
+          + '<td class="text-center" style="color:#6f42c1;">' + (ctr === '—' ? '—' : ctr + '%') + '</td>'
+          + '<td><div style="background:#eee;border-radius:4px;height:8px;width:100%;min-width:80px;">'
+          + '<div style="background:#02534C;height:8px;border-radius:4px;width:' + pct + '%;"></div>'
+          + '</div></td>'
+          + '</tr>';
+      });
+      tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-2" style="color:#aaa;">Sin datos.</td></tr>';
+    })
+    .catch(function() {
+      document.getElementById('statsChart').style.display = 'none';
+      document.getElementById('noData').style.display = 'block';
+    });
+})();
+</script>
+{% endblock %}

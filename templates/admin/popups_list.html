@@ -23,8 +23,8 @@
           <th>Título</th>
           <th style="width:70px;">País</th>
           <th>Vigente</th>
-          <th style="width:80px;text-align:center;">
-            <i class="bi bi-eye" title="Vistas"></i> / <i class="bi bi-cursor" title="Clics"></i>
+          <th style="width:100px;text-align:center;">
+            <i class="bi bi-eye" title="Vistas"></i>&nbsp;/&nbsp;<i class="bi bi-cursor" title="Clics"></i>&nbsp;/&nbsp;CTR
           </th>
           <th style="width:80px;">Estado</th>
           <th style="width:140px;">Acciones</th>
@@ -72,9 +72,11 @@
             {{ p.fecha_inicio }} → {{ p.fecha_fin }}
           </td>
           <td style="text-align:center;">
-            <div style="font-size:.82rem;color:#555;line-height:1.8;">
+            {% set _ctr = ((p.total_clics / p.total_vistas * 100) | round(1)) if p.total_vistas else 0 %}
+            <div style="font-size:.8rem;color:#555;line-height:1.7;">
               <span style="color:#666;"><i class="bi bi-eye"></i> {{ p.total_vistas or 0 }}</span><br>
-              <span style="color:#02534C;"><i class="bi bi-cursor"></i> {{ p.total_clics or 0 }}</span>
+              <span style="color:#0d6efd;"><i class="bi bi-cursor"></i> {{ p.total_clics or 0 }}</span><br>
+              <span style="color:#6f42c1;font-size:.74rem;">{{ _ctr }}%</span>
             </div>
           </td>
           <td>
@@ -89,6 +91,10 @@
               <a href="{{ url_for('admin.popup_editar', pid=p.id) }}"
                  class="btn-adm-ghost" style="padding:5px 9px;font-size:0.8rem;" title="Editar">
                 <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{{ url_for('admin.popup_estadisticas', pid=p.id) }}"
+                 class="btn-adm-ghost" style="padding:5px 9px;font-size:0.8rem;" title="Estadísticas">
+                <i class="bi bi-bar-chart-line"></i>
               </a>
               <form method="post" action="{{ url_for('admin.popup_duplicar', pid=p.id) }}"
                     onsubmit="return confirm('¿Duplicar «{{ p.titulo or 'Popup' }}»? Se creará inactivo.')">

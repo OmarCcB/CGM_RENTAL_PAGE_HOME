@@ -2419,8 +2419,15 @@ def api_popup_vista():
     try:
         pid = (request.json or {}).get("popup_id")
         if pid:
+            from datetime import date as _d
+            today = _d.today().isoformat()
             conn = get_conn()
             conn.execute("UPDATE popups SET total_vistas=total_vistas+1 WHERE id=?", (pid,))
+            conn.execute(
+                """INSERT INTO popup_stats (popup_id, fecha, vistas, clics) VALUES (?,?,1,0)
+                   ON CONFLICT(popup_id, fecha) DO UPDATE SET vistas=vistas+1""",
+                (pid, today),
+            )
             conn.commit()
             conn.close()
     except Exception:
@@ -2433,8 +2440,15 @@ def api_popup_clic():
     try:
         pid = (request.json or {}).get("popup_id")
         if pid:
+            from datetime import date as _d
+            today = _d.today().isoformat()
             conn = get_conn()
             conn.execute("UPDATE popups SET total_clics=total_clics+1 WHERE id=?", (pid,))
+            conn.execute(
+                """INSERT INTO popup_stats (popup_id, fecha, vistas, clics) VALUES (?,?,0,1)
+                   ON CONFLICT(popup_id, fecha) DO UPDATE SET clics=clics+1""",
+                (pid, today),
+            )
             conn.commit()
             conn.close()
     except Exception:

@@ -343,6 +343,7 @@ def init_admin_tables(conn=None):
         activo              INTEGER DEFAULT 1,
         fecha_creacion      TEXT DEFAULT (datetime('now')),
         imagen_fit          TEXT DEFAULT 'cover',
+        imagen_altura       INTEGER DEFAULT 0,
         boton_activo        INTEGER DEFAULT 0,
         boton_texto         TEXT DEFAULT 'Ver más',
         boton_color_fondo   TEXT DEFAULT '#02534C',
@@ -355,7 +356,22 @@ def init_admin_tables(conn=None):
         pais_filtro         TEXT DEFAULT 'todos',
         animacion           TEXT DEFAULT 'fade',
         total_vistas        INTEGER DEFAULT 0,
-        total_clics         INTEGER DEFAULT 0
+        total_clics         INTEGER DEFAULT 0,
+        overlay_activo      INTEGER DEFAULT 0,
+        overlay_titulo      TEXT DEFAULT '',
+        overlay_subtitulo   TEXT DEFAULT '',
+        overlay_color_fondo TEXT DEFAULT 'rgba(0,0,0,0.55)',
+        overlay_color_texto TEXT DEFAULT '#ffffff',
+        overlay_posicion    TEXT DEFAULT 'bottom'
+    );
+
+    CREATE TABLE IF NOT EXISTS popup_stats (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        popup_id  INTEGER NOT NULL,
+        fecha     TEXT NOT NULL,
+        vistas    INTEGER DEFAULT 0,
+        clics     INTEGER DEFAULT 0,
+        UNIQUE(popup_id, fecha)
     );
     """)
     conn.commit()
@@ -375,6 +391,13 @@ def init_admin_tables(conn=None):
         "ALTER TABLE popups ADD COLUMN animacion TEXT DEFAULT 'fade'",
         "ALTER TABLE popups ADD COLUMN total_vistas INTEGER DEFAULT 0",
         "ALTER TABLE popups ADD COLUMN total_clics INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN imagen_altura INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN overlay_activo INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN overlay_titulo TEXT DEFAULT ''",
+        "ALTER TABLE popups ADD COLUMN overlay_subtitulo TEXT DEFAULT ''",
+        "ALTER TABLE popups ADD COLUMN overlay_color_fondo TEXT DEFAULT 'rgba(0,0,0,0.55)'",
+        "ALTER TABLE popups ADD COLUMN overlay_color_texto TEXT DEFAULT '#ffffff'",
+        "ALTER TABLE popups ADD COLUMN overlay_posicion TEXT DEFAULT 'bottom'",
     ]:
         try:
             conn.execute(sql)

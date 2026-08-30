@@ -1261,14 +1261,20 @@
   {% set _btn_on = _pa.get('boton_activo') %}
   {% set _btn_sz = {'sm':'6px 16px;font-size:13px;border-radius:4px', 'md':'10px 24px;font-size:15px;border-radius:6px', 'lg':'14px 32px;font-size:17px;border-radius:8px'} %}
   {% set _sz_key = _pa.get('boton_tamano','md') if _pa.get('boton_tamano') in ['sm','md','lg'] else 'md' %}
-  {% set _anim = _pa.get('animacion','fade') if _pa.get('animacion') in ['fade','slide','zoom'] else 'fade' %}
+  {% set _anim = _pa.get('animacion','fade') if _pa.get('animacion') in ['fade','slide','drop','zoom','bounce','flip'] else 'fade' %}
   {% set _delay = _pa.get('delay_ms', 800) | int %}
   {% set _freq  = _pa.get('frecuencia','siempre') if _pa.get('frecuencia') in ['siempre','sesion','dia'] else 'siempre' %}
   {% set _pid   = _pa.get('id') | int %}
+  {% set _altura = _pa.get('imagen_altura', 0) | int %}
   <style>
-  @keyframes cgmPfade  { from{opacity:0} to{opacity:1} }
-  @keyframes cgmPslide { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes cgmPzoom  { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+  @keyframes cgmPfade   { from{opacity:0} to{opacity:1} }
+  @keyframes cgmPslide  { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes cgmPdrop   { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes cgmPzoom   { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+  @keyframes cgmPbounce { 0%{opacity:0;transform:scale(.7)} 60%{transform:scale(1.06)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
+  @keyframes cgmPflip   { from{opacity:0;transform:perspective(500px) rotateY(80deg)} to{opacity:1;transform:perspective(500px) rotateY(0)} }
+  @keyframes cgmPclose  { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(.9)} }
+  #cgmPopupOverlay { transition: opacity .2s; }
   </style>
   <div id="cgmPopupOverlay"
        style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
@@ -1284,22 +1290,38 @@
                      display:flex;align-items:center;justify-content:center;line-height:1;">
         &times;
       </button>
-      <!-- Imagen + botón dentro de un wrapper relativo -->
+      <!-- Imagen + overlay + botón -->
       <div style="position:relative;line-height:0;">
+        {% set _img_h = ('height:' ~ _altura ~ 'px;') if _altura else '' %}
         {% if _pa.get('link_url') and not _btn_on %}
         <a href="{{ _pa.link_url }}"
            target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}"
            rel="noopener" onclick="cgmPopupClic();cgmPopupClose()" style="display:block;">
           <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
                alt="{{ _pa.get('titulo') or 'Popup' }}"
-               style="width:100%;display:block;cursor:pointer;object-fit:{{ _fit }};"
+               style="width:100%;display:block;cursor:pointer;object-fit:{{ _fit }};{{ _img_h }}"
                onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
         </a>
         {% else %}
         <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
              alt="{{ _pa.get('titulo') or 'Popup' }}"
-             style="width:100%;display:block;object-fit:{{ _fit }};"
+             style="width:100%;display:block;object-fit:{{ _fit }};{{ _img_h }}"
              onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+        {% endif %}
+        {% if _pa.get('overlay_activo') and (_pa.get('overlay_titulo') or _pa.get('overlay_subtitulo')) %}
+        {% set _ovpos = _pa.get('overlay_posicion','bottom') %}
+        <div style="position:absolute;left:0;right:0;
+                    {% if _ovpos == 'top' %}top:0;{% elif _ovpos == 'center' %}top:50%;transform:translateY(-50%);{% else %}bottom:0;{% endif %}
+                    padding:10px 16px;
+                    background:{{ _pa.get('overlay_color_fondo','rgba(0,0,0,0.55)') }};
+                    color:{{ _pa.get('overlay_color_texto','#ffffff') }};">
+          {% if _pa.get('overlay_titulo') %}
+          <div style="font-weight:700;font-size:1rem;line-height:1.2;">{{ _pa.overlay_titulo }}</div>
+          {% endif %}
+          {% if _pa.get('overlay_subtitulo') %}
+          <div style="font-size:.82rem;opacity:.88;margin-top:2px;">{{ _pa.overlay_subtitulo }}</div>
+          {% endif %}
+        </div>
         {% endif %}
         {% if _btn_on %}
         <a href="{{ _pa.get('link_url') or '#' }}"
@@ -1331,7 +1353,14 @@
     var POPUP_ID   = {{ _pid }};
     var FREQ       = '{{ _freq }}';
     var DELAY      = {{ _delay }};
-    var ANIM_MAP   = { fade:'cgmPfade .45s ease', slide:'cgmPslide .45s ease', zoom:'cgmPzoom .35s ease' };
+    var ANIM_MAP   = {
+      fade:   'cgmPfade .45s ease',
+      slide:  'cgmPslide .45s ease',
+      drop:   'cgmPdrop .45s ease',
+      zoom:   'cgmPzoom .38s ease',
+      bounce: 'cgmPbounce .65s ease',
+      flip:   'cgmPflip .45s ease',
+    };
     var ANIM       = ANIM_MAP['{{ _anim }}'] || ANIM_MAP.fade;
     var STORE_KEY  = 'cgmP_' + POPUP_ID;
 
@@ -1381,8 +1410,15 @@
   })();
 
   function cgmPopupClose() {
-    var el = document.getElementById('cgmPopupOverlay');
-    if (el) el.style.display = 'none';
+    var overlay = document.getElementById('cgmPopupOverlay');
+    var card    = document.getElementById('cgmPopupCard');
+    if (!overlay) return;
+    if (card) {
+      card.style.animation = 'cgmPclose .22s ease forwards';
+      setTimeout(function() { overlay.style.display = 'none'; card.style.animation = ''; }, 230);
+    } else {
+      overlay.style.display = 'none';
+    }
   }
   function cgmPopupClic() {
     try {

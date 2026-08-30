@@ -1914,12 +1914,19 @@ def _save_popup(pid):
     frecuencia          = f.get("frecuencia", "siempre").strip()
     pais_filtro         = f.get("pais_filtro", "todos").strip()
     animacion           = f.get("animacion", "fade").strip()
+    overlay_activo      = 1 if f.get("overlay_activo") else 0
+    overlay_titulo      = f.get("overlay_titulo", "").strip()
+    overlay_subtitulo   = f.get("overlay_subtitulo", "").strip()
+    overlay_color_fondo = f.get("overlay_color_fondo", "rgba(0,0,0,0.55)").strip()
+    overlay_color_texto = f.get("overlay_color_texto", "#ffffff").strip()
+    overlay_posicion    = f.get("overlay_posicion", "bottom").strip()
     try:
-        boton_pos_x = int(f.get("boton_pos_x", 50))
-        boton_pos_y = int(f.get("boton_pos_y", 85))
-        delay_ms    = max(0, min(10000, int(f.get("delay_ms", 800) or 800)))
+        boton_pos_x  = int(f.get("boton_pos_x", 50))
+        boton_pos_y  = int(f.get("boton_pos_y", 85))
+        delay_ms     = max(0, min(10000, int(f.get("delay_ms", 800) or 800)))
+        imagen_altura = max(0, min(600, int(f.get("imagen_altura", 0) or 0)))
     except (ValueError, TypeError):
-        boton_pos_x, boton_pos_y, delay_ms = 50, 85, 800
+        boton_pos_x, boton_pos_y, delay_ms, imagen_altura = 50, 85, 800, 0
 
     if not fecha_inicio or not fecha_fin:
         flash("Las fechas de inicio y fin son obligatorias.", "danger")
@@ -1955,12 +1962,16 @@ def _save_popup(pid):
         conn.execute(
             """INSERT INTO popups
                (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-                imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
-                boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+                boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
+                overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
+                overlay_color_texto, overlay_posicion)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-             imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
-             boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion),
+             imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
+             overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
+             overlay_color_texto, overlay_posicion),
         )
         conn.commit()
         pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
@@ -1979,13 +1990,17 @@ def _save_popup(pid):
         conn.execute(
             """UPDATE popups SET titulo=?, imagen=?, link_url=?, abrir_nueva_ventana=?,
                fecha_inicio=?, fecha_fin=?, activo=?,
-               imagen_fit=?, boton_activo=?, boton_texto=?, boton_color_fondo=?,
+               imagen_fit=?, imagen_altura=?, boton_activo=?, boton_texto=?, boton_color_fondo=?,
                boton_color_texto=?, boton_tamano=?, boton_pos_x=?, boton_pos_y=?,
-               frecuencia=?, delay_ms=?, pais_filtro=?, animacion=?
+               frecuencia=?, delay_ms=?, pais_filtro=?, animacion=?,
+               overlay_activo=?, overlay_titulo=?, overlay_subtitulo=?, overlay_color_fondo=?,
+               overlay_color_texto=?, overlay_posicion=?
                WHERE id=?""",
             (titulo or None, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-             imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
-             boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion, pid),
+             imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+             boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
+             overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
+             overlay_color_texto, overlay_posicion, pid),
         )
         conn.commit()
         log_action(current_user().get("email", "?"), "editar_popup", f"ID={pid}")
@@ -2004,18 +2019,23 @@ def popup_duplicar(pid):
         conn.execute(
             """INSERT INTO popups
                (titulo, imagen, link_url, abrir_nueva_ventana, fecha_inicio, fecha_fin, activo,
-                imagen_fit, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
-                boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion)
-               VALUES (?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                imagen_fit, imagen_altura, boton_activo, boton_texto, boton_color_fondo, boton_color_texto,
+                boton_tamano, boton_pos_x, boton_pos_y, frecuencia, delay_ms, pais_filtro, animacion,
+                overlay_activo, overlay_titulo, overlay_subtitulo, overlay_color_fondo,
+                overlay_color_texto, overlay_posicion)
+               VALUES (?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (f"Copia de {d.get('titulo') or 'Popup'}",
              d.get('imagen'), d.get('link_url'), d.get('abrir_nueva_ventana', 1),
              d.get('fecha_inicio'), d.get('fecha_fin'),
-             d.get('imagen_fit', 'cover'), d.get('boton_activo', 0),
-             d.get('boton_texto', 'Ver más'), d.get('boton_color_fondo', '#02534C'),
-             d.get('boton_color_texto', '#ffffff'), d.get('boton_tamano', 'md'),
-             d.get('boton_pos_x', 50), d.get('boton_pos_y', 85),
+             d.get('imagen_fit', 'cover'), d.get('imagen_altura', 0),
+             d.get('boton_activo', 0), d.get('boton_texto', 'Ver más'),
+             d.get('boton_color_fondo', '#02534C'), d.get('boton_color_texto', '#ffffff'),
+             d.get('boton_tamano', 'md'), d.get('boton_pos_x', 50), d.get('boton_pos_y', 85),
              d.get('frecuencia', 'siempre'), d.get('delay_ms', 800),
-             d.get('pais_filtro', 'todos'), d.get('animacion', 'fade')),
+             d.get('pais_filtro', 'todos'), d.get('animacion', 'fade'),
+             d.get('overlay_activo', 0), d.get('overlay_titulo', ''),
+             d.get('overlay_subtitulo', ''), d.get('overlay_color_fondo', 'rgba(0,0,0,0.55)'),
+             d.get('overlay_color_texto', '#ffffff'), d.get('overlay_posicion', 'bottom')),
         )
         conn.commit()
         new_pid = int(conn.execute("SELECT last_insert_rowid()").fetchone()[0])
@@ -2023,6 +2043,33 @@ def popup_duplicar(pid):
         flash("Popup duplicado (inactivo). Edítalo y actívalo cuando esté listo.", "success")
     conn.close()
     return redirect(url_for("admin.popups_list"))
+
+
+@admin_bp.route("/popups/<int:pid>/estadisticas")
+@admin_required
+def popup_estadisticas(pid):
+    conn = get_conn()
+    popup = conn.execute("SELECT * FROM popups WHERE id=?", (pid,)).fetchone()
+    conn.close()
+    if not popup:
+        flash("Popup no encontrado.", "danger")
+        return redirect(url_for("admin.popups_list"))
+    return render_template("admin/popup_stats.html", popup=dict(popup))
+
+
+@admin_bp.route("/popups/<int:pid>/stats-data")
+@admin_required
+def popup_stats_data(pid):
+    conn = get_conn()
+    rows = conn.execute(
+        """SELECT fecha, vistas, clics FROM popup_stats
+           WHERE popup_id=? ORDER BY fecha DESC LIMIT 30""",
+        (pid,),
+    ).fetchall()
+    conn.close()
+    data = [{"fecha": r["fecha"], "vistas": r["vistas"], "clics": r["clics"]}
+            for r in reversed(rows)]
+    return jsonify(data)
 
 
 @admin_bp.route("/popups/<int:pid>/toggle", methods=["POST"])
