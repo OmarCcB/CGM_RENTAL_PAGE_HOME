@@ -708,7 +708,7 @@ function onImgChange(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
-function previewAnim() { /* se ve en la vista previa completa */ }
+function previewAnim() { openFullPreview(); }
 
 /* ── Fullscreen preview ────────────────────────────── */
 function openFullPreview() {
@@ -735,13 +735,14 @@ function openFullPreview() {
   }
 
   /* imagen */
-  if (fpImg && thumb) {
-    fpImg.src           = thumb.src;
-    fpImg.style.height  = altura + 'px';
+  var hasImg = thumb && thumb.style.display === 'block';
+  if (fpImg) {
+    fpImg.src            = hasImg ? thumb.src : '';
+    fpImg.style.height   = altura + 'px';
     fpImg.style.objectFit = fit;
-    fpImg.style.display = thumb.src ? 'block' : 'none';
-    if (fpPh) { fpPh.style.height = altura + 'px'; fpPh.style.display = thumb.src ? 'none' : 'flex'; }
+    fpImg.style.display  = hasImg ? 'block' : 'none';
   }
+  if (fpPh) { fpPh.style.height = altura + 'px'; fpPh.style.display = hasImg ? 'none' : 'flex'; }
 
   /* overlay */
   var ovOn = document.getElementById('overlayActivoSwitch').checked;
