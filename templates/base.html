@@ -1254,9 +1254,10 @@
 
   {% block extra_scripts %}{% endblock %}
 
-  {% if popup_activo %}
+  {% if popup_activo and popup_activo.get('imagen') %}
   <!-- ── Popup modal ─────────────────────────────────────────────────────────── -->
   {% set _pa = popup_activo %}
+  {% set _img = _pa.get('imagen') %}
   {% set _fit = _pa.get('imagen_fit','cover') if _pa.get('imagen_fit') else 'cover' %}
   {% set _btn_on = _pa.get('boton_activo') %}
   {% set _btn_sz = {'sm':'6px 16px;font-size:13px;border-radius:4px', 'md':'10px 24px;font-size:15px;border-radius:6px', 'lg':'14px 32px;font-size:17px;border-radius:8px'} %}
@@ -1297,13 +1298,13 @@
         <a href="{{ _pa.link_url }}"
            target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}"
            rel="noopener" onclick="cgmPopupClic();cgmPopupClose()" style="display:block;">
-          <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
+          <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
                alt="{{ _pa.get('titulo') or 'Popup' }}"
                style="width:100%;display:block;cursor:pointer;object-fit:{{ _fit }};{{ _img_h }}"
                onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
         </a>
         {% else %}
-        <img src="{{ url_for('static', filename='images/popups/' + _pa.imagen) }}"
+        <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
              alt="{{ _pa.get('titulo') or 'Popup' }}"
              style="width:100%;display:block;object-fit:{{ _fit }};{{ _img_h }}"
              onerror="document.getElementById('cgmPopupOverlay').style.display='none'">

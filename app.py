@@ -771,15 +771,26 @@ def inject_globals():
 
     from datetime import datetime as _dt, date as _date
     _today = _date.today().isoformat()
+    _popup_row = None
     try:
         _pc = get_conn()
-        _popup_row = _pc.execute(
-            """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
-               AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
-               ORDER BY id DESC LIMIT 1""",
-            (_today, _today, cc),
-        ).fetchone()
-        popup_activo = dict(_popup_row) if _popup_row else None
+        try:
+            _popup_row = _pc.execute(
+                """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
+                   AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
+                   ORDER BY id DESC LIMIT 1""",
+                (_today, _today, cc),
+            ).fetchone()
+        except Exception:
+            # Fallback: schema antiguo sin pais_filtro
+            _popup_row = _pc.execute(
+                """SELECT * FROM popups WHERE activo=1
+                   AND fecha_inicio<=? AND fecha_fin>=?
+                   ORDER BY id DESC LIMIT 1""",
+                (_today, _today),
+            ).fetchone()
+        _d = dict(_popup_row) if _popup_row else None
+        popup_activo = _d if (_d and _d.get("imagen")) else None
         _pc.close()
     except Exception:
         popup_activo = None
