@@ -10,63 +10,58 @@
 {% set p = popup or {} %}
 
 <style>
-.popt-radio-group { display:flex; gap:8px; flex-wrap:wrap; }
-.popt-radio-group label { flex:1; min-width:70px; cursor:pointer; }
 .popt-opt {
   border:2px solid #ddd; border-radius:8px; padding:9px 6px;
   text-align:center; font-size:.76rem; cursor:pointer;
   transition:all .15s; color:#555; line-height:1.4; display:block;
 }
-.popt-opt i { font-size:1.2rem; display:block; margin-bottom:3px; }
-.popt-opt.sm-opt { padding:6px 4px; }
+.popt-opt i { font-size:1.1rem; display:block; margin-bottom:3px; }
 input[type="radio"]:checked + .popt-opt {
-  border-color:#02534C; background:#e8f5f3; color:#02534C;
+  border-color:#02534C; background:#e8f5f3; color:#02534C; font-weight:600;
 }
-.preview-mode-btn {
-  padding:5px 12px; font-size:.78rem; border-radius:6px; cursor:pointer;
-  border:1.5px solid #ddd; background:#fff; color:#555; transition:all .15s;
-}
-.preview-mode-btn.active { background:#02534C; border-color:#02534C; color:#fff; }
 .section-title {
   font-size:.82rem; font-weight:700; color:#02534C;
   display:flex; align-items:center; gap:6px; margin-bottom:12px;
 }
-/* Fullscreen sidebar styles */
-.fp-section-hdr {
-  color:#7dd3b8; font-size:.72rem; font-weight:700; letter-spacing:.5px;
-  margin-bottom:10px; display:flex; align-items:center; gap:6px;
-}
-.fp-input {
-  width:100%; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.13);
+/* ─ Sidebar ─ */
+.fp-hdr { color:#7dd3b8; font-size:.7rem; font-weight:700; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:5px; }
+.fp-in {
+  width:100%; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12);
   border-radius:7px; padding:7px 10px; color:#fff; font-size:.8rem; outline:none;
   transition:border-color .15s; box-sizing:border-box;
 }
-.fp-input:focus { border-color:#02534C; }
-.fp-input::placeholder { color:rgba(255,255,255,.3); }
-.fp-input-sm { padding:5px 8px!important; font-size:.76rem!important; }
+.fp-in:focus { border-color:#02534C; }
+.fp-in::placeholder { color:rgba(255,255,255,.3); }
+.fp-in-sm { padding:5px 8px!important; font-size:.76rem!important; }
 .fp-range { width:100%; accent-color:#02534C; cursor:pointer; }
-.fp-radio-group { display:flex; gap:5px; flex-wrap:wrap; }
-.fp-radio-group label { flex:1; min-width:50px; cursor:pointer; }
+.fp-rg { display:flex; gap:5px; flex-wrap:wrap; }
+.fp-rg label { flex:1; cursor:pointer; }
 .fp-opt {
-  background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.13);
-  border-radius:7px; padding:6px 5px; text-align:center; font-size:.72rem;
-  color:rgba(255,255,255,.6); cursor:pointer; transition:all .15s; display:block;
+  background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12);
+  border-radius:7px; padding:7px 5px; text-align:center; font-size:.72rem;
+  color:rgba(255,255,255,.55); cursor:pointer; transition:all .15s; display:block;
 }
-input[type="radio"]:checked + .fp-opt {
-  background:rgba(2,83,76,.5); border-color:#02534C; color:#7dd3b8;
+.fp-opt:hover { background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.22); }
+input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-color:#02534C; color:#7dd3b8; font-weight:600; }
+.fp-sw { display:flex; align-items:center; gap:8px; cursor:pointer; }
+.fp-sw input { accent-color:#02534C; width:16px; height:16px; cursor:pointer; }
+.fp-sw span { color:rgba(255,255,255,.75); font-size:.8rem; }
+.fp-div { border:none; border-top:1px solid rgba(255,255,255,.07); margin:0; }
+.fp-sec { padding:14px 18px; }
+.fp-preset {
+  flex:1; padding:6px 3px; font-size:.68rem; background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1); border-radius:6px; color:rgba(255,255,255,.55);
+  cursor:pointer; transition:all .15s; text-align:center; white-space:nowrap; line-height:1.3;
 }
-.fp-switch { display:flex; align-items:center; gap:8px; cursor:pointer; }
-.fp-switch input { accent-color:#02534C; width:16px; height:16px; cursor:pointer; }
-.fp-switch span { color:rgba(255,255,255,.7); font-size:.78rem; }
-.fp-divider { border:none; border-top:1px solid rgba(255,255,255,.08); margin:0; }
-.fp-section { padding:14px 16px; }
-/* Animations */
-@keyframes cgmPfadeP  { from{opacity:0} to{opacity:1} }
-@keyframes cgmPslideP { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-@keyframes cgmPzoomP  { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
-@keyframes cgmPdropP  { from{opacity:0;transform:translateY(-28px)} to{opacity:1;transform:translateY(0)} }
-@keyframes cgmPbounceP{ 0%{opacity:0;transform:scale(.7)} 60%{transform:scale(1.06)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
-@keyframes cgmPflipP  { from{opacity:0;transform:rotateY(80deg)} to{opacity:1;transform:rotateY(0)} }
+.fp-preset:hover { background:rgba(255,255,255,.12); color:#fff; }
+.fp-preset.on { background:rgba(2,83,76,.45); border-color:#02534C; color:#7dd3b8; }
+
+@keyframes cgmFade   { from{opacity:0} to{opacity:1} }
+@keyframes cgmSlide  { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+@keyframes cgmZoom   { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+@keyframes cgmDrop   { from{opacity:0;transform:translateY(-32px)} to{opacity:1;transform:translateY(0)} }
+@keyframes cgmBounce { 0%{opacity:0;transform:scale(.7)} 55%{transform:scale(1.07)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
+@keyframes cgmFlip   { from{opacity:0;transform:rotateY(85deg)} to{opacity:1;transform:rotateY(0)} }
 </style>
 
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
@@ -89,36 +84,57 @@ input[type="radio"]:checked + .fp-opt {
       action="{{ url_for('admin.popup_editar', pid=p.id) if popup else url_for('admin.popup_nuevo') }}"
       enctype="multipart/form-data" id="popupForm">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="imagen_actual" value="{{ p.get('imagen','') }}">
-  <input type="hidden" name="boton_pos_x" id="inputPosX" value="{{ p.get('boton_pos_x',50) }}">
-  <input type="hidden" name="boton_pos_y" id="inputPosY" value="{{ p.get('boton_pos_y',85) }}">
+
+  <!-- Input de archivo real (lo rellena el editor visual vía DataTransfer) -->
+  <input type="file" name="imagen_file" id="h_file" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
+
+  <!-- ════ INPUTS OCULTOS — propiedades visuales ════
+       El editor visual los escribe directamente.
+       El form los envía al servidor al guardar.        -->
+  <input type="hidden" name="imagen_actual"       id="h_img_actual"  value="{{ p.get('imagen','') }}">
+  <input type="hidden" name="imagen_fit"          id="h_fit"         value="{{ p.get('imagen_fit','cover') }}">
+  <input type="hidden" name="imagen_altura"       id="h_altura"      value="{{ p.get('imagen_altura',300) }}">
+  <input type="hidden" name="popup_ancho"         id="h_ancho"       value="{{ p.get('popup_ancho',560) }}">
+  <input type="hidden" name="overlay_titulo"      id="h_ov_tit"      value="{{ p.get('overlay_titulo','') }}">
+  <input type="hidden" name="overlay_subtitulo"   id="h_ov_sub"      value="{{ p.get('overlay_subtitulo','') }}">
+  <input type="hidden" name="overlay_color_fondo" id="h_ov_cf"       value="{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }}">
+  <input type="hidden" name="overlay_color_texto" id="h_ov_ct"       value="{{ p.get('overlay_color_texto','#ffffff') }}">
+  <input type="hidden" name="overlay_posicion"    id="h_ov_pos"      value="{{ p.get('overlay_posicion','bottom') }}">
+  <input type="hidden" name="boton_texto"         id="h_btn_txt"     value="{{ p.get('boton_texto','Ver más') }}">
+  <input type="hidden" name="boton_color_fondo"   id="h_btn_cf"      value="{{ p.get('boton_color_fondo','#02534C') }}">
+  <input type="hidden" name="boton_color_texto"   id="h_btn_ct"      value="{{ p.get('boton_color_texto','#ffffff') }}">
+  <input type="hidden" name="boton_tamano"        id="h_btn_tam"     value="{{ p.get('boton_tamano','md') }}">
+  <input type="hidden" name="animacion"           id="h_anim"        value="{{ p.get('animacion','fade') }}">
+  <input type="hidden" name="boton_pos_x"         id="h_pos_x"       value="{{ p.get('boton_pos_x',50) }}">
+  <input type="hidden" name="boton_pos_y"         id="h_pos_y"       value="{{ p.get('boton_pos_y',85) }}">
+  <!-- Checkboxes ocultos para booleanos -->
+  <input type="checkbox" name="overlay_activo" id="h_ov_on"  value="1" style="display:none;" {{ 'checked' if p.get('overlay_activo') else '' }}>
+  <input type="checkbox" name="boton_activo"   id="h_btn_on" value="1" style="display:none;" {{ 'checked' if p.get('boton_activo') else '' }}>
 
   <div class="row g-4">
 
-    <!-- ── COLUMNA IZQUIERDA ──────────────────────────────── -->
+    <!-- ╔══ IZQUIERDA: Configuración ══╗ -->
     <div class="col-12 col-xl-5" style="display:flex;flex-direction:column;gap:12px;">
 
-      <!-- Información básica -->
       <div class="adm-card">
-        <div class="section-title"><i class="bi bi-info-circle"></i>Información</div>
+        <div class="section-title"><i class="bi bi-info-circle"></i>Información básica</div>
         <div class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:.85rem;">Título interno</label>
-          <input type="text" name="titulo" class="form-control"
+          <label class="form-label fw-semibold" style="font-size:.85rem;">Título interno <span class="text-danger">*</span></label>
+          <input type="text" name="titulo" class="form-control" required
                  value="{{ p.get('titulo','') }}" placeholder="Ej: Campaña Expomina 2026">
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.85rem;">
             Link al hacer clic <span style="color:#888;font-weight:400;">(opcional)</span>
           </label>
-          <input type="url" name="link_url" id="linkUrlInput" class="form-control"
+          <input type="url" name="link_url" class="form-control"
                  value="{{ p.get('link_url','') }}" placeholder="https://...">
         </div>
         <div class="mb-3">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="abrir_nueva_ventana"
-                   id="abrirNuevaVentana" value="1"
-                   {{ 'checked' if p.get('abrir_nueva_ventana',1) else '' }}>
-            <label class="form-check-label" for="abrirNuevaVentana" style="font-size:.85rem;">
+                   id="chkNV" value="1" {{ 'checked' if p.get('abrir_nueva_ventana',1) else '' }}>
+            <label class="form-check-label" for="chkNV" style="font-size:.85rem;">
               Abrir link en nueva pestaña
             </label>
           </div>
@@ -135,292 +151,60 @@ input[type="radio"]:checked + .fp-opt {
         </div>
       </div>
 
-      <!-- Imagen -->
-      <div class="adm-card">
-        <div class="section-title"><i class="bi bi-image"></i>Imagen</div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;
-               background:#02534C;color:#fff;border:none;border-radius:8px;padding:8px 14px;
-               font-size:.83rem;justify-content:center;margin-bottom:8px;">
-          <i class="bi bi-upload"></i>
-          {{ 'Cambiar imagen' if p.get('imagen') else 'Subir imagen' }}
-          <input type="file" name="imagen_file" id="mainImgFile" accept=".jpg,.jpeg,.png,.webp"
-                 style="display:none;" onchange="onImgChange(this)">
-        </label>
-        <div style="font-size:.74rem;color:#888;margin-bottom:14px;">JPG, PNG o WebP → se guarda como WebP.</div>
-
-        <label class="form-label fw-semibold" style="font-size:.83rem;">Ajuste de imagen</label>
-        <div class="popt-radio-group mb-3">
-          {% for val, label, icon, desc in [
-            ('cover','Recortar','bi-fullscreen','Rellena; puede recortar bordes'),
-            ('contain','Ver completa','bi-aspect-ratio','Muestra todo; puede dejar franjas'),
-            ('fill','Estirar','bi-arrows-fullscreen','Deforma para llenar todo')
-          ] %}
-          <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="imagen_fit" value="{{ val }}" class="d-none"
-                   {{ 'checked' if p.get('imagen_fit','cover') == val else '' }}
-                   onchange="updatePreview()">
-            <div class="popt-opt">
-              <i class="bi {{ icon }}"></i>
-              <strong style="font-size:.74rem;">{{ label }}</strong><br>
-              <span style="font-size:.67rem;color:#888;">{{ desc }}</span>
-            </div>
-          </label>
-          {% endfor %}
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:.83rem;">
-            Altura imagen: <strong id="alturaLabel">{{ (p.get('imagen_altura') or 280) }}px</strong>
-          </label>
-          <input type="range" name="imagen_altura" id="alturaRange"
-                 min="80" max="550" step="10"
-                 value="{{ p.get('imagen_altura') or 280 }}"
-                 oninput="onAlturaChange(this.value)"
-                 class="form-range">
-          <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>80px</span><span>550px</span>
-          </div>
-        </div>
-
-        <div>
-          <label class="form-label fw-semibold" style="font-size:.83rem;">
-            Ancho máximo: <strong id="anchoLabel">{{ (p.get('popup_ancho') or 520) }}px</strong>
-          </label>
-          <input type="range" name="popup_ancho" id="anchoRange"
-                 min="300" max="750" step="10"
-                 value="{{ p.get('popup_ancho') or 520 }}"
-                 oninput="onAnchoChange(this.value)"
-                 class="form-range">
-          <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>Compacto (300px)</span><span>Amplio (750px)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Texto superpuesto -->
-      <div class="adm-card">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="section-title mb-0"><i class="bi bi-fonts"></i>Texto superpuesto</div>
-          <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" role="switch"
-                   name="overlay_activo" id="overlayActivoSwitch" value="1"
-                   {{ 'checked' if p.get('overlay_activo') else '' }}
-                   onchange="toggleOverlayConfig();updatePreview();">
-            <label class="form-check-label" for="overlayActivoSwitch" style="font-size:.85rem;">Activar</label>
-          </div>
-        </div>
-        <div id="overlayConfig" style="{{ '' if p.get('overlay_activo') else 'display:none;' }}">
-          <div class="mb-2">
-            <label class="form-label fw-semibold" style="font-size:.82rem;">Título</label>
-            <input type="text" name="overlay_titulo" id="overlayTitulo" class="form-control form-control-sm"
-                   value="{{ p.get('overlay_titulo','') }}" placeholder="Ej: Expomina 2026"
-                   oninput="updatePreview()">
-          </div>
-          <div class="mb-2">
-            <label class="form-label fw-semibold" style="font-size:.82rem;">Subtítulo</label>
-            <input type="text" name="overlay_subtitulo" id="overlaySubtitulo" class="form-control form-control-sm"
-                   value="{{ p.get('overlay_subtitulo','') }}" placeholder="Ej: 2 al 4 de octubre"
-                   oninput="updatePreview()">
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col-6">
-              <label class="form-label fw-semibold" style="font-size:.82rem;">Fondo</label>
-              <input type="text" name="overlay_color_fondo" id="overlayColorFondo" class="form-control form-control-sm"
-                     value="{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }}"
-                     placeholder="rgba(0,0,0,0.55)" oninput="updatePreview()">
-            </div>
-            <div class="col-6">
-              <label class="form-label fw-semibold" style="font-size:.82rem;">Color texto</label>
-              <div class="d-flex gap-2 align-items-center">
-                <input type="color" id="overlayColorTextoP" value="{{ p.get('overlay_color_texto','#ffffff') }}"
-                       style="width:34px;height:28px;border:1px solid #ddd;border-radius:5px;cursor:pointer;padding:1px;"
-                       oninput="syncHex('overlayColorTextoP','overlayColorTexto');updatePreview()">
-                <input type="text" name="overlay_color_texto" id="overlayColorTexto"
-                       class="form-control form-control-sm" style="width:80px;font-size:.77rem;"
-                       value="{{ p.get('overlay_color_texto','#ffffff') }}"
-                       oninput="syncPicker('overlayColorTexto','overlayColorTextoP');updatePreview()">
-              </div>
-            </div>
-          </div>
-          <div>
-            <label class="form-label fw-semibold" style="font-size:.82rem;">Posición</label>
-            <div class="popt-radio-group">
-              {% for val, label, icon in [('top','Arriba','bi-align-top'),('center','Centro','bi-align-middle'),('bottom','Abajo','bi-align-bottom')] %}
-              <label style="flex:1;cursor:pointer;">
-                <input type="radio" name="overlay_posicion" value="{{ val }}" class="d-none"
-                       {{ 'checked' if p.get('overlay_posicion','bottom') == val else '' }}
-                       onchange="updatePreview()">
-                <div class="popt-opt">
-                  <i class="bi {{ icon }}"></i>
-                  <span style="font-size:.74rem;">{{ label }}</span>
-                </div>
-              </label>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        <div id="overlayInfoOff" style="{{ 'display:none;' if p.get('overlay_activo') else '' }}font-size:.8rem;color:#888;">
-          Muestra título y subtítulo sobre la imagen.
-        </div>
-      </div>
-
-      <!-- Botón CTA -->
-      <div class="adm-card">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="section-title mb-0"><i class="bi bi-cursor"></i>Botón CTA</div>
-          <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" role="switch"
-                   name="boton_activo" id="botonActivoSwitch" value="1"
-                   {{ 'checked' if p.get('boton_activo') else '' }}
-                   onchange="toggleBotonConfig();updatePreview();">
-            <label class="form-check-label" for="botonActivoSwitch" style="font-size:.85rem;">Activar botón</label>
-          </div>
-        </div>
-        <div id="botonConfig" style="{{ '' if p.get('boton_activo') else 'display:none;' }}">
-          <div class="mb-2">
-            <label class="form-label fw-semibold" style="font-size:.82rem;">Texto del botón</label>
-            <input type="text" name="boton_texto" id="botonTexto" class="form-control form-control-sm"
-                   value="{{ p.get('boton_texto','Ver más') }}" oninput="updatePreview()">
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col-6">
-              <label class="form-label fw-semibold" style="font-size:.82rem;">Color fondo</label>
-              <div class="d-flex gap-2 align-items-center">
-                <input type="color" name="boton_color_fondo" id="botonColorFondo"
-                       value="{{ p.get('boton_color_fondo','#02534C') }}"
-                       style="width:36px;height:30px;border:1px solid #ddd;border-radius:5px;cursor:pointer;padding:1px;"
-                       oninput="syncHex('botonColorFondo','botonColorFondoHex');updatePreview()">
-                <input type="text" id="botonColorFondoHex" value="{{ p.get('boton_color_fondo','#02534C') }}"
-                       class="form-control form-control-sm" style="width:85px;font-size:.77rem;"
-                       oninput="syncPicker('botonColorFondoHex','botonColorFondo');updatePreview()">
-              </div>
-            </div>
-            <div class="col-6">
-              <label class="form-label fw-semibold" style="font-size:.82rem;">Color texto</label>
-              <div class="d-flex gap-2 align-items-center">
-                <input type="color" name="boton_color_texto" id="botonColorTexto"
-                       value="{{ p.get('boton_color_texto','#ffffff') }}"
-                       style="width:36px;height:30px;border:1px solid #ddd;border-radius:5px;cursor:pointer;padding:1px;"
-                       oninput="syncHex('botonColorTexto','botonColorTextoHex');updatePreview()">
-                <input type="text" id="botonColorTextoHex" value="{{ p.get('boton_color_texto','#ffffff') }}"
-                       class="form-control form-control-sm" style="width:85px;font-size:.77rem;"
-                       oninput="syncPicker('botonColorTextoHex','botonColorTexto');updatePreview()">
-              </div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold" style="font-size:.82rem;">Tamaño</label>
-            <div class="popt-radio-group">
-              {% for sz, label in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
-              <label style="flex:1;cursor:pointer;">
-                <input type="radio" name="boton_tamano" value="{{ sz }}" class="d-none"
-                       {{ 'checked' if p.get('boton_tamano','md') == sz else '' }}
-                       onchange="updatePreview()">
-                <div class="popt-opt sm-opt">{{ label }}</div>
-              </label>
-              {% endfor %}
-            </div>
-          </div>
-          <div style="background:#f0f9f7;border-radius:7px;padding:8px 11px;font-size:.78rem;color:#02534C;">
-            <i class="bi bi-hand-index me-1"></i><strong>Arrastra el botón</strong> en el editor visual.
-          </div>
-        </div>
-        <div id="botonInfoSinBoton" style="{{ 'display:none;' if p.get('boton_activo') else '' }}font-size:.8rem;color:#888;">
-          Sin botón: si hay link, toda la imagen es clickeable.
-        </div>
-      </div>
-
-      <!-- Comportamiento -->
       <div class="adm-card">
         <div class="section-title"><i class="bi bi-sliders"></i>Comportamiento</div>
-        <label class="form-label fw-semibold" style="font-size:.83rem;">Frecuencia de aparición</label>
-        <div class="popt-radio-group mb-3">
-          {% for val, label, icon, desc in [
+        <label class="form-label fw-semibold" style="font-size:.83rem;">Frecuencia</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          {% for val, lbl, icon, desc in [
             ('siempre','Siempre','bi-arrow-repeat','Cada visita'),
             ('sesion','Por sesión','bi-window','Una vez por pestaña'),
             ('dia','Por día','bi-calendar-day','Una vez al día')
           ] %}
-          <label style="flex:1;cursor:pointer;">
+          <label style="flex:1;min-width:80px;cursor:pointer;">
             <input type="radio" name="frecuencia" value="{{ val }}" class="d-none"
                    {{ 'checked' if p.get('frecuencia','siempre') == val else '' }}>
             <div class="popt-opt">
               <i class="bi {{ icon }}"></i>
-              <strong style="font-size:.74rem;">{{ label }}</strong><br>
-              <span style="font-size:.67rem;color:#888;">{{ desc }}</span>
+              <strong style="font-size:.74rem;">{{ lbl }}</strong><br>
+              <span style="font-size:.66rem;color:#888;">{{ desc }}</span>
             </div>
           </label>
           {% endfor %}
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.83rem;">
-            Retraso: <strong id="delayLabel">{{ p.get('delay_ms',800) }}ms</strong>
+            Retraso: <strong id="lblDelay">{{ p.get('delay_ms',800) }}ms</strong>
           </label>
-          <input type="range" name="delay_ms" id="delayRange"
-                 min="0" max="5000" step="100" class="form-range"
-                 value="{{ p.get('delay_ms',800) }}"
-                 oninput="document.getElementById('delayLabel').textContent=this.value+'ms'">
+          <input type="range" name="delay_ms" min="0" max="5000" step="100"
+                 value="{{ p.get('delay_ms',800) }}" class="form-range"
+                 oninput="document.getElementById('lblDelay').textContent=this.value+'ms'">
           <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>Inmediato</span><span>5 segundos</span>
+            <span>Inmediato</span><span>5 s</span>
           </div>
         </div>
-
-        <div class="mb-3">
+        <div>
           <label class="form-label fw-semibold" style="font-size:.83rem;">Mostrar en</label>
           <select name="pais_filtro" class="form-select form-select-sm">
-            {% for val, label in [('todos','🌎 Todos los países'),('pe','🇵🇪 Solo Perú'),('ar','🇦🇷 Solo Argentina')] %}
-            <option value="{{ val }}" {{ 'selected' if p.get('pais_filtro','todos') == val else '' }}>{{ label }}</option>
+            {% for val, lbl in [('todos','🌎 Todos los países'),('pe','🇵🇪 Solo Perú'),('ar','🇦🇷 Solo Argentina')] %}
+            <option value="{{ val }}" {{ 'selected' if p.get('pais_filtro','todos') == val else '' }}>{{ lbl }}</option>
             {% endfor %}
           </select>
         </div>
-
-        <div>
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <label class="form-label fw-semibold mb-0" style="font-size:.83rem;">Animación de entrada</label>
-            <button type="button" onclick="previewAnim()"
-                    style="font-size:.74rem;padding:3px 10px;background:#f0f9f7;color:#02534C;
-                           border:1px solid #b2dbd6;border-radius:5px;cursor:pointer;">
-              <i class="bi bi-play-fill me-1"></i>Ver
-            </button>
-          </div>
-          <div class="popt-radio-group" style="flex-wrap:wrap;">
-            {% for val, label, icon in [
-              ('fade','Fade','bi-circle-half'),
-              ('slide','Slide↑','bi-arrow-up-short'),
-              ('drop','Drop↓','bi-arrow-down-short'),
-              ('zoom','Zoom','bi-zoom-in'),
-              ('bounce','Bounce','bi-arrows-angle-expand'),
-              ('flip','Flip','bi-arrow-repeat')
-            ] %}
-            <label style="flex:1;min-width:60px;cursor:pointer;">
-              <input type="radio" name="animacion" value="{{ val }}" class="d-none"
-                     {{ 'checked' if p.get('animacion','fade') == val else '' }}
-                     onchange="updatePreview()">
-              <div class="popt-opt">
-                <i class="bi {{ icon }}"></i>
-                <span style="font-size:.73rem;">{{ label }}</span>
-              </div>
-            </label>
-            {% endfor %}
-          </div>
-        </div>
       </div>
 
-      <!-- Estado -->
       <div class="adm-card">
         <div class="section-title"><i class="bi bi-toggle-on"></i>Estado</div>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch"
-                 name="activo" id="activoSwitch" value="1"
-                 {{ 'checked' if p.get('activo',1) else '' }}>
-          <label class="form-check-label" for="activoSwitch" style="font-size:.85rem;">Popup activo</label>
+                 name="activo" id="chkActivo" value="1" {{ 'checked' if p.get('activo',1) else '' }}>
+          <label class="form-check-label" for="chkActivo" style="font-size:.85rem;">Popup activo</label>
         </div>
         <div style="font-size:.77rem;color:#888;margin-top:4px;">
           Activo + dentro del rango de fechas = visible en la web.
         </div>
       </div>
 
-      <div class="d-flex gap-3 pb-2">
+      <div class="d-flex gap-3">
         <button type="submit" class="btn-adm-primary">
           <i class="bi bi-check-lg me-1"></i>{{ 'Guardar cambios' if popup else 'Crear popup' }}
         </button>
@@ -428,862 +212,698 @@ input[type="radio"]:checked + .fp-opt {
       </div>
     </div>
 
-    <!-- ── COLUMNA DERECHA: thumbnail + editor ───────────── -->
+    <!-- ╔══ DERECHA: Diseño visual ══╗ -->
     <div class="col-12 col-xl-7">
       <div class="adm-card" style="position:sticky;top:80px;">
-        <div class="section-title"><i class="bi bi-pencil-square"></i>Editor visual</div>
+        <div class="section-title"><i class="bi bi-palette"></i>Diseño visual</div>
 
-        <!-- Botón principal -->
-        <button type="button" onclick="openFullPreview()"
+        <!-- Botón de apertura -->
+        <button type="button" onclick="editorAbrir()"
                 style="width:100%;padding:20px 24px;border-radius:12px;border:none;
-                       background:linear-gradient(135deg,#02534C,#037a6d);color:#fff;
-                       font-size:1.05rem;font-weight:700;cursor:pointer;
-                       display:flex;align-items:center;justify-content:center;gap:12px;
-                       box-shadow:0 4px 18px rgba(2,83,76,.4);
+                       background:linear-gradient(135deg,#01382f,#02534C,#037a6d);color:#fff;
+                       display:flex;align-items:center;gap:14px;text-align:left;
+                       box-shadow:0 6px 24px rgba(2,83,76,.45);cursor:pointer;
                        transition:transform .15s,box-shadow .15s;"
-                onmouseover="this.style.transform='scale(1.015)';this.style.boxShadow='0 6px 24px rgba(2,83,76,.5)'"
-                onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(2,83,76,.4)'">
-          <i class="bi bi-layout-sidebar-reverse" style="font-size:1.4rem;"></i>
-          <span>Abrir editor visual</span>
-          <span style="font-size:.75rem;opacity:.8;margin-left:4px;">— edita y previsualiza en pantalla completa</span>
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 32px rgba(2,83,76,.55)'"
+                onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(2,83,76,.45)'">
+          <div style="width:46px;height:46px;background:rgba(255,255,255,.12);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-layout-sidebar-reverse" style="font-size:1.5rem;"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:1rem;font-weight:700;">Abrir editor visual</div>
+            <div style="font-size:.74rem;opacity:.65;margin-top:3px;">
+              Imagen · Texto superpuesto · Botón CTA · Animación · Vista previa en tiempo real
+            </div>
+          </div>
+          <i class="bi bi-arrow-right" style="opacity:.5;font-size:1.1rem;"></i>
         </button>
 
-        <!-- Chips de características -->
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
-          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
-            <i class="bi bi-sliders me-1"></i>Imagen, texto y botón
-          </span>
-          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
-            <i class="bi bi-phone me-1"></i>Vista desktop/mobile
-          </span>
-          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
-            <i class="bi bi-hand-index me-1"></i>Botón arrastrable
-          </span>
-        </div>
-
-        <!-- Thumbnail rápido -->
-        <div style="margin-top:16px;border-radius:10px;overflow:hidden;background:#333;position:relative;line-height:0;">
-          <div id="previewPlaceholder"
+        <!-- Thumbnail -->
+        <div style="margin-top:14px;border-radius:10px;overflow:hidden;background:#1e1e1e;
+                    position:relative;line-height:0;cursor:pointer;" onclick="editorAbrir()">
+          <div id="prevPh"
                style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                      width:100%;height:150px;background:#444;
-                      align-items:center;justify-content:center;
-                      flex-direction:column;color:#888;font-size:.8rem;gap:6px;">
-            <i class="bi bi-image" style="font-size:2rem;"></i>
-            Sin imagen — súbela desde "Imagen" o en el editor visual
+                      width:100%;height:190px;background:#2a2a2a;
+                      flex-direction:column;align-items:center;justify-content:center;
+                      color:#555;font-size:.83rem;gap:8px;">
+            <i class="bi bi-image" style="font-size:2.2rem;color:#444;"></i>
+            Sin imagen — ábrelo en el editor visual para subir una
           </div>
-          <img id="previewImg"
+          <img id="prevImg"
                src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
+               alt=""
                style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
-                      height:150px;object-fit:{{ p.get('imagen_fit','cover') }};"
-               onload="this.style.display='block';document.getElementById('previewPlaceholder').style.display='none';"
-               onerror="this.style.display='none';document.getElementById('previewPlaceholder').style.display='flex';">
-          <div id="previewOverlay" style="position:absolute;left:0;right:0;padding:6px 10px;
-               background:{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }};
-               color:{{ p.get('overlay_color_texto','#ffffff') }};
-               display:{{ 'block' if p.get('overlay_activo') else 'none' }};
-               {{ 'top:0' if p.get('overlay_posicion','bottom') == 'top' else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center' else 'bottom:0' }};">
-            <div id="previewOverlayTit" style="font-weight:700;font-size:.8rem;">{{ p.get('overlay_titulo','') }}</div>
-            <div id="previewOverlaySub" style="font-size:.7rem;opacity:.85;">{{ p.get('overlay_subtitulo','') }}</div>
+                      height:190px;object-fit:{{ p.get('imagen_fit','cover') }};"
+               onerror="this.style.display='none';document.getElementById('prevPh').style.display='flex';">
+          <div id="prevOv"
+               style="position:absolute;left:0;right:0;padding:7px 11px;
+                      background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
+                      color:{{ p.get('overlay_color_texto','#fff') }};
+                      display:{{ 'block' if p.get('overlay_activo') else 'none' }};
+                      {{ 'top:0' if p.get('overlay_posicion') == 'top' else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center' else 'bottom:0' }};">
+            <div id="prevOvT" style="font-weight:700;font-size:.78rem;">{{ p.get('overlay_titulo','') }}</div>
+            <div id="prevOvS" style="font-size:.7rem;opacity:.85;">{{ p.get('overlay_subtitulo','') }}</div>
+          </div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+                      opacity:0;transition:opacity .2s;font-size:.82rem;color:#fff;font-weight:600;"
+               onmouseover="this.style.opacity='1';this.style.background='rgba(2,83,76,.5)'"
+               onmouseout="this.style.opacity='0';this.style.background='transparent'">
+            <i class="bi bi-pencil-square me-2"></i>Editar diseño
           </div>
         </div>
-        <div style="margin-top:5px;font-size:.71rem;color:#aaa;text-align:center;">
-          Vista reducida — el editor visual muestra el tamaño exacto
+        <div style="font-size:.69rem;color:#bbb;text-align:center;margin-top:4px;">
+          Vista reducida · el editor muestra el popup a tamaño real
         </div>
 
         <!-- Info chips -->
-        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
-          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
-            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ANCHO</div>
-            <strong id="infoAncho" style="color:#02534C;">{{ p.get('popup_ancho') or 520 }}px</strong>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;">
+          {% for lbl, cid, val in [
+            ('ANCHO',    'chip_ancho',  ((p.get('popup_ancho') or 560)|string)+'px'),
+            ('ALT. IMG', 'chip_altura', ((p.get('imagen_altura') or 300)|string)+'px'),
+            ('AJUSTE',   'chip_fit',    p.get('imagen_fit','cover')),
+            ('ANIMACIÓN','chip_anim',   p.get('animacion','fade'))
+          ] %}
+          <div style="background:#f6f8f7;border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="color:#bbb;font-size:.62rem;font-weight:700;letter-spacing:.3px;margin-bottom:2px;">{{ lbl }}</div>
+            <strong id="{{ cid }}" style="color:#02534C;font-size:.78rem;">{{ val }}</strong>
           </div>
-          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
-            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ALTURA IMG</div>
-            <strong id="infoAltura" style="color:#02534C;">{{ p.get('imagen_altura') or 280 }}px</strong>
-          </div>
-          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
-            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">AJUSTE</div>
-            <strong id="infoFit" style="color:#02534C;">{{ p.get('imagen_fit','cover') }}</strong>
-          </div>
-          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
-            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ANIMACIÓN</div>
-            <strong id="infoAnim" style="color:#02534C;">{{ p.get('animacion','fade') }}</strong>
-          </div>
+          {% endfor %}
         </div>
-
-        <!-- Posición botón -->
-        <div id="posIndicator" style="margin-top:10px;font-size:.74rem;color:#888;text-align:center;">
-          Botón CTA en X:<strong id="infoPosX">{{ p.get('boton_pos_x',50) }}</strong>%
-          Y:<strong id="infoPosY">{{ p.get('boton_pos_y',85) }}</strong>%
-          — arrástralo en el editor visual
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+          <div id="chip_ov"
+               style="border-radius:20px;padding:3px 10px;font-size:.72rem;
+                      {{ 'background:#e8f5f3;color:#02534C;' if p.get('overlay_activo') else 'background:#f0f0f0;color:#aaa;' }}">
+            <i class="bi bi-fonts me-1"></i>Texto: {{ 'activo' if p.get('overlay_activo') else 'desactivado' }}
+          </div>
+          <div id="chip_btn"
+               style="border-radius:20px;padding:3px 10px;font-size:.72rem;
+                      {{ 'background:#e8f5f3;color:#02534C;' if p.get('boton_activo') else 'background:#f0f0f0;color:#aaa;' }}">
+            <i class="bi bi-cursor me-1"></i>Botón: {{ 'activo' if p.get('boton_activo') else 'desactivado' }}
+          </div>
+          <div id="chip_pos"
+               style="border-radius:20px;padding:3px 10px;font-size:.72rem;background:#f0f0f0;color:#888;
+                      {{ '' if p.get('boton_activo') else 'display:none;' }}">
+            Pos X:<strong id="cPX">{{ p.get('boton_pos_x',50) }}</strong>%
+            Y:<strong id="cPY">{{ p.get('boton_pos_y',85) }}</strong>%
+          </div>
         </div>
       </div>
     </div>
 
-  </div><!-- fin row -->
+  </div><!-- /row -->
 </form>
 
 <!-- ══════════════════════════════════════════════════════════
-     EDITOR VISUAL FULLSCREEN (split: sidebar + preview)
+     EDITOR VISUAL FULLSCREEN
 ══════════════════════════════════════════════════════════════ -->
-<div id="fpOverlay" style="position:fixed;inset:0;z-index:99998;display:none;font-family:system-ui,sans-serif;">
+<div id="fpOv" style="position:fixed;inset:0;z-index:99998;display:none;font-family:system-ui,sans-serif;">
 
-  <!-- ── SIDEBAR IZQUIERDO (320px) ──────────────────────── -->
-  <div id="fpSidebar"
-       style="position:absolute;left:0;top:0;bottom:0;width:320px;
-              background:#0d1f15;overflow-y:auto;z-index:5;
-              border-right:1px solid rgba(255,255,255,.1);">
+  <!-- ── SIDEBAR 340px ──────────────────────────────────── -->
+  <div style="position:absolute;left:0;top:0;bottom:0;width:340px;
+              background:#0c1d12;overflow-y:auto;z-index:5;
+              border-right:1px solid rgba(255,255,255,.08);">
 
-    <!-- Sidebar header -->
-    <div style="padding:13px 16px;background:#02534C;display:flex;align-items:center;gap:10px;
-                position:sticky;top:0;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4);">
-      <i class="bi bi-pencil-square" style="color:#fff;font-size:1rem;"></i>
-      <span style="font-weight:700;color:#fff;font-size:.88rem;">Editor visual</span>
-      <span style="margin-left:auto;font-size:.7rem;color:rgba(255,255,255,.55);">
-        ESC para cerrar
-      </span>
+    <div style="padding:14px 18px;background:#01382f;display:flex;align-items:center;gap:10px;
+                position:sticky;top:0;z-index:2;box-shadow:0 2px 10px rgba(0,0,0,.5);">
+      <i class="bi bi-palette" style="color:#7dd3b8;font-size:.95rem;"></i>
+      <span style="font-weight:700;color:#fff;font-size:.88rem;">Diseño visual</span>
+      <span style="margin-left:auto;font-size:.67rem;color:rgba(255,255,255,.35);">ESC para cerrar</span>
     </div>
 
-    <!-- ── Imagen ── -->
-    <div class="fp-section">
-      <div class="fp-section-hdr"><i class="bi bi-image"></i>IMAGEN</div>
-
-      <!-- Thumbnail de imagen actual -->
-      <div style="position:relative;border-radius:8px;overflow:hidden;background:#1e3a28;
-                  margin-bottom:10px;cursor:pointer;min-height:90px;
-                  display:flex;align-items:center;justify-content:center;"
-           onclick="document.getElementById('fpImgFile').click()">
-        <img id="fp_imgThumb" src="" alt=""
-             style="width:100%;max-height:130px;object-fit:cover;display:none;">
-        <div id="fp_imgThumbPh"
-             style="text-align:center;color:#4a8a6a;padding:18px;font-size:.8rem;">
-          <i class="bi bi-cloud-upload" style="font-size:1.6rem;display:block;margin-bottom:6px;"></i>
-          Clic para subir / cambiar imagen
+    <!-- IMAGEN -->
+    <div class="fp-sec">
+      <div class="fp-hdr"><i class="bi bi-image"></i>IMAGEN</div>
+      <div id="fp_zone"
+           style="border:2px dashed rgba(255,255,255,.14);border-radius:10px;overflow:hidden;
+                  margin-bottom:12px;cursor:pointer;min-height:110px;
+                  display:flex;align-items:center;justify-content:center;
+                  transition:border-color .2s;position:relative;"
+           onclick="document.getElementById('fp_file').click()"
+           onmouseover="this.style.borderColor='rgba(2,83,76,.7)'"
+           onmouseout="this.style.borderColor='rgba(255,255,255,.14)'">
+        <img id="fp_thumb" src="" style="width:100%;max-height:160px;object-fit:cover;display:none;">
+        <div id="fp_zonePh" style="text-align:center;color:#3a7a56;padding:22px;font-size:.8rem;">
+          <i class="bi bi-cloud-upload" style="font-size:1.9rem;display:block;margin-bottom:7px;"></i>
+          Clic para subir imagen<br>
+          <span style="font-size:.7rem;color:rgba(255,255,255,.25);">JPG · PNG · WebP → se guarda como WebP</span>
+        </div>
+        <div id="fp_zoneBadge"
+             style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);
+                    color:#7dd3b8;font-size:.67rem;border-radius:5px;padding:3px 8px;display:none;">
+          <i class="bi bi-pencil-fill me-1"></i>Cambiar
         </div>
       </div>
-      <input type="file" id="fpImgFile" accept=".jpg,.jpeg,.png,.webp"
-             style="display:none;" onchange="fp_onImgChange(this)">
+      <input type="file" id="fp_file" accept=".jpg,.jpeg,.png,.webp"
+             style="display:none;" onchange="fp_onImg(this)">
 
-      <!-- Fit -->
-      <div style="margin-bottom:10px;">
-        <div style="color:rgba(255,255,255,.45);font-size:.7rem;margin-bottom:6px;">Ajuste de imagen</div>
-        <div class="fp-radio-group">
-          {% for val, lbl in [('cover','Recortar'),('contain','Completa'),('fill','Estirar')] %}
+      <div style="margin-bottom:12px;">
+        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Ajuste de imagen</div>
+        <div class="fp-rg">
+          {% for v, l, ic in [('cover','Recortar','bi-fullscreen'),('contain','Completa','bi-aspect-ratio'),('fill','Estirar','bi-arrows-fullscreen')] %}
           <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="fp_fit" value="{{ val }}" style="display:none;" onchange="fp_update()">
-            <div class="fp-opt">{{ lbl }}</div>
+            <input type="radio" name="fp_fit" value="{{ v }}" style="display:none;"
+                   onchange="fp_apply('fit',this.value)">
+            <div class="fp-opt" style="padding:8px 4px;">
+              <i class="bi {{ ic }}" style="display:block;font-size:.9rem;margin-bottom:2px;"></i>{{ l }}
+            </div>
           </label>
           {% endfor %}
         </div>
       </div>
 
-      <!-- Altura -->
-      <div style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-          <span style="color:rgba(255,255,255,.5);font-size:.71rem;">Altura imagen</span>
-          <strong id="fp_alturaLabel" style="color:#7dd3b8;font-size:.78rem;">280px</strong>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Altura imagen</span>
+          <strong id="fp_lblAlt" style="color:#7dd3b8;font-size:.76rem;
+                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">300px</strong>
         </div>
-        <input type="range" id="fp_alturaRange" min="80" max="550" step="10" value="280"
-               class="fp-range" oninput="fp_update()">
-        <div style="display:flex;justify-content:space-between;font-size:.66rem;color:rgba(255,255,255,.25);margin-top:2px;">
-          <span>80px</span><span>550px</span>
+        <div style="display:flex;gap:4px;margin-bottom:7px;">
+          {% for v, l in [(200,'200'),(300,'300'),(420,'420'),(560,'560')] %}
+          <button type="button" class="fp-preset fp-pAlt" data-v="{{ v }}"
+                  onclick="fp_setAlt({{ v }})">{{ l }}px</button>
+          {% endfor %}
+        </div>
+        <input type="range" id="fp_rAlt" min="80" max="700" step="10" value="300"
+               class="fp-range" oninput="fp_apply('altura',this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:.63rem;
+                    color:rgba(255,255,255,.18);margin-top:3px;">
+          <span>80px</span><span>700px</span>
         </div>
       </div>
 
-      <!-- Ancho -->
       <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-          <span style="color:rgba(255,255,255,.5);font-size:.71rem;">Ancho popup</span>
-          <strong id="fp_anchoLabel" style="color:#7dd3b8;font-size:.78rem;">520px</strong>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Ancho del popup</span>
+          <strong id="fp_lblAnc" style="color:#7dd3b8;font-size:.76rem;
+                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">560px</strong>
         </div>
-        <input type="range" id="fp_anchoRange" min="300" max="750" step="10" value="520"
-               class="fp-range" oninput="fp_update()">
-        <div style="display:flex;justify-content:space-between;font-size:.66rem;color:rgba(255,255,255,.25);margin-top:2px;">
-          <span>300px</span><span>750px</span>
+        <div style="display:flex;gap:4px;margin-bottom:7px;">
+          <button type="button" class="fp-preset fp-pAnc" data-v="420" onclick="fp_setAnc(420)">
+            Compacto<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">420px</span>
+          </button>
+          <button type="button" class="fp-preset fp-pAnc" data-v="580" onclick="fp_setAnc(580)">
+            Estándar<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">580px</span>
+          </button>
+          <button type="button" class="fp-preset fp-pAnc" data-v="740" onclick="fp_setAnc(740)">
+            Grande<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">740px</span>
+          </button>
+          <button type="button" class="fp-preset fp-pAnc" data-v="940" onclick="fp_setAnc(940)">
+            Amplio<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">940px</span>
+          </button>
+        </div>
+        <input type="range" id="fp_rAnc" min="300" max="940" step="10" value="560"
+               class="fp-range" oninput="fp_apply('ancho',this.value);fp_markAnc()">
+        <div style="display:flex;justify-content:space-between;font-size:.63rem;
+                    color:rgba(255,255,255,.18);margin-top:3px;">
+          <span>300px</span><span>940px</span>
         </div>
       </div>
     </div>
-    <hr class="fp-divider">
+    <hr class="fp-div">
 
-    <!-- ── Texto superpuesto ── -->
-    <div class="fp-section">
+    <!-- TEXTO SUPERPUESTO -->
+    <div class="fp-sec">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-section-hdr mb-0"><i class="bi bi-fonts"></i>TEXTO SUPERPUESTO</div>
-        <label class="fp-switch">
-          <input type="checkbox" id="fp_overlayActivo" onchange="fp_update()">
-          <span>Activar</span>
+        <div class="fp-hdr mb-0"><i class="bi bi-fonts"></i>TEXTO SUPERPUESTO</div>
+        <label class="fp-sw">
+          <input type="checkbox" id="fp_ovOn" onchange="fp_apply('ov_on',this.checked?'1':'')">
+          <span>Activo</span>
         </label>
       </div>
-      <div id="fp_overlayBody" style="transition:opacity .2s;">
-        <input type="text" id="fp_overlayTitulo" placeholder="Título principal"
-               class="fp-input" style="margin-bottom:6px;" oninput="fp_update()">
-        <input type="text" id="fp_overlaySubtitulo" placeholder="Subtítulo"
-               class="fp-input" style="margin-bottom:8px;" oninput="fp_update()">
-        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Color fondo</div>
-            <input type="text" id="fp_overlayColorFondo" placeholder="rgba(0,0,0,.55)"
-                   class="fp-input fp-input-sm" oninput="fp_update()">
-          </div>
-          <div>
-            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Texto</div>
-            <input type="color" id="fp_overlayColorTexto" value="#ffffff"
-                   style="width:44px;height:33px;border:1.5px solid rgba(255,255,255,.2);
-                          border-radius:6px;cursor:pointer;background:transparent;padding:2px;"
-                   oninput="fp_update()">
-          </div>
+      <input type="text" id="fp_ovTit" placeholder="Título del popup"
+             class="fp-in" style="margin-bottom:6px;"
+             oninput="fp_apply('ov_tit',this.value)">
+      <input type="text" id="fp_ovSub" placeholder="Subtítulo"
+             class="fp-in" style="margin-bottom:10px;"
+             oninput="fp_apply('ov_sub',this.value)">
+      <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-end;">
+        <div style="flex:1;">
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo (rgba)</div>
+          <input type="text" id="fp_ovCF" placeholder="rgba(0,0,0,.55)"
+                 class="fp-in fp-in-sm" oninput="fp_apply('ov_cf',this.value)">
         </div>
-        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Posición</div>
-        <div class="fp-radio-group">
-          {% for val, lbl in [('top','Arriba'),('center','Centro'),('bottom','Abajo')] %}
-          <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="fp_ovPos" value="{{ val }}" style="display:none;" onchange="fp_update()">
-            <div class="fp-opt">{{ lbl }}</div>
-          </label>
-          {% endfor %}
+        <div>
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
+          <input type="color" id="fp_ovCT" value="#ffffff"
+                 style="width:46px;height:34px;border:1.5px solid rgba(255,255,255,.18);
+                        border-radius:7px;cursor:pointer;padding:2px;background:transparent;"
+                 oninput="fp_apply('ov_ct',this.value)">
         </div>
       </div>
-    </div>
-    <hr class="fp-divider">
-
-    <!-- ── Botón CTA ── -->
-    <div class="fp-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-section-hdr mb-0"><i class="bi bi-cursor"></i>BOTÓN CTA</div>
-        <label class="fp-switch">
-          <input type="checkbox" id="fp_botonActivo" onchange="fp_update()">
-          <span>Activar</span>
-        </label>
-      </div>
-      <div id="fp_botonBody" style="transition:opacity .2s;">
-        <input type="text" id="fp_botonTexto" placeholder="Texto del botón" value="Ver más"
-               class="fp-input" style="margin-bottom:8px;" oninput="fp_update()">
-        <div style="display:flex;gap:10px;margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Fondo</div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <input type="color" id="fp_botonColorFondo" value="#02534C"
-                     style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;padding:1px;flex-shrink:0;"
-                     oninput="fp_syncColorP('fp_botonColorFondo','fp_botonColorFondoHex');fp_update()">
-              <input type="text" id="fp_botonColorFondoHex" value="#02534C"
-                     class="fp-input fp-input-sm" style="min-width:0;"
-                     oninput="fp_syncColorH('fp_botonColorFondoHex','fp_botonColorFondo');fp_update()">
-            </div>
+      <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Posición del texto</div>
+      <div class="fp-rg">
+        {% for v, l, ic in [('top','Arriba','bi-arrow-up'),('center','Centro','bi-dash-lg'),('bottom','Abajo','bi-arrow-down')] %}
+        <label style="flex:1;cursor:pointer;">
+          <input type="radio" name="fp_ovPos" value="{{ v }}" style="display:none;"
+                 onchange="fp_apply('ov_pos',this.value)">
+          <div class="fp-opt">
+            <i class="bi {{ ic }}" style="display:block;font-size:.85rem;"></i>{{ l }}
           </div>
-          <div style="flex:1;">
-            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Texto</div>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <input type="color" id="fp_botonColorTexto" value="#ffffff"
-                     style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;padding:1px;flex-shrink:0;"
-                     oninput="fp_syncColorP('fp_botonColorTexto','fp_botonColorTextoHex');fp_update()">
-              <input type="text" id="fp_botonColorTextoHex" value="#ffffff"
-                     class="fp-input fp-input-sm" style="min-width:0;"
-                     oninput="fp_syncColorH('fp_botonColorTextoHex','fp_botonColorTexto');fp_update()">
-            </div>
-          </div>
-        </div>
-        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Tamaño</div>
-        <div class="fp-radio-group" style="margin-bottom:8px;">
-          {% for val, lbl in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
-          <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="fp_botonTam" value="{{ val }}" style="display:none;" onchange="fp_update()">
-            <div class="fp-opt">{{ lbl }}</div>
-          </label>
-          {% endfor %}
-        </div>
-        <div style="background:rgba(2,83,76,.25);border:1px solid rgba(2,83,76,.4);border-radius:7px;
-                    padding:7px 10px;font-size:.72rem;color:#7dd3b8;">
-          <i class="bi bi-hand-index me-1"></i>Arrastra el botón sobre la imagen en la previsualización
-        </div>
-      </div>
-    </div>
-    <hr class="fp-divider">
-
-    <!-- ── Animación ── -->
-    <div class="fp-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-section-hdr mb-0"><i class="bi bi-stars"></i>ANIMACIÓN</div>
-        <button type="button" onclick="fp_playAnim()"
-                style="font-size:.72rem;padding:4px 12px;background:rgba(2,83,76,.35);color:#7dd3b8;
-                       border:1px solid rgba(2,83,76,.5);border-radius:6px;cursor:pointer;">
-          <i class="bi bi-play-fill"></i> Ver
-        </button>
-      </div>
-      <div class="fp-radio-group" style="flex-wrap:wrap;gap:5px;">
-        {% for val, lbl in [('fade','Fade'),('slide','Slide↑'),('drop','Drop↓'),('zoom','Zoom'),('bounce','Bounce'),('flip','Flip')] %}
-        <label style="cursor:pointer;">
-          <input type="radio" name="fp_anim" value="{{ val }}" style="display:none;" onchange="fp_update()">
-          <div class="fp-opt" style="padding:5px 10px;font-size:.72rem;">{{ lbl }}</div>
         </label>
         {% endfor %}
       </div>
     </div>
-    <hr class="fp-divider">
+    <hr class="fp-div">
 
-    <!-- Footer sticky -->
-    <div style="padding:14px 16px;position:sticky;bottom:0;background:#0d1f15;
-                border-top:1px solid rgba(255,255,255,.1);">
-      <button type="button" onclick="fp_applyAndClose()"
-              style="width:100%;padding:12px;background:linear-gradient(135deg,#02534C,#037a6d);
-                     color:#fff;border:none;border-radius:9px;font-weight:700;
-                     font-size:.88rem;cursor:pointer;display:flex;align-items:center;
-                     justify-content:center;gap:8px;box-shadow:0 3px 12px rgba(2,83,76,.4);">
-        <i class="bi bi-check-lg"></i>Aplicar y cerrar
+    <!-- BOTÓN CTA -->
+    <div class="fp-sec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-hdr mb-0"><i class="bi bi-cursor"></i>BOTÓN CTA</div>
+        <label class="fp-sw">
+          <input type="checkbox" id="fp_btnOn" onchange="fp_apply('btn_on',this.checked?'1':'')">
+          <span>Activo</span>
+        </label>
+      </div>
+      <input type="text" id="fp_btnTxt" placeholder="Texto del botón" value="Ver más"
+             class="fp-in" style="margin-bottom:10px;"
+             oninput="fp_apply('btn_txt',this.value)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div>
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo</div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <input type="color" id="fp_btnCF" value="#02534C"
+                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
+                   oninput="fp_syncCP('fp_btnCF','fp_btnCFh');fp_apply('btn_cf',this.value)">
+            <input type="text" id="fp_btnCFh" value="#02534C"
+                   class="fp-in fp-in-sm" style="min-width:0;"
+                   oninput="fp_syncCH('fp_btnCFh','fp_btnCF');fp_apply('btn_cf',this.value)">
+          </div>
+        </div>
+        <div>
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <input type="color" id="fp_btnCT" value="#ffffff"
+                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
+                   oninput="fp_syncCP('fp_btnCT','fp_btnCTh');fp_apply('btn_ct',this.value)">
+            <input type="text" id="fp_btnCTh" value="#ffffff"
+                   class="fp-in fp-in-sm" style="min-width:0;"
+                   oninput="fp_syncCH('fp_btnCTh','fp_btnCT');fp_apply('btn_ct',this.value)">
+          </div>
+        </div>
+      </div>
+      <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Tamaño</div>
+      <div class="fp-rg" style="margin-bottom:10px;">
+        {% for v, l in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
+        <label style="flex:1;cursor:pointer;">
+          <input type="radio" name="fp_btnTam" value="{{ v }}" style="display:none;"
+                 onchange="fp_apply('btn_tam',this.value)">
+          <div class="fp-opt">{{ l }}</div>
+        </label>
+        {% endfor %}
+      </div>
+      <div style="background:rgba(2,83,76,.18);border:1px solid rgba(2,83,76,.3);
+                  border-radius:7px;padding:8px 10px;font-size:.72rem;color:#7dd3b8;">
+        <i class="bi bi-hand-index me-1"></i>Arrastra el botón sobre la imagen para reposicionarlo
+      </div>
+    </div>
+    <hr class="fp-div">
+
+    <!-- ANIMACIÓN -->
+    <div class="fp-sec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-hdr mb-0"><i class="bi bi-stars"></i>ANIMACIÓN</div>
+        <button type="button" onclick="fp_playAnim()"
+                style="font-size:.72rem;padding:5px 12px;background:rgba(2,83,76,.28);color:#7dd3b8;
+                       border:1px solid rgba(2,83,76,.38);border-radius:6px;cursor:pointer;">
+          <i class="bi bi-play-fill"></i> Ver
+        </button>
+      </div>
+      <div class="fp-rg" style="flex-wrap:wrap;gap:5px;">
+        {% for v, l in [('fade','Fade'),('slide','Slide↑'),('drop','Drop↓'),('zoom','Zoom'),('bounce','Bounce'),('flip','Flip')] %}
+        <label style="cursor:pointer;">
+          <input type="radio" name="fp_anim" value="{{ v }}" style="display:none;"
+                 onchange="fp_apply('anim',this.value)">
+          <div class="fp-opt" style="padding:6px 13px;font-size:.73rem;">{{ l }}</div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Footer sidebar -->
+    <div style="padding:14px 18px;position:sticky;bottom:0;background:#0c1d12;
+                border-top:1px solid rgba(255,255,255,.08);">
+      <button type="button" onclick="editorCerrar()"
+              style="width:100%;padding:13px;background:linear-gradient(135deg,#02534C,#04877a);
+                     color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.88rem;
+                     cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+                     box-shadow:0 4px 16px rgba(2,83,76,.45);">
+        <i class="bi bi-check-lg"></i>Listo — volver al formulario
       </button>
-      <div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;margin-top:6px;">
-        Sincroniza los cambios al formulario · Guarda con el botón principal
+      <div style="font-size:.66rem;color:rgba(255,255,255,.2);text-align:center;margin-top:6px;">
+        Los cambios se guardan al hacer clic en "Guardar cambios"
       </div>
     </div>
   </div><!-- /sidebar -->
 
-  <!-- ── BARRA SUPERIOR (sobre el preview) ──────────────── -->
-  <div style="position:absolute;left:320px;right:0;top:0;height:52px;z-index:6;
-              background:rgba(0,0,0,.88);backdrop-filter:blur(10px);
+  <!-- ── BARRA SUPERIOR ────────────────────────────────── -->
+  <div style="position:absolute;left:340px;right:0;top:0;height:52px;z-index:6;
+              background:rgba(0,0,0,.92);backdrop-filter:blur(14px);
               display:flex;align-items:center;gap:10px;padding:0 20px;
-              border-bottom:1px solid rgba(255,255,255,.1);">
-    <i class="bi bi-eye" style="color:rgba(255,255,255,.5);font-size:.9rem;"></i>
-    <span style="color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;">VISTA PREVIA REAL</span>
-    <span style="color:rgba(255,255,255,.15);">|</span>
-    <button type="button" onclick="fp_setMode('desktop')" id="fp_btnD"
-            class="preview-mode-btn active"
-            style="border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;">
+              border-bottom:1px solid rgba(255,255,255,.07);">
+    <span style="color:rgba(255,255,255,.3);font-size:.7rem;font-weight:700;letter-spacing:.5px;">
+      PREVISUALIZACIÓN
+    </span>
+    <span style="color:rgba(255,255,255,.08);">|</span>
+    <button type="button" id="fp_btnD" onclick="fp_modo('desktop')"
+            style="padding:5px 12px;font-size:.77rem;border-radius:6px;cursor:pointer;
+                   border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);
+                   color:#fff;transition:all .15s;">
       <i class="bi bi-display me-1"></i>Desktop
     </button>
-    <button type="button" onclick="fp_setMode('mobile')" id="fp_btnM"
-            class="preview-mode-btn"
-            style="border-color:rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);">
+    <button type="button" id="fp_btnM" onclick="fp_modo('mobile')"
+            style="padding:5px 12px;font-size:.77rem;border-radius:6px;cursor:pointer;
+                   border:1.5px solid rgba(255,255,255,.1);background:transparent;
+                   color:rgba(255,255,255,.45);transition:all .15s;">
       <i class="bi bi-phone me-1"></i>Mobile
     </button>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
-      <span style="color:rgba(255,255,255,.4);font-size:.72rem;">
-        <i class="bi bi-arrows-expand me-1" style="color:#7dd3b8;"></i>
-        <strong id="fp_infoAncho" style="color:#7dd3b8;">520px</strong>
-        ×
-        <strong id="fp_infoAltura" style="color:#7dd3b8;">280px</strong>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:18px;">
+      <span style="font-size:.72rem;color:rgba(255,255,255,.35);">
+        <strong id="fp_iW" style="color:#7dd3b8;">560</strong>
+        <span style="color:rgba(255,255,255,.15);">×</span>
+        <strong id="fp_iH" style="color:#7dd3b8;">300</strong>
+        <span style="color:rgba(255,255,255,.2);">px</span>
       </span>
-      <button type="button" onclick="fp_applyAndClose()"
-              style="padding:7px 16px;background:#02534C;color:#fff;border:none;
-                     border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;">
-        <i class="bi bi-check-lg me-1"></i>Aplicar
-      </button>
-      <button type="button" onclick="fp_close()"
-              style="padding:7px 16px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);
-                     border:1.5px solid rgba(255,255,255,.2);border-radius:7px;
-                     font-size:.8rem;font-weight:600;cursor:pointer;">
+      <button type="button" onclick="editorCerrar()"
+              style="padding:6px 16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);
+                     border:1.5px solid rgba(255,255,255,.18);border-radius:7px;
+                     font-size:.78rem;font-weight:600;cursor:pointer;"
+              onmouseover="this.style.background='rgba(255,255,255,.16)'"
+              onmouseout="this.style.background='rgba(255,255,255,.08)'">
         <i class="bi bi-x-lg me-1"></i>Cerrar
       </button>
     </div>
   </div>
 
-  <!-- ── ÁREA DE PREVIEW ──────────────────────────────────── -->
-
-  <!-- Fondo simulado CGM -->
-  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;z-index:1;overflow:hidden;">
-    <div style="background:#02534C;height:64px;display:flex;align-items:center;
-                padding:0 28px;gap:20px;flex-shrink:0;">
+  <!-- ── FONDO SIMULADO CGM ──────────────────────────── -->
+  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
+              overflow:hidden;pointer-events:none;">
+    <div style="background:#02534C;height:62px;display:flex;align-items:center;
+                padding:0 30px;gap:22px;border-bottom:1px solid rgba(255,255,255,.08);">
       <div style="background:#fff;border-radius:4px;padding:4px 10px;
-                  font-weight:900;color:#02534C;font-size:.85rem;letter-spacing:1px;">
-        CGM RENTAL
-      </div>
+                  font-weight:900;color:#02534C;font-size:.83rem;letter-spacing:1px;">CGM RENTAL</div>
       {% for n in ['NOSOTROS','ALQUILER','USADOS','BLOG','CONTACTO'] %}
-      <span style="color:rgba(255,255,255,.7);font-size:.73rem;font-weight:600;letter-spacing:.5px;">{{ n }}</span>
+      <span style="color:rgba(255,255,255,.55);font-size:.71rem;font-weight:600;letter-spacing:.4px;">{{ n }}</span>
       {% endfor %}
     </div>
-    <div style="height:calc(100% - 64px);
-                background:linear-gradient(135deg,#1e4a36 0%,#2d7a55 60%,#1a3c2c 100%);
+    <div style="height:calc(100% - 62px);
+                background:linear-gradient(155deg,#183328 0%,#286043 50%,#183328 100%);
                 display:flex;align-items:center;justify-content:center;">
-      <div style="color:rgba(255,255,255,.05);font-size:5vw;font-weight:900;text-align:center;
-                  line-height:1.1;user-select:none;pointer-events:none;">
+      <div style="color:rgba(255,255,255,.03);font-size:4.5vw;font-weight:900;
+                  text-align:center;line-height:1.15;user-select:none;">
         ALQUILER Y VENTA<br>DE MAQUINARIA
       </div>
     </div>
   </div>
 
-  <!-- Backdrop oscuro -->
-  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;
-              background:rgba(0,0,0,.6);z-index:2;pointer-events:none;"></div>
+  <!-- ── BACKDROP ────────────────────────────────────── -->
+  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;
+              background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
 
-  <!-- Popup centrado -->
-  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;z-index:3;
-              display:flex;align-items:center;justify-content:center;
-              padding:20px;overflow:auto;">
+  <!-- ── POPUP CENTRADO ──────────────────────────────── -->
+  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
+              display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;">
     <div id="fpCard"
-         style="border-radius:12px;overflow:hidden;position:relative;
-                box-shadow:0 24px 64px rgba(0,0,0,.9);background:#111;
-                width:520px;max-width:95%;">
-      <!-- Botón × decorativo -->
+         style="border-radius:14px;overflow:hidden;position:relative;
+                box-shadow:0 30px 80px rgba(0,0,0,.95);background:#111;
+                width:560px;max-width:calc(100vw - 380px);transition:width .2s;">
       <div style="position:absolute;top:10px;right:10px;z-index:10;
-                  background:rgba(0,0,0,.55);color:#fff;border-radius:50%;
+                  background:rgba(0,0,0,.6);color:#fff;border-radius:50%;
                   width:30px;height:30px;display:flex;align-items:center;
-                  justify-content:center;font-size:17px;pointer-events:none;">
-        &times;
-      </div>
-      <!-- Imagen -->
-      <div id="fpImgWrap" style="position:relative;line-height:0;">
-        <div id="fpPlaceholder"
+                  justify-content:center;font-size:17px;pointer-events:none;
+                  backdrop-filter:blur(4px);">&times;</div>
+      <div id="fpImgW" style="position:relative;line-height:0;">
+        <div id="fpPh"
              style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                    width:100%;background:#2a2a2a;
-                    height:{{ p.get('imagen_altura') or 280 }}px;
+                    width:100%;height:300px;
+                    background:linear-gradient(135deg,#1e2e22,#2a3e2e);
                     flex-direction:column;align-items:center;justify-content:center;
-                    color:#555;gap:8px;">
-          <i class="bi bi-image" style="font-size:2.5rem;"></i>
-          <span style="font-size:.85rem;">Sin imagen — súbela desde el panel izquierdo</span>
+                    color:#4a7a5a;gap:10px;">
+          <i class="bi bi-image" style="font-size:3rem;"></i>
+          <span style="font-size:.85rem;">Sube una imagen desde el panel izquierdo</span>
         </div>
         <img id="fpImg"
              src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
              alt=""
              style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
-                    height:{{ p.get('imagen_altura') or 280 }}px;
-                    object-fit:{{ p.get('imagen_fit','cover') }};">
-        <!-- Overlay texto -->
-        <div id="fpOvText"
-             style="position:absolute;left:0;right:0;padding:12px 16px;
-                    background:{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }};
-                    color:{{ p.get('overlay_color_texto','#ffffff') }};
+                    height:300px;object-fit:{{ p.get('imagen_fit','cover') }};">
+        <div id="fpOvEl"
+             style="position:absolute;left:0;right:0;padding:14px 18px;
+                    background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
+                    color:{{ p.get('overlay_color_texto','#fff') }};
                     display:{{ 'block' if p.get('overlay_activo') else 'none' }};
-                    {{ 'top:0' if p.get('overlay_posicion','bottom') == 'top'
+                    {{ 'top:0' if p.get('overlay_posicion') == 'top'
                        else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center'
                        else 'bottom:0' }};">
-          <div id="fpOvTit" style="font-weight:700;font-size:1rem;line-height:1.2;">{{ p.get('overlay_titulo','') }}</div>
-          <div id="fpOvSub" style="font-size:.85rem;opacity:.85;margin-top:3px;">{{ p.get('overlay_subtitulo','') }}</div>
+          <div id="fpOvT" style="font-weight:700;font-size:1.05rem;line-height:1.2;">{{ p.get('overlay_titulo','') }}</div>
+          <div id="fpOvS" style="font-size:.88rem;opacity:.85;margin-top:4px;">{{ p.get('overlay_subtitulo','') }}</div>
         </div>
-        <!-- Botón CTA arrastrable -->
         <div id="fpBtn"
              style="position:absolute;
-                    left:{{ p.get('boton_pos_x',50) }}%;
-                    top:{{ p.get('boton_pos_y',85) }}%;
+                    left:{{ p.get('boton_pos_x',50) }}%;top:{{ p.get('boton_pos_y',85) }}%;
                     transform:translate(-50%,-50%);
                     display:{{ 'flex' if p.get('boton_activo') else 'none' }};
-                    align-items:center;justify-content:center;
-                    cursor:grab;user-select:none;white-space:nowrap;
-                    border-radius:6px;font-weight:700;border:none;
-                    box-shadow:0 2px 10px rgba(0,0,0,.5);
-                    padding:9px 22px;font-size:14px;
+                    align-items:center;justify-content:center;cursor:grab;
+                    user-select:none;white-space:nowrap;border:none;font-weight:700;
+                    box-shadow:0 3px 14px rgba(0,0,0,.55);
+                    padding:9px 22px;font-size:14px;border-radius:6px;
                     background:{{ p.get('boton_color_fondo','#02534C') }};
-                    color:{{ p.get('boton_color_texto','#ffffff') }};">
+                    color:{{ p.get('boton_color_texto','#fff') }};">
           {{ p.get('boton_texto','Ver más') }}
         </div>
       </div>
     </div>
   </div>
 
-</div><!-- /fpOverlay -->
+</div><!-- /fpOv -->
 
 <script>
-var BTN_SIZES = {
-  sm: { padding:'5px 14px',  fontSize:'12px', borderRadius:'4px' },
-  md: { padding:'9px 22px',  fontSize:'14px', borderRadius:'6px' },
-  lg: { padding:'13px 30px', fontSize:'17px', borderRadius:'8px' },
+var SIZES = {
+  sm:{padding:'5px 14px',fontSize:'12px',borderRadius:'4px'},
+  md:{padding:'9px 22px',fontSize:'14px',borderRadius:'6px'},
+  lg:{padding:'13px 30px',fontSize:'17px',borderRadius:'8px'},
 };
-var ANIM_MAP = {
-  fade:   'cgmPfadeP .5s ease',
-  slide:  'cgmPslideP .5s ease',
-  drop:   'cgmPdropP .5s ease',
-  zoom:   'cgmPzoomP .5s ease',
-  bounce: 'cgmPbounceP .7s ease',
-  flip:   'cgmPflipP .5s ease',
+var ANIMS = {
+  fade:'cgmFade .5s ease', slide:'cgmSlide .5s ease', drop:'cgmDrop .5s ease',
+  zoom:'cgmZoom .5s ease', bounce:'cgmBounce .7s ease', flip:'cgmFlip .5s ease',
 };
+var _mob = false;
+function _e(id){ return document.getElementById(id); }
+function _qv(s){ var e=document.querySelector(s); return e?e.value:null; }
 
-function _el(id) { return document.getElementById(id); }
-function _qv(sel) { var e = document.querySelector(sel); return e ? e.value : null; }
-function _qc(sel) { var e = document.querySelector(sel); return e ? e.checked : false; }
-
-/* ── Helpers formulario principal ──────────────────────── */
-function syncHex(pickerId, hexId) {
-  _el(hexId).value = _el(pickerId).value;
-}
-function syncPicker(hexId, pickerId) {
-  var v = _el(hexId).value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) _el(pickerId).value = v;
-}
-
-function onAlturaChange(val) {
-  var lbl  = _el('alturaLabel');
-  var img  = _el('previewImg');
-  var info = _el('infoAltura');
-  if (lbl)  lbl.textContent  = val + 'px';
-  if (img)  img.style.height = val + 'px';
-  if (info) info.textContent = val + 'px';
-}
-function onAnchoChange(val) {
-  var lbl  = _el('anchoLabel');
-  var info = _el('infoAncho');
-  if (lbl)  lbl.textContent  = val + 'px';
-  if (info) info.textContent = val + 'px';
-}
-
-function updatePreview() {
-  var img   = _el('previewImg');
-  var ov    = _el('previewOverlay');
-  var ovTit = _el('previewOverlayTit');
-  var ovSub = _el('previewOverlaySub');
-  var fit   = _qv('input[name="imagen_fit"]:checked') || 'cover';
-  var altR  = _el('alturaRange');
-  var infoF = _el('infoFit');
-  var infoA = _el('infoAnim');
-  if (img)  { img.style.objectFit = fit; if (altR) img.style.height = altR.value + 'px'; }
-  if (infoF) infoF.textContent = fit;
-  if (infoA) infoA.textContent = _qv('input[name="animacion"]:checked') || 'fade';
-  var ovOn = _qc('#overlayActivoSwitch');
-  if (ov) {
-    ov.style.display = ovOn ? 'block' : 'none';
-    if (ovOn) {
-      var pos = _qv('input[name="overlay_posicion"]:checked') || 'bottom';
-      ov.style.top = ''; ov.style.bottom = ''; ov.style.transform = '';
-      if (pos === 'top') ov.style.top = '0';
-      else if (pos === 'center') { ov.style.top = '50%'; ov.style.transform = 'translateY(-50%)'; }
-      else ov.style.bottom = '0';
-      var cf = _el('overlayColorFondo'), ct = _el('overlayColorTexto');
-      if (cf) ov.style.background = cf.value;
-      if (ct) ov.style.color = ct.value;
-      if (ovTit) ovTit.textContent = (_el('overlayTitulo') || {}).value || '';
-      if (ovSub) ovSub.textContent = (_el('overlaySubtitulo') || {}).value || '';
-    }
-  }
-  // Posición botón
-  var px = _el('inputPosX'), py = _el('inputPosY');
-  if (px && _el('infoPosX')) _el('infoPosX').textContent = px.value;
-  if (py && _el('infoPosY')) _el('infoPosY').textContent = py.value;
-}
-
-function toggleBotonConfig() {
-  var on = _qc('#botonActivoSwitch');
-  _el('botonConfig').style.display      = on ? '' : 'none';
-  _el('botonInfoSinBoton').style.display = on ? 'none' : '';
-}
-function toggleOverlayConfig() {
-  var on = _qc('#overlayActivoSwitch');
-  _el('overlayConfig').style.display  = on ? '' : 'none';
-  _el('overlayInfoOff').style.display = on ? 'none' : '';
-}
-
-function onImgChange(input) {
-  if (!input.files || !input.files[0]) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var src = e.target.result;
-    var img = _el('previewImg'), ph = _el('previewPlaceholder');
-    img.onload = function() { img.style.display='block'; if(ph) ph.style.display='none'; };
-    img.onerror = function() { img.style.display='none'; if(ph) ph.style.display='flex'; };
-    img.src = src;
-    var fpI = _el('fpImg'), fpP = _el('fpPlaceholder');
-    if (fpI) { fpI.src = src; fpI.style.display='block'; }
-    if (fpP) fpP.style.display = 'none';
-    _fp_setThumb(src);
+/* ═══ fp_apply: escribe en hidden input + refresca preview ══ */
+function fp_apply(k,v){
+  var M={
+    fit:   function(v){ _e('h_fit').value=v; fp_rImg(); fp_chips(); },
+    altura:function(v){ v=+v; _e('h_altura').value=v; fp_rImg(); fp_chips(); fp_markAlt(v); },
+    ancho: function(v){ v=+v; _e('h_ancho').value=v; fp_rCard(); fp_chips(); },
+    ov_on: function(v){ _e('h_ov_on').checked=!!v; fp_rOv(); fp_chips(); },
+    ov_tit:function(v){ _e('h_ov_tit').value=v; fp_rOv(); },
+    ov_sub:function(v){ _e('h_ov_sub').value=v; fp_rOv(); },
+    ov_cf: function(v){ _e('h_ov_cf').value=v; fp_rOv(); },
+    ov_ct: function(v){ _e('h_ov_ct').value=v; fp_rOv(); },
+    ov_pos:function(v){ _e('h_ov_pos').value=v; fp_rOv(); },
+    btn_on: function(v){ _e('h_btn_on').checked=!!v; fp_rBtn(); fp_chips(); },
+    btn_txt:function(v){ _e('h_btn_txt').value=v; fp_rBtn(); },
+    btn_cf: function(v){ _e('h_btn_cf').value=v; fp_rBtn(); },
+    btn_ct: function(v){ _e('h_btn_ct').value=v; fp_rBtn(); },
+    btn_tam:function(v){ _e('h_btn_tam').value=v; fp_rBtn(); },
+    anim:   function(v){ _e('h_anim').value=v; fp_chips(); },
   };
-  reader.readAsDataURL(input.files[0]);
+  if(M[k]) M[k](v);
 }
 
-function previewAnim() { openFullPreview(); }
-
-/* ══════════════════════════════════════════════════════════
-   EDITOR VISUAL (fullscreen)
-══════════════════════════════════════════════════════════ */
-
-/* ── Color helpers sidebar ──────────────────────────────── */
-function fp_syncColorP(pickId, hexId) {
-  var e = _el(hexId); if (e) e.value = _el(pickId).value;
+function fp_rCard(){
+  var c=_e('fpCard'); if(!c)return;
+  var aw=+_e('h_ancho').value||560, w=_mob?Math.min(400,aw):aw;
+  c.style.width=w+'px';
+  if(_e('fp_lblAnc'))_e('fp_lblAnc').textContent=aw+'px';
+  if(_e('fp_iW'))_e('fp_iW').textContent=w;
 }
-function fp_syncColorH(hexId, pickId) {
-  var v = _el(hexId) ? _el(hexId).value : '';
-  if (/^#[0-9a-fA-F]{6}$/.test(v) && _el(pickId)) _el(pickId).value = v;
+function fp_rImg(){
+  var alt=+_e('h_altura').value||300, fit=_e('h_fit').value||'cover';
+  var fi=_e('fpImg'),ph=_e('fpPh');
+  if(fi){fi.style.height=alt+'px';fi.style.objectFit=fit;} if(ph)ph.style.height=alt+'px';
+  if(_e('fp_lblAlt'))_e('fp_lblAlt').textContent=alt+'px';
+  if(_e('fp_iH'))_e('fp_iH').textContent=alt;
+  var t=_e('fp_thumb'); if(t)t.style.maxHeight=Math.min(alt,160)+'px';
+  var pi=_e('prevImg'); if(pi&&pi.style.display==='block')pi.style.objectFit=fit;
+}
+function fp_rOv(){
+  var el=_e('fpOvEl'); if(!el)return;
+  var on=_e('h_ov_on').checked;
+  el.style.display=on?'block':'none';
+  if(!on){ _syncPrevOv(false); return; }
+  var pos=_e('h_ov_pos').value||'bottom';
+  el.style.top=''; el.style.bottom=''; el.style.transform='';
+  if(pos==='top') el.style.top='0';
+  else if(pos==='center'){el.style.top='50%';el.style.transform='translateY(-50%)';}
+  else el.style.bottom='0';
+  el.style.background=_e('h_ov_cf').value||'rgba(0,0,0,.55)';
+  el.style.color=_e('h_ov_ct').value||'#fff';
+  if(_e('fpOvT'))_e('fpOvT').textContent=_e('h_ov_tit').value||'';
+  if(_e('fpOvS'))_e('fpOvS').textContent=_e('h_ov_sub').value||'';
+  _syncPrevOv(true, pos, el.style.background, el.style.color);
+}
+function _syncPrevOv(on, pos, bg, cl){
+  var po=_e('prevOv'); if(!po)return;
+  po.style.display=on?'block':'none';
+  if(!on)return;
+  po.style.background=bg; po.style.color=cl;
+  po.style.top=''; po.style.bottom=''; po.style.transform='';
+  if(pos==='top') po.style.top='0';
+  else if(pos==='center'){po.style.top='50%';po.style.transform='translateY(-50%)';}
+  else po.style.bottom='0';
+  var t=_e('prevOvT'),s=_e('prevOvS');
+  if(t)t.textContent=_e('h_ov_tit').value||'';
+  if(s)s.textContent=_e('h_ov_sub').value||'';
+}
+function fp_rBtn(){
+  var el=_e('fpBtn'); if(!el)return;
+  var on=_e('h_btn_on').checked;
+  el.style.display=on?'flex':'none';
+  if(!on)return;
+  var s=SIZES[_e('h_btn_tam').value||'md']||SIZES.md;
+  el.textContent=_e('h_btn_txt').value||'Ver más';
+  el.style.background=_e('h_btn_cf').value||'#02534C';
+  el.style.color=_e('h_btn_ct').value||'#fff';
+  el.style.padding=s.padding; el.style.fontSize=s.fontSize; el.style.borderRadius=s.borderRadius;
+}
+function fp_chips(){
+  var aw=_e('h_ancho').value, alt=_e('h_altura').value,
+      fit=_e('h_fit').value, an=_e('h_anim').value,
+      ovOn=_e('h_ov_on').checked, bOn=_e('h_btn_on').checked;
+  if(_e('chip_ancho'))  _e('chip_ancho').textContent=aw+'px';
+  if(_e('chip_altura')) _e('chip_altura').textContent=alt+'px';
+  if(_e('chip_fit'))    _e('chip_fit').textContent=fit;
+  if(_e('chip_anim'))   _e('chip_anim').textContent=an;
+  var co=_e('chip_ov');
+  if(co){co.textContent=(ovOn?'Texto: activo':'Texto: desactivado');co.style.background=ovOn?'#e8f5f3':'#f0f0f0';co.style.color=ovOn?'#02534C':'#aaa';}
+  var cb=_e('chip_btn');
+  if(cb){cb.innerHTML='<i class="bi bi-cursor me-1"></i>'+(bOn?'Botón: activo':'Botón: desactivado');cb.style.background=bOn?'#e8f5f3':'#f0f0f0';cb.style.color=bOn?'#02534C':'#aaa';}
+  var cp=_e('chip_pos'); if(cp)cp.style.display=bOn?'':'none';
 }
 
-/* ── Subir imagen desde sidebar ─────────────────────────── */
-function fp_onImgChange(input) {
-  if (!input.files || !input.files[0]) return;
-  var file = input.files[0];
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var src = e.target.result;
-    _fp_setThumb(src);
-    /* Actualizar popup preview */
-    var fpI = _el('fpImg'), fpP = _el('fpPlaceholder');
-    if (fpI) { fpI.src = src; fpI.style.display = 'block'; }
-    if (fpP) fpP.style.display = 'none';
-    /* Actualizar thumbnail principal */
-    var img = _el('previewImg'), ph = _el('previewPlaceholder');
-    if (img) { img.src = src; img.style.display = 'block'; }
-    if (ph)  ph.style.display = 'none';
-    /* Transferir archivo al input del formulario */
-    var mainFile = _el('mainImgFile');
-    if (mainFile) {
-      try { var dt = new DataTransfer(); dt.items.add(file); mainFile.files = dt.files; } catch(err){}
-    }
-  };
-  reader.readAsDataURL(file);
+function fp_setAlt(v){ if(_e('fp_rAlt'))_e('fp_rAlt').value=v; fp_apply('altura',v); }
+function fp_setAnc(v){ if(_e('fp_rAnc'))_e('fp_rAnc').value=v; fp_apply('ancho',v); fp_markAnc(); }
+function fp_markAnc(){
+  var cur=+(_e('fp_rAnc')||{value:0}).value;
+  document.querySelectorAll('.fp-pAnc').forEach(function(b){b.classList.toggle('on',+b.dataset.v===cur);});
 }
-function _fp_setThumb(src) {
-  var t = _el('fp_imgThumb'), ph = _el('fp_imgThumbPh');
-  if (t) { t.src = src; t.style.display = 'block'; }
-  if (ph) ph.style.display = 'none';
+function fp_markAlt(v){
+  document.querySelectorAll('.fp-pAlt').forEach(function(b){b.classList.toggle('on',+b.dataset.v===v);});
+}
+function fp_syncCP(pId,hId){ if(_e(hId))_e(hId).value=_e(pId).value; }
+function fp_syncCH(hId,pId){ var v=_e(hId)?_e(hId).value:''; if(/^#[0-9a-fA-F]{6}$/.test(v)&&_e(pId))_e(pId).value=v; }
+
+function fp_playAnim(){
+  var c=_e('fpCard'); if(!c)return;
+  var a=_e('h_anim').value||'fade';
+  c.style.animation='none'; void c.offsetHeight; c.style.animation=ANIMS[a]||ANIMS.fade;
+}
+function fp_modo(m){
+  _mob=m==='mobile';
+  var D=_e('fp_btnD'),M=_e('fp_btnM');
+  if(D){D.style.background=_mob?'transparent':'rgba(255,255,255,.14)';D.style.color=_mob?'rgba(255,255,255,.45)':'#fff';D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)';}
+  if(M){M.style.background=_mob?'rgba(255,255,255,.14)':'transparent';M.style.color=_mob?'#fff':'rgba(255,255,255,.45)';M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)';}
+  fp_rCard();
 }
 
-/* ── Sincronizar formulario principal → sidebar ─────────── */
-function fp_syncFromForm() {
-  /* Fit */
-  var fit = _qv('input[name="imagen_fit"]:checked') || 'cover';
-  var fitEl = document.querySelector('input[name="fp_fit"][value="' + fit + '"]');
-  if (fitEl) fitEl.checked = true;
-
-  /* Sliders */
-  var altR = _el('alturaRange'), ancR = _el('anchoRange');
-  var fpAlt = _el('fp_alturaRange'), fpAnc = _el('fp_anchoRange');
-  if (fpAlt && altR) fpAlt.value = altR.value;
-  if (fpAnc && ancR) fpAnc.value = ancR.value;
-
-  /* Imagen */
-  var mainImg = _el('previewImg');
-  if (mainImg && mainImg.style.display === 'block' && mainImg.src) {
-    _fp_setThumb(mainImg.src);
+/* ─── Inicializar sidebar desde hidden inputs ─────────── */
+function fp_init(){
+  var fit=_e('h_fit').value||'cover';
+  var fEl=document.querySelector('input[name="fp_fit"][value="'+fit+'"]'); if(fEl)fEl.checked=true;
+  var alt=+(_e('h_altura').value||300), anc=+(_e('h_ancho').value||560);
+  if(_e('fp_rAlt'))_e('fp_rAlt').value=alt; if(_e('fp_rAnc'))_e('fp_rAnc').value=anc;
+  /* Thumbnail */
+  var pi=_e('prevImg');
+  if(pi&&pi.style.display==='block'&&pi.src){
+    var t=_e('fp_thumb'),ph=_e('fp_zonePh'),bg=_e('fp_zoneBadge');
+    if(t){t.src=pi.src;t.style.display='block';} if(ph)ph.style.display='none'; if(bg)bg.style.display='block';
   }
-
   /* Overlay */
-  var ovOn = _qc('#overlayActivoSwitch');
-  if (_el('fp_overlayActivo'))     _el('fp_overlayActivo').checked     = ovOn;
-  if (_el('fp_overlayTitulo'))     _el('fp_overlayTitulo').value       = (_el('overlayTitulo') || {}).value || '';
-  if (_el('fp_overlaySubtitulo'))  _el('fp_overlaySubtitulo').value    = (_el('overlaySubtitulo') || {}).value || '';
-  if (_el('fp_overlayColorFondo')) _el('fp_overlayColorFondo').value   = (_el('overlayColorFondo') || {}).value || 'rgba(0,0,0,0.55)';
-  if (_el('fp_overlayColorTexto')) _el('fp_overlayColorTexto').value   = (_el('overlayColorTexto') || {}).value || '#ffffff';
-  var ovPos = _qv('input[name="overlay_posicion"]:checked') || 'bottom';
-  var ovPEl = document.querySelector('input[name="fp_ovPos"][value="' + ovPos + '"]');
-  if (ovPEl) ovPEl.checked = true;
-
+  var ovOn=_e('h_ov_on').checked;
+  if(_e('fp_ovOn'))_e('fp_ovOn').checked=ovOn;
+  if(_e('fp_ovTit'))_e('fp_ovTit').value=_e('h_ov_tit').value||'';
+  if(_e('fp_ovSub'))_e('fp_ovSub').value=_e('h_ov_sub').value||'';
+  if(_e('fp_ovCF')) _e('fp_ovCF').value=_e('h_ov_cf').value||'rgba(0,0,0,0.55)';
+  if(_e('fp_ovCT')) _e('fp_ovCT').value=_e('h_ov_ct').value||'#ffffff';
+  var op=_e('h_ov_pos').value||'bottom';
+  var opE=document.querySelector('input[name="fp_ovPos"][value="'+op+'"]'); if(opE)opE.checked=true;
   /* Botón */
-  var btnOn = _qc('#botonActivoSwitch');
-  if (_el('fp_botonActivo')) _el('fp_botonActivo').checked = btnOn;
-  var bTxt = (_el('botonTexto') || {}).value || 'Ver más';
-  if (_el('fp_botonTexto')) _el('fp_botonTexto').value = bTxt;
-  var bcf = (_el('botonColorFondo') || {}).value || '#02534C';
-  if (_el('fp_botonColorFondo'))    _el('fp_botonColorFondo').value    = bcf;
-  if (_el('fp_botonColorFondoHex')) _el('fp_botonColorFondoHex').value = bcf;
-  var bct = (_el('botonColorTexto') || {}).value || '#ffffff';
-  if (_el('fp_botonColorTexto'))    _el('fp_botonColorTexto').value    = bct;
-  if (_el('fp_botonColorTextoHex')) _el('fp_botonColorTextoHex').value = bct;
-  var btnTam = _qv('input[name="boton_tamano"]:checked') || 'md';
-  var btnTEl = document.querySelector('input[name="fp_botonTam"][value="' + btnTam + '"]');
-  if (btnTEl) btnTEl.checked = true;
-
+  var bOn=_e('h_btn_on').checked;
+  if(_e('fp_btnOn'))_e('fp_btnOn').checked=bOn;
+  if(_e('fp_btnTxt'))_e('fp_btnTxt').value=_e('h_btn_txt').value||'Ver más';
+  var bcf=_e('h_btn_cf').value||'#02534C',bct=_e('h_btn_ct').value||'#ffffff';
+  if(_e('fp_btnCF'))_e('fp_btnCF').value=bcf; if(_e('fp_btnCFh'))_e('fp_btnCFh').value=bcf;
+  if(_e('fp_btnCT'))_e('fp_btnCT').value=bct; if(_e('fp_btnCTh'))_e('fp_btnCTh').value=bct;
+  var bt=_e('h_btn_tam').value||'md';
+  var btE=document.querySelector('input[name="fp_btnTam"][value="'+bt+'"]'); if(btE)btE.checked=true;
   /* Animación */
-  var anim = _qv('input[name="animacion"]:checked') || 'fade';
-  var animEl = document.querySelector('input[name="fp_anim"][value="' + anim + '"]');
-  if (animEl) animEl.checked = true;
-
+  var an=_e('h_anim').value||'fade';
+  var anE=document.querySelector('input[name="fp_anim"][value="'+an+'"]'); if(anE)anE.checked=true;
   /* Posición botón */
-  var pX = (_el('inputPosX') || {}).value || 50;
-  var pY = (_el('inputPosY') || {}).value || 85;
-  var fpB = _el('fpBtn');
-  if (fpB) { fpB.style.left = pX + '%'; fpB.style.top = pY + '%'; }
+  var px=+(_e('h_pos_x').value||50),py=+(_e('h_pos_y').value||85);
+  var fpB=_e('fpBtn'); if(fpB){fpB.style.left=px+'%';fpB.style.top=py+'%';}
+  /* Presets y renders */
+  fp_markAnc(); fp_markAlt(alt);
+  fp_rCard(); fp_rImg(); fp_rOv(); fp_rBtn(); fp_chips();
 }
 
-/* ── Sincronizar sidebar → formulario principal ─────────── */
-function fp_syncToForm() {
-  /* Fit */
-  var fit = _qv('input[name="fp_fit"]:checked');
-  if (fit) {
-    var fEl = document.querySelector('input[name="imagen_fit"][value="' + fit + '"]');
-    if (fEl) fEl.checked = true;
-  }
-  /* Sliders */
-  var fpAlt = _el('fp_alturaRange'), fpAnc = _el('fp_anchoRange');
-  var mainAlt = _el('alturaRange'), mainAnc = _el('anchoRange');
-  if (fpAlt && mainAlt) { mainAlt.value = fpAlt.value; onAlturaChange(fpAlt.value); }
-  if (fpAnc && mainAnc) { mainAnc.value = fpAnc.value; onAnchoChange(fpAnc.value); }
-  /* Overlay */
-  var ovOn = _el('fp_overlayActivo') && _el('fp_overlayActivo').checked;
-  if (_el('overlayActivoSwitch')) { _el('overlayActivoSwitch').checked = !!ovOn; toggleOverlayConfig(); }
-  if (_el('overlayTitulo')    && _el('fp_overlayTitulo'))    _el('overlayTitulo').value    = _el('fp_overlayTitulo').value;
-  if (_el('overlaySubtitulo') && _el('fp_overlaySubtitulo')) _el('overlaySubtitulo').value = _el('fp_overlaySubtitulo').value;
-  if (_el('overlayColorFondo')&& _el('fp_overlayColorFondo')) _el('overlayColorFondo').value = _el('fp_overlayColorFondo').value;
-  if (_el('overlayColorTexto')&& _el('fp_overlayColorTexto')) {
-    _el('overlayColorTexto').value  = _el('fp_overlayColorTexto').value;
-    _el('overlayColorTextoP').value = _el('fp_overlayColorTexto').value;
-  }
-  var ovPos = _qv('input[name="fp_ovPos"]:checked');
-  if (ovPos) {
-    var opEl = document.querySelector('input[name="overlay_posicion"][value="' + ovPos + '"]');
-    if (opEl) opEl.checked = true;
-  }
-  /* Botón */
-  var bOn = _el('fp_botonActivo') && _el('fp_botonActivo').checked;
-  if (_el('botonActivoSwitch')) { _el('botonActivoSwitch').checked = !!bOn; toggleBotonConfig(); }
-  if (_el('botonTexto') && _el('fp_botonTexto')) _el('botonTexto').value = _el('fp_botonTexto').value;
-  if (_el('botonColorFondo')    && _el('fp_botonColorFondo'))    { _el('botonColorFondo').value = _el('fp_botonColorFondo').value; _el('botonColorFondoHex').value = _el('fp_botonColorFondoHex').value; }
-  if (_el('botonColorTexto')    && _el('fp_botonColorTexto'))    { _el('botonColorTexto').value = _el('fp_botonColorTexto').value; _el('botonColorTextoHex').value = _el('fp_botonColorTextoHex').value; }
-  var bTam = _qv('input[name="fp_botonTam"]:checked');
-  if (bTam) {
-    var btEl = document.querySelector('input[name="boton_tamano"][value="' + bTam + '"]');
-    if (btEl) btEl.checked = true;
-  }
-  /* Animación */
-  var anim = _qv('input[name="fp_anim"]:checked');
-  if (anim) {
-    var anEl = document.querySelector('input[name="animacion"][value="' + anim + '"]');
-    if (anEl) anEl.checked = true;
-  }
-  updatePreview();
+function editorAbrir(){
+  fp_init();
+  _e('fpOv').style.display='block'; document.body.style.overflow='hidden';
+  fp_modo('desktop');
+  var c=_e('fpCard'); if(c){var a=_e('h_anim').value||'fade';c.style.animation='none';void c.offsetHeight;c.style.animation=ANIMS[a]||ANIMS.fade;}
 }
-
-/* ── Actualizar preview desde sidebar ────────────────────── */
-function fp_update() {
-  var fpCard = _el('fpCard');
-  var fpImg  = _el('fpImg');
-  var fpPh   = _el('fpPlaceholder');
-  var fpOvT  = _el('fpOvText');
-  var fpOvTit= _el('fpOvTit');
-  var fpOvSub= _el('fpOvSub');
-  var fpBtn  = _el('fpBtn');
-
-  /* Dimensiones */
-  var ancho  = parseInt((_el('fp_anchoRange')  || {value:'520'}).value);
-  var altura = parseInt((_el('fp_alturaRange') || {value:'280'}).value);
-  var isMobile = _el('fp_btnM') && _el('fp_btnM').classList.contains('active');
-  var cardW  = (isMobile ? Math.min(390, ancho) : ancho);
-  if (fpCard) fpCard.style.width = cardW + 'px';
-
-  /* Labels */
-  if (_el('fp_alturaLabel')) _el('fp_alturaLabel').textContent = altura + 'px';
-  if (_el('fp_anchoLabel'))  _el('fp_anchoLabel').textContent  = ancho  + 'px';
-  if (_el('fp_infoAncho'))   _el('fp_infoAncho').textContent   = cardW  + 'px';
-  if (_el('fp_infoAltura'))  _el('fp_infoAltura').textContent  = altura + 'px';
-
-  /* Imagen */
-  var fit = _qv('input[name="fp_fit"]:checked') || 'cover';
-  if (fpImg) { fpImg.style.height = altura + 'px'; fpImg.style.objectFit = fit; }
-  if (fpPh)  fpPh.style.height = altura + 'px';
-  var t = _el('fp_imgThumb');
-  if (t) t.style.objectFit = fit;
-
-  /* Overlay */
-  var ovOn = _el('fp_overlayActivo') && _el('fp_overlayActivo').checked;
-  if (_el('fp_overlayBody')) _el('fp_overlayBody').style.opacity = ovOn ? '1' : '.4';
-  if (fpOvT) {
-    fpOvT.style.display = ovOn ? 'block' : 'none';
-    if (ovOn) {
-      var pos = _qv('input[name="fp_ovPos"]:checked') || 'bottom';
-      fpOvT.style.top = ''; fpOvT.style.bottom = ''; fpOvT.style.transform = '';
-      if (pos === 'top') fpOvT.style.top = '0';
-      else if (pos === 'center') { fpOvT.style.top = '50%'; fpOvT.style.transform = 'translateY(-50%)'; }
-      else fpOvT.style.bottom = '0';
-      var cf = _el('fp_overlayColorFondo'), ct = _el('fp_overlayColorTexto');
-      if (cf) fpOvT.style.background = cf.value;
-      if (ct) fpOvT.style.color = ct.value;
-      if (fpOvTit) fpOvTit.textContent = (_el('fp_overlayTitulo')    || {value:''}).value;
-      if (fpOvSub) fpOvSub.textContent = (_el('fp_overlaySubtitulo') || {value:''}).value;
-    }
-  }
-
-  /* Botón */
-  var bOn = _el('fp_botonActivo') && _el('fp_botonActivo').checked;
-  if (_el('fp_botonBody')) _el('fp_botonBody').style.opacity = bOn ? '1' : '.4';
-  if (fpBtn) {
-    fpBtn.style.display = bOn ? 'flex' : 'none';
-    if (bOn) {
-      var txt = (_el('fp_botonTexto') || {value:'Ver más'}).value || 'Ver más';
-      var bcf = (_el('fp_botonColorFondo')  || {value:'#02534C'}).value;
-      var bct = (_el('fp_botonColorTexto')  || {value:'#fff'}).value;
-      var tam = _qv('input[name="fp_botonTam"]:checked') || 'md';
-      var s   = BTN_SIZES[tam] || BTN_SIZES.md;
-      fpBtn.style.background   = bcf;
-      fpBtn.style.color        = bct;
-      fpBtn.style.padding      = s.padding;
-      fpBtn.style.fontSize     = s.fontSize;
-      fpBtn.style.borderRadius = s.borderRadius;
-      fpBtn.textContent        = txt;
-    }
-  }
+function editorCerrar(){
+  _e('fpOv').style.display='none'; document.body.style.overflow='';
 }
-
-/* ── Animación ──────────────────────────────────────────── */
-function fp_playAnim() {
-  var fpCard = _el('fpCard');
-  if (!fpCard) return;
-  var anim = _qv('input[name="fp_anim"]:checked') || 'fade';
-  fpCard.style.animation = 'none';
-  void fpCard.offsetHeight;
-  fpCard.style.animation = ANIM_MAP[anim] || ANIM_MAP.fade;
-}
-
-/* ── Modo desktop / mobile ──────────────────────────────── */
-function fp_setMode(mode) {
-  var isM  = mode === 'mobile';
-  var btnD = _el('fp_btnD'), btnM = _el('fp_btnM');
-  if (btnD) { btnD.classList.toggle('active', !isM); btnD.style.background = isM ? 'transparent' : 'rgba(255,255,255,.15)'; btnD.style.color = isM ? 'rgba(255,255,255,.6)' : '#fff'; btnD.style.borderColor = isM ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.3)'; }
-  if (btnM) { btnM.classList.toggle('active', isM);  btnM.style.background = isM ? 'rgba(255,255,255,.15)' : 'transparent'; btnM.style.color = isM ? '#fff' : 'rgba(255,255,255,.6)'; btnM.style.borderColor = isM ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.2)'; }
-  fp_update();
-}
-
-/* ── Abrir / cerrar / aplicar ────────────────────────────── */
-function openFullPreview() {
-  fp_syncFromForm();
-  fp_update();
-  _el('fpOverlay').style.display = 'block';
-  document.body.style.overflow   = 'hidden';
-  fp_setMode('desktop');
-  var fpCard = _el('fpCard');
-  if (fpCard) {
-    var anim = _qv('input[name="fp_anim"]:checked') || _qv('input[name="animacion"]:checked') || 'fade';
-    fpCard.style.animation = 'none';
-    void fpCard.offsetHeight;
-    fpCard.style.animation = ANIM_MAP[anim] || ANIM_MAP.fade;
-  }
-}
-function fp_close() {
-  _el('fpOverlay').style.display = 'none';
-  document.body.style.overflow   = '';
-}
-function fp_applyAndClose() {
-  fp_syncToForm();
-  fp_close();
-}
-function closeFullPreview() { fp_close(); }
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && _el('fpOverlay') && _el('fpOverlay').style.display !== 'none') fp_close();
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&_e('fpOv')&&_e('fpOv').style.display!=='none') editorCerrar();
 });
 
-/* ── Drag botón CTA ──────────────────────────────────────── */
-(function() {
-  var btn    = _el('fpBtn');
-  var wrap   = _el('fpImgWrap');
-  var inputX = _el('inputPosX');
-  var inputY = _el('inputPosY');
-  var dragging = false, sMouseX, sMouseY, sLeft, sTop;
+/* ─── Upload imagen ─────────────────────────────────── */
+function fp_onImg(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0], r=new FileReader();
+  r.onload=function(e){
+    var src=e.target.result;
+    var t=_e('fp_thumb'),ph=_e('fp_zonePh'),bg=_e('fp_zoneBadge');
+    if(t){t.src=src;t.style.display='block';} if(ph)ph.style.display='none'; if(bg)bg.style.display='block';
+    var fi=_e('fpImg'),fp=_e('fpPh');
+    if(fi){fi.src=src;fi.style.display='block';} if(fp)fp.style.display='none';
+    var pi=_e('prevImg'),pp=_e('prevPh');
+    if(pi){pi.src=src;pi.style.display='block';} if(pp)pp.style.display='none';
+    try{var dt=new DataTransfer();dt.items.add(file);_e('h_file').files=dt.files;}catch(err){}
+  };
+  r.readAsDataURL(file);
+}
 
-  function startDrag(mx, my) {
-    dragging = true; btn.style.cursor = 'grabbing';
-    sMouseX = mx; sMouseY = my;
-    var rect = wrap.getBoundingClientRect();
-    var br   = btn.getBoundingClientRect();
-    sLeft = ((br.left + br.width/2  - rect.left) / rect.width)  * 100;
-    sTop  = ((br.top  + br.height/2 - rect.top)  / rect.height) * 100;
+/* ─── Drag botón CTA ───────────────────────────────── */
+(function(){
+  var btn=_e('fpBtn'),wrap=_e('fpImgW'),drag=false,sX,sY,sL,sT;
+  function start(mx,my){drag=true;btn.style.cursor='grabbing';sX=mx;sY=my;
+    var rc=wrap.getBoundingClientRect(),br=btn.getBoundingClientRect();
+    sL=((br.left+br.width/2-rc.left)/rc.width)*100;
+    sT=((br.top+br.height/2-rc.top)/rc.height)*100;}
+  function move(mx,my){if(!drag)return;
+    var rc=wrap.getBoundingClientRect();
+    var nx=Math.min(95,Math.max(5,sL+(mx-sX)/rc.width*100));
+    var ny=Math.min(95,Math.max(5,sT+(my-sY)/rc.height*100));
+    btn.style.left=nx+'%';btn.style.top=ny+'%';
+    var rx=Math.round(nx),ry=Math.round(ny);
+    _e('h_pos_x').value=rx;_e('h_pos_y').value=ry;
+    if(_e('cPX'))_e('cPX').textContent=rx;if(_e('cPY'))_e('cPY').textContent=ry;}
+  function end(){if(drag){drag=false;btn.style.cursor='grab';}}
+  if(btn&&wrap){
+    btn.addEventListener('mousedown',function(e){start(e.clientX,e.clientY);e.preventDefault();});
+    document.addEventListener('mousemove',function(e){move(e.clientX,e.clientY);});
+    document.addEventListener('mouseup',end);
+    btn.addEventListener('touchstart',function(e){start(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();},{passive:false});
+    document.addEventListener('touchmove',function(e){if(drag){move(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+    document.addEventListener('touchend',end);
   }
-  function moveDrag(mx, my) {
-    if (!dragging) return;
-    var rect = wrap.getBoundingClientRect();
-    var nx = Math.min(95, Math.max(5, sLeft + (mx - sMouseX) / rect.width  * 100));
-    var ny = Math.min(95, Math.max(5, sTop  + (my - sMouseY) / rect.height * 100));
-    btn.style.left = nx + '%'; btn.style.top = ny + '%';
-    if (inputX) { inputX.value = Math.round(nx); if (_el('infoPosX')) _el('infoPosX').textContent = Math.round(nx); }
-    if (inputY) { inputY.value = Math.round(ny); if (_el('infoPosY')) _el('infoPosY').textContent = Math.round(ny); }
-  }
-  function endDrag() { if (dragging) { dragging = false; btn.style.cursor = 'grab'; } }
-
-  if (btn && wrap) {
-    btn.addEventListener('mousedown',  function(e) { startDrag(e.clientX, e.clientY); e.preventDefault(); });
-    document.addEventListener('mousemove', function(e) { moveDrag(e.clientX, e.clientY); });
-    document.addEventListener('mouseup', endDrag);
-    btn.addEventListener('touchstart', function(e) { startDrag(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
-    document.addEventListener('touchmove', function(e) { if (dragging) { moveDrag(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); } }, {passive:false});
-    document.addEventListener('touchend', endDrag);
-  }
-})();
-
-/* ── Init ────────────────────────────────────────────────── */
-(function() {
-  var ar = _el('alturaRange'), nr = _el('anchoRange');
-  if (ar) onAlturaChange(ar.value);
-  if (nr) onAnchoChange(nr.value);
-  updatePreview();
 })();
 </script>
 {% endblock %}
