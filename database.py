@@ -400,6 +400,13 @@ def init_admin_tables(conn=None):
         "ALTER TABLE popups ADD COLUMN overlay_color_fondo TEXT DEFAULT 'rgba(0,0,0,0.55)'",
         "ALTER TABLE popups ADD COLUMN overlay_color_texto TEXT DEFAULT '#ffffff'",
         "ALTER TABLE popups ADD COLUMN overlay_posicion TEXT DEFAULT 'bottom'",
+        "ALTER TABLE popups ADD COLUMN popup_radio INTEGER DEFAULT 14",
+        "ALTER TABLE popups ADD COLUMN popup_bg TEXT DEFAULT '#111111'",
+        "ALTER TABLE popups ADD COLUMN contenido_activo INTEGER DEFAULT 0",
+        "ALTER TABLE popups ADD COLUMN contenido_titulo TEXT DEFAULT ''",
+        "ALTER TABLE popups ADD COLUMN contenido_descripcion TEXT DEFAULT ''",
+        "ALTER TABLE popups ADD COLUMN contenido_bg TEXT DEFAULT '#ffffff'",
+        "ALTER TABLE popups ADD COLUMN contenido_color_texto TEXT DEFAULT '#222222'",
     ]:
         try:
             conn.execute(sql)

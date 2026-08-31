@@ -108,8 +108,16 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
   <input type="hidden" name="boton_pos_x"         id="h_pos_x"       value="{{ p.get('boton_pos_x',50) }}">
   <input type="hidden" name="boton_pos_y"         id="h_pos_y"       value="{{ p.get('boton_pos_y',85) }}">
   <!-- Checkboxes ocultos para booleanos -->
-  <input type="checkbox" name="overlay_activo" id="h_ov_on"  value="1" style="display:none;" {{ 'checked' if p.get('overlay_activo') else '' }}>
-  <input type="checkbox" name="boton_activo"   id="h_btn_on" value="1" style="display:none;" {{ 'checked' if p.get('boton_activo') else '' }}>
+  <input type="checkbox" name="overlay_activo"   id="h_ov_on"   value="1" style="display:none;" {{ 'checked' if p.get('overlay_activo') else '' }}>
+  <input type="checkbox" name="boton_activo"     id="h_btn_on"  value="1" style="display:none;" {{ 'checked' if p.get('boton_activo') else '' }}>
+  <input type="checkbox" name="contenido_activo" id="h_cont_on" value="1" style="display:none;" {{ 'checked' if p.get('contenido_activo') else '' }}>
+  <!-- Nuevas propiedades visuales del card -->
+  <input type="hidden" name="popup_radio"           id="h_radio"    value="{{ p.get('popup_radio',14) }}">
+  <input type="hidden" name="popup_bg"              id="h_bg"       value="{{ p.get('popup_bg','#111111') }}">
+  <input type="hidden" name="contenido_titulo"      id="h_cont_tit" value="{{ p.get('contenido_titulo','') }}">
+  <input type="hidden" name="contenido_descripcion" id="h_cont_desc" value="{{ p.get('contenido_descripcion','') }}">
+  <input type="hidden" name="contenido_bg"          id="h_cont_bg"  value="{{ p.get('contenido_bg','#ffffff') }}">
+  <input type="hidden" name="contenido_color_texto" id="h_cont_ct"  value="{{ p.get('contenido_color_texto','#222222') }}">
 
   <div class="row g-4">
 
@@ -422,6 +430,57 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
     </div>
     <hr class="fp-div">
 
+    <!-- ESTILO CARD -->
+    <div class="fp-sec">
+      <div class="fp-hdr"><i class="bi bi-square-rounded"></i>ESTILO CARD</div>
+
+      <!-- Border radius -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Borde redondeado</span>
+          <strong id="fp_lblRad" style="color:#7dd3b8;font-size:.76rem;
+                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">14px</strong>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:7px;">
+          {% for v, l in [(0,'Sin'),(8,'Leve'),(14,'Medio'),(24,'Redondo')] %}
+          <button type="button" class="fp-preset fp-pRad" data-v="{{ v }}"
+                  onclick="fp_setRad({{ v }})">{{ l }}<br>
+            <span style="color:rgba(255,255,255,.3);font-size:.62rem;">{{ v }}px</span>
+          </button>
+          {% endfor %}
+        </div>
+        <input type="range" id="fp_rRad" min="0" max="32" step="2" value="14"
+               class="fp-range" oninput="fp_apply('radio',this.value);fp_markRad()">
+        <div style="display:flex;justify-content:space-between;font-size:.63rem;
+                    color:rgba(255,255,255,.18);margin-top:3px;">
+          <span>0px</span><span>32px</span>
+        </div>
+      </div>
+
+      <!-- Background color -->
+      <div>
+        <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Fondo del card</div>
+        <div style="display:flex;gap:5px;align-items:center;margin-bottom:8px;">
+          <input type="color" id="fp_bgCP" value="#111111"
+                 style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
+                 oninput="fp_syncCP('fp_bgCP','fp_bgTxt');fp_apply('bg',this.value)">
+          <input type="text" id="fp_bgTxt" value="#111111"
+                 class="fp-in fp-in-sm" style="min-width:0;"
+                 oninput="fp_syncCH('fp_bgTxt','fp_bgCP');fp_apply('bg',this.value)">
+        </div>
+        <div style="display:flex;gap:4px;">
+          {% for color, lbl in [('#111111','Negro'),('#1a1a2e','Azul noche'),('#02534C','CGM Verde'),('#ffffff','Blanco')] %}
+          <button type="button" onclick="fp_setBg('{{ color }}')" title="{{ lbl }}"
+                  style="flex:1;height:22px;border-radius:5px;border:1.5px solid rgba(255,255,255,.15);
+                         background:{{ color }};cursor:pointer;transition:transform .1s;"
+                  onmouseover="this.style.transform='scale(1.08)'"
+                  onmouseout="this.style.transform=''"></button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <hr class="fp-div">
+
     <!-- TEXTO SUPERPUESTO -->
     <div class="fp-sec">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -519,6 +578,44 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
     </div>
     <hr class="fp-div">
 
+    <!-- CONTENIDO BAJO IMAGEN -->
+    <div class="fp-sec">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-hdr mb-0"><i class="bi bi-text-left"></i>CONTENIDO BAJO IMAGEN</div>
+        <label class="fp-sw">
+          <input type="checkbox" id="fp_contOn" onchange="fp_apply('cont_on',this.checked?'1':'')">
+          <span>Activo</span>
+        </label>
+      </div>
+      <input type="text" id="fp_contTit" placeholder="Título del contenido"
+             class="fp-in" style="margin-bottom:6px;"
+             oninput="fp_apply('cont_tit',this.value)">
+      <textarea id="fp_contDesc" placeholder="Descripción o texto del popup..."
+                class="fp-in" style="height:80px;resize:vertical;margin-bottom:10px;"
+                oninput="fp_apply('cont_desc',this.value)"></textarea>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="flex:1;">
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo</div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <input type="color" id="fp_contBgCP" value="#ffffff"
+                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
+                   oninput="fp_syncCP('fp_contBgCP','fp_contBgTxt');fp_apply('cont_bg',this.value)">
+            <input type="text" id="fp_contBgTxt" value="#ffffff"
+                   class="fp-in fp-in-sm" style="min-width:0;"
+                   oninput="fp_syncCH('fp_contBgTxt','fp_contBgCP');fp_apply('cont_bg',this.value)">
+          </div>
+        </div>
+        <div>
+          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
+          <input type="color" id="fp_contCT" value="#222222"
+                 style="width:46px;height:34px;border:1.5px solid rgba(255,255,255,.18);
+                        border-radius:7px;cursor:pointer;padding:2px;background:transparent;"
+                 oninput="fp_apply('cont_ct',this.value)">
+        </div>
+      </div>
+    </div>
+    <hr class="fp-div">
+
     <!-- ANIMACIÓN -->
     <div class="fp-sec">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -577,7 +674,12 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
                    color:rgba(255,255,255,.45);transition:all .15s;">
       <i class="bi bi-phone me-1"></i>Mobile
     </button>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:18px;">
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+      <span id="fp_scaleTag"
+            style="display:none;background:rgba(255,180,0,.15);color:#ffb400;
+                   font-size:.67rem;border-radius:4px;padding:2px 8px;font-weight:600;">
+        ~70% escala
+      </span>
       <span style="font-size:.72rem;color:rgba(255,255,255,.35);">
         <strong id="fp_iW" style="color:#7dd3b8;">560</strong>
         <span style="color:rgba(255,255,255,.15);">×</span>
@@ -621,11 +723,25 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
               background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
 
   <!-- ── POPUP CENTRADO ──────────────────────────────── -->
-  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
+  <div id="fpPreviewArea" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
               display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;">
+
+    <!-- Phone frame (solo en modo mobile, fpCard se mueve aquí via JS) -->
+    <div id="fpPhoneWrap" style="display:none;position:relative;padding:54px 12px 42px;
+         border:9px solid #1c1c1e;border-radius:52px;background:#080808;flex-shrink:0;
+         box-shadow:inset 0 0 0 1px #2c2c2e,0 0 0 1.5px #000,0 25px 70px rgba(0,0,0,.9);">
+      <div style="position:absolute;top:18px;left:50%;transform:translateX(-50%);
+                  width:88px;height:24px;background:#000;border-radius:20px;"></div>
+      <div style="position:absolute;left:-12px;top:108px;width:4px;height:28px;background:#1c1c1e;border-radius:2px 0 0 2px;"></div>
+      <div style="position:absolute;left:-12px;top:148px;width:4px;height:44px;background:#1c1c1e;border-radius:2px 0 0 2px;"></div>
+      <div style="position:absolute;right:-12px;top:128px;width:4px;height:52px;background:#1c1c1e;border-radius:0 2px 2px 0;"></div>
+      <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+                  width:110px;height:4px;background:#2c2c2e;border-radius:2px;"></div>
+    </div>
+
     <div id="fpCard"
-         style="border-radius:14px;overflow:hidden;position:relative;
-                box-shadow:0 30px 80px rgba(0,0,0,.95);background:#111;
+         style="border-radius:{{ p.get('popup_radio',14) }}px;overflow:hidden;position:relative;
+                box-shadow:0 30px 80px rgba(0,0,0,.95);background:{{ p.get('popup_bg','#111') }};
                 width:560px;max-width:calc(100vw - 380px);transition:width .2s;">
       <div style="position:absolute;top:10px;right:10px;z-index:10;
                   background:rgba(0,0,0,.6);color:#fff;border-radius:50%;
@@ -672,6 +788,15 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           {{ p.get('boton_texto','Ver más') }}
         </div>
       </div>
+      <!-- Contenido bajo imagen -->
+      <div id="fpContent"
+           style="padding:16px 18px;
+                  background:{{ p.get('contenido_bg','#ffffff') }};
+                  color:{{ p.get('contenido_color_texto','#222222') }};
+                  display:{{ 'block' if p.get('contenido_activo') else 'none' }};">
+        <div id="fpContTit" style="font-weight:700;font-size:1rem;margin-bottom:6px;">{{ p.get('contenido_titulo','') }}</div>
+        <div id="fpContDesc" style="font-size:.85rem;line-height:1.5;opacity:.85;">{{ p.get('contenido_descripcion','') }}</div>
+      </div>
     </div>
   </div>
 
@@ -694,21 +819,28 @@ function _qv(s){ var e=document.querySelector(s); return e?e.value:null; }
 /* ═══ fp_apply: escribe en hidden input + refresca preview ══ */
 function fp_apply(k,v){
   var M={
-    fit:   function(v){ _e('h_fit').value=v; fp_rImg(); fp_chips(); },
-    altura:function(v){ v=+v; _e('h_altura').value=v; fp_rImg(); fp_chips(); fp_markAlt(v); },
-    ancho: function(v){ v=+v; _e('h_ancho').value=v; fp_rCard(); fp_chips(); },
-    ov_on: function(v){ _e('h_ov_on').checked=!!v; fp_rOv(); fp_chips(); },
-    ov_tit:function(v){ _e('h_ov_tit').value=v; fp_rOv(); },
-    ov_sub:function(v){ _e('h_ov_sub').value=v; fp_rOv(); },
-    ov_cf: function(v){ _e('h_ov_cf').value=v; fp_rOv(); },
-    ov_ct: function(v){ _e('h_ov_ct').value=v; fp_rOv(); },
-    ov_pos:function(v){ _e('h_ov_pos').value=v; fp_rOv(); },
-    btn_on: function(v){ _e('h_btn_on').checked=!!v; fp_rBtn(); fp_chips(); },
-    btn_txt:function(v){ _e('h_btn_txt').value=v; fp_rBtn(); },
-    btn_cf: function(v){ _e('h_btn_cf').value=v; fp_rBtn(); },
-    btn_ct: function(v){ _e('h_btn_ct').value=v; fp_rBtn(); },
-    btn_tam:function(v){ _e('h_btn_tam').value=v; fp_rBtn(); },
-    anim:   function(v){ _e('h_anim').value=v; fp_chips(); },
+    fit:      function(v){ _e('h_fit').value=v; fp_rImg(); fp_chips(); },
+    altura:   function(v){ v=+v; _e('h_altura').value=v; fp_rImg(); fp_chips(); fp_markAlt(v); },
+    ancho:    function(v){ v=+v; _e('h_ancho').value=v; fp_rCard(); fp_chips(); },
+    radio:    function(v){ v=+v; _e('h_radio').value=v; fp_rCard(); if(_e('fp_lblRad'))_e('fp_lblRad').textContent=v+'px'; },
+    bg:       function(v){ _e('h_bg').value=v; fp_rCard(); },
+    ov_on:    function(v){ _e('h_ov_on').checked=!!v; fp_rOv(); fp_chips(); },
+    ov_tit:   function(v){ _e('h_ov_tit').value=v; fp_rOv(); },
+    ov_sub:   function(v){ _e('h_ov_sub').value=v; fp_rOv(); },
+    ov_cf:    function(v){ _e('h_ov_cf').value=v; fp_rOv(); },
+    ov_ct:    function(v){ _e('h_ov_ct').value=v; fp_rOv(); },
+    ov_pos:   function(v){ _e('h_ov_pos').value=v; fp_rOv(); },
+    btn_on:   function(v){ _e('h_btn_on').checked=!!v; fp_rBtn(); fp_chips(); },
+    btn_txt:  function(v){ _e('h_btn_txt').value=v; fp_rBtn(); },
+    btn_cf:   function(v){ _e('h_btn_cf').value=v; fp_rBtn(); },
+    btn_ct:   function(v){ _e('h_btn_ct').value=v; fp_rBtn(); },
+    btn_tam:  function(v){ _e('h_btn_tam').value=v; fp_rBtn(); },
+    anim:     function(v){ _e('h_anim').value=v; fp_chips(); },
+    cont_on:  function(v){ _e('h_cont_on').checked=!!v; fp_rContent(); },
+    cont_tit: function(v){ _e('h_cont_tit').value=v; fp_rContent(); },
+    cont_desc:function(v){ _e('h_cont_desc').value=v; fp_rContent(); },
+    cont_bg:  function(v){ _e('h_cont_bg').value=v; fp_rContent(); },
+    cont_ct:  function(v){ _e('h_cont_ct').value=v; fp_rContent(); },
   };
   if(M[k]) M[k](v);
 }
@@ -717,6 +849,12 @@ function fp_rCard(){
   var c=_e('fpCard'); if(!c)return;
   var aw=+_e('h_ancho').value||560, w=_mob?Math.min(400,aw):aw;
   c.style.width=w+'px';
+  var r=+(_e('h_radio')?_e('h_radio').value:14)||0;
+  c.style.borderRadius=r+'px';
+  var bg=_e('h_bg')?(_e('h_bg').value||'#111'):'#111';
+  c.style.background=bg;
+  var st=_e('fp_scaleTag');
+  if(st){if(w<aw){st.textContent='~'+Math.round(w/aw*100)+'% escala';st.style.display='inline-block';}else{st.style.display='none';}}
   if(_e('fp_lblAnc'))_e('fp_lblAnc').textContent=aw+'px';
   if(_e('fp_iW'))_e('fp_iW').textContent=w;
 }
@@ -786,6 +924,26 @@ function fp_chips(){
 
 function fp_setAlt(v){ if(_e('fp_rAlt'))_e('fp_rAlt').value=v; fp_apply('altura',v); }
 function fp_setAnc(v){ if(_e('fp_rAnc'))_e('fp_rAnc').value=v; fp_apply('ancho',v); fp_markAnc(); }
+function fp_setRad(v){ if(_e('fp_rRad'))_e('fp_rRad').value=v; fp_apply('radio',v); fp_markRad(); }
+function fp_markRad(){
+  var cur=+(_e('fp_rRad')||{value:14}).value;
+  document.querySelectorAll('.fp-pRad').forEach(function(b){b.classList.toggle('on',+b.dataset.v===cur);});
+}
+function fp_setBg(v){
+  if(_e('fp_bgCP'))_e('fp_bgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(v)?v:'#111111');
+  if(_e('fp_bgTxt'))_e('fp_bgTxt').value=v;
+  fp_apply('bg',v);
+}
+function fp_rContent(){
+  var el=_e('fpContent'); if(!el)return;
+  var on=_e('h_cont_on')&&_e('h_cont_on').checked;
+  el.style.display=on?'block':'none';
+  if(!on)return;
+  el.style.background=_e('h_cont_bg')?(_e('h_cont_bg').value||'#ffffff'):'#ffffff';
+  el.style.color=_e('h_cont_ct')?(_e('h_cont_ct').value||'#222222'):'#222222';
+  if(_e('fpContTit'))_e('fpContTit').textContent=_e('h_cont_tit')?_e('h_cont_tit').value:'';
+  if(_e('fpContDesc'))_e('fpContDesc').textContent=_e('h_cont_desc')?_e('h_cont_desc').value:'';
+}
 function fp_markAnc(){
   var cur=+(_e('fp_rAnc')||{value:0}).value;
   document.querySelectorAll('.fp-pAnc').forEach(function(b){b.classList.toggle('on',+b.dataset.v===cur);});
@@ -806,6 +964,11 @@ function fp_modo(m){
   var D=_e('fp_btnD'),M=_e('fp_btnM');
   if(D){D.style.background=_mob?'transparent':'rgba(255,255,255,.14)';D.style.color=_mob?'rgba(255,255,255,.45)':'#fff';D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)';}
   if(M){M.style.background=_mob?'rgba(255,255,255,.14)':'transparent';M.style.color=_mob?'#fff':'rgba(255,255,255,.45)';M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)';}
+  var pf=_e('fpPhoneWrap'),pa=_e('fpPreviewArea'),card=_e('fpCard');
+  if(pf&&pa&&card){
+    if(_mob){pf.style.display='block';pf.appendChild(card);}
+    else{pf.style.display='none';pa.appendChild(card);}
+  }
   fp_rCard();
 }
 
@@ -845,9 +1008,26 @@ function fp_init(){
   /* Posición botón */
   var px=+(_e('h_pos_x').value||50),py=+(_e('h_pos_y').value||85);
   var fpB=_e('fpBtn'); if(fpB){fpB.style.left=px+'%';fpB.style.top=py+'%';}
+  /* Card style */
+  var rad=+(_e('h_radio')?_e('h_radio').value:14)||0;
+  if(_e('fp_rRad'))_e('fp_rRad').value=rad;
+  if(_e('fp_lblRad'))_e('fp_lblRad').textContent=rad+'px';
+  fp_markRad();
+  var bgv=_e('h_bg')?(_e('h_bg').value||'#111111'):'#111111';
+  if(_e('fp_bgCP'))_e('fp_bgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(bgv)?bgv:'#111111');
+  if(_e('fp_bgTxt'))_e('fp_bgTxt').value=bgv;
+  /* Contenido */
+  var cOn=_e('h_cont_on')&&_e('h_cont_on').checked;
+  if(_e('fp_contOn'))_e('fp_contOn').checked=cOn;
+  if(_e('fp_contTit'))_e('fp_contTit').value=_e('h_cont_tit')?_e('h_cont_tit').value:'';
+  if(_e('fp_contDesc'))_e('fp_contDesc').value=_e('h_cont_desc')?_e('h_cont_desc').value:'';
+  var cbg=_e('h_cont_bg')?(_e('h_cont_bg').value||'#ffffff'):'#ffffff';
+  if(_e('fp_contBgCP'))_e('fp_contBgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(cbg)?cbg:'#ffffff');
+  if(_e('fp_contBgTxt'))_e('fp_contBgTxt').value=cbg;
+  if(_e('fp_contCT'))_e('fp_contCT').value=_e('h_cont_ct')?(_e('h_cont_ct').value||'#222222'):'#222222';
   /* Presets y renders */
   fp_markAnc(); fp_markAlt(alt);
-  fp_rCard(); fp_rImg(); fp_rOv(); fp_rBtn(); fp_chips();
+  fp_rCard(); fp_rImg(); fp_rOv(); fp_rBtn(); fp_rContent(); fp_chips();
 }
 
 function editorAbrir(){
