@@ -445,16 +445,18 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
       </div>
 
       <div class="fp-grp">
-        <div class="fp-lbl">Comportamiento en móvil</div>
+        <div class="fp-lbl">Adaptación a la pantalla</div>
         <div class="fp-rg">
-          {% for v, l, ic in [('ratio','Proporcional','bi-aspect-ratio'),('fija','Altura fija','bi-arrows-vertical')] %}
+          {% for v, l, ic in [('ratio','Responsivo','bi-aspect-ratio'),('fija','Altura fija','bi-arrows-vertical')] %}
           <label><input type="radio" name="fp_imod" value="{{ v }}" style="display:none;" onchange="fp_apply('imod',this.value)">
             <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
           {% endfor %}
         </div>
         <div class="fp-note">
-          <strong style="color:#7dd3b8;">Proporcional</strong> mantiene la forma de la imagen al encoger la pantalla.
-          <strong>Altura fija</strong> conserva los píxeles de alto y recorta más en celular.
+          <strong style="color:#7dd3b8;">Responsivo</strong> es lo recomendado: el popup se achica solo para caber
+          entero en cualquier pantalla, conservando la forma. Diseñas una vez y funciona en todas.<br>
+          <strong>Altura fija</strong> respeta los píxeles de alto aunque no quepan, y entonces el visitante
+          tiene que desplazarse dentro del popup.
         </div>
       </div>
 
@@ -779,7 +781,10 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
     </select>
     <span id="fp_scaleTag" style="display:none;background:rgba(255,255,255,.09);color:rgba(255,255,255,.6);
           font-size:.68rem;padding:3px 9px;border-radius:5px;"></span>
-    <span id="fp_avisoAlto" title="En pantallas de este alto el popup no cabe entero y el visitante tendrá que desplazarse dentro de él."
+    <span id="fp_encoge" title="El popup se achica solo para caber entero en esta pantalla, sin recortarse ni deformarse."
+          style="display:none;background:rgba(125,211,184,.14);color:#7dd3b8;
+          font-size:.68rem;padding:3px 9px;border-radius:5px;cursor:help;"></span>
+    <span id="fp_avisoAlto" title="Con altura fija el popup no se adapta y el visitante tendrá que desplazarse dentro de él. Cambia a Proporcional para que se ajuste solo."
           style="display:none;background:rgba(255,180,0,.16);color:#ffb400;
           font-size:.68rem;padding:3px 9px;border-radius:5px;cursor:help;">
       <i class="bi bi-exclamation-triangle-fill me-1"></i>No cabe entero
@@ -1050,18 +1055,43 @@ function fp_escalar(){
 
 function fp_rCard(){
   var c=_e('fpCard'); if(!c) return;
-  var aw=+_v('h_ancho',520)||520;
-  c.style.width=aw+'px';
+  var aw=+_v('h_ancho',520)||520, alt=+_v('h_altura',300)||300;
+  var modo=_v('h_imod','ratio');
+  var host=_mob?_e('fpPhoneSlot'):_e('fpPreviewArea');
+  var dispW=aw, dispH=0;
+  if(host){
+    var hr=host.getBoundingClientRect(), pad=_mob?28:40;
+    dispW=(hr.width/(_mob?1:_escala))-pad;
+    dispH=(hr.height/(_mob?1:_escala))-pad;
+  }
+  var w=Math.min(aw, dispW||aw);
+  if(modo==='ratio' && dispH>0){
+    var extra=Math.max(0, c.scrollHeight - (c.querySelector('#fpImg')||{offsetHeight:0}).offsetHeight);
+    w=Math.min(w, Math.max(120, (dispH-extra)*aw/alt));
+  }
+  c.style.width=Math.round(w)+'px';
   c.style.minWidth='0';
   c.style.maxWidth='100%';
-  c.style.maxHeight=_mob?'100%':'calc(100% - 0px)';
+  c.style.maxHeight='100%';
   c.style.borderRadius=(+_v('h_radio',14)||0)+'px';
   c.style.background=_v('h_bg','#111')||'#111';
   c.style.boxShadow=SOMBRAS[_v('h_som','lg')]||SOMBRAS.lg;
   var bw=+_v('h_bw',0)||0;
   c.style.border=bw?(bw+'px solid '+(_v('h_bc','#fff')||'#fff')):'none';
+  var rw=Math.round(w);
   var tag=_e('fp_scaleTag');
-  if(tag && _mob){ tag.textContent='celular 375px · diseño de '+aw+'px'; tag.style.display='inline-block'; }
+  if(tag){
+    if(_mob) tag.textContent='celular 375px';
+    else tag.textContent='visto al '+Math.round(_escala*100)+'%';
+    tag.style.display='inline-block';
+  }
+  var enc=_e('fp_encoge');
+  if(enc){
+    if(rw < aw-1){
+      enc.textContent='se adapta a '+rw+'px';
+      enc.style.display='inline-block';
+    } else enc.style.display='none';
+  }
   if(_e('fp_lblAnc')) _e('fp_lblAnc').textContent=aw+'px';
   if(_e('fp_lblRad')) _e('fp_lblRad').textContent=(+_v('h_radio',14)||0)+'px';
   if(_e('fp_lblBw'))  _e('fp_lblBw').textContent=bw+'px';

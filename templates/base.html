@@ -1306,7 +1306,13 @@
   }
   #cgmPopOv.is-open{ display:flex; }
   #cgmPopCard{
-    position:relative;width:100%;min-width:0;flex:0 1 auto;max-width:{{ _ancho }}px;
+    position:relative;min-width:0;flex:0 1 auto;
+    --cgm-extra:0px;
+    width:min(100%, {{ _ancho }}px);
+    {% if _imod == 'ratio' %}
+    width:min(100%, {{ _ancho }}px, calc((100vh - 40px - var(--cgm-extra)) * {{ _ancho }} / {{ _altura }}));
+    width:min(100%, {{ _ancho }}px, calc((100dvh - 40px - var(--cgm-extra)) * {{ _ancho }} / {{ _altura }}));
+    {% endif %}
     max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);
     overflow-y:auto;overflow-x:hidden;
     border-radius:{{ _radio }}px;background:{{ _bg }};
@@ -1480,11 +1486,22 @@
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
 
+    function ajustarAlto() {
+      var img = card.querySelector('img');
+      if (!img) return;
+      for (var i = 0; i < 2; i++) {
+        var extra = card.scrollHeight - img.offsetHeight;
+        card.style.setProperty('--cgm-extra', Math.max(0, extra) + 'px');
+      }
+    }
+
     function open() {
       if (opened || !armed) return;
       opened = true; armed = false;
       lastFocus = document.activeElement;
       ov.classList.add('is-open');
+      ajustarAlto();
+      window.addEventListener('resize', ajustarAlto);
       card.style.animation = ANIM;
       document.documentElement.style.overflow = 'hidden';
       document.addEventListener('keydown', onKey, true);
@@ -1504,6 +1521,7 @@
     function close() {
       if (!opened) return;
       opened = false;
+      window.removeEventListener('resize', ajustarAlto);
       document.removeEventListener('keydown', onKey, true);
       document.documentElement.style.overflow = '';
       card.style.animation = 'cgmPclose .22s ease forwards';
