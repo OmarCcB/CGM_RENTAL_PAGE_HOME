@@ -296,37 +296,66 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
           <i class="bi bi-arrow-right" style="opacity:.5;font-size:1.1rem;"></i>
         </button>
 
-        <div style="margin-top:14px;border-radius:10px;overflow:hidden;background:#1e1e1e;
-                    position:relative;line-height:0;cursor:pointer;" onclick="editorAbrir()">
-          <div id="prevPh"
-               style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                      width:100%;height:190px;background:#2a2a2a;
-                      flex-direction:column;align-items:center;justify-content:center;
-                      color:#555;font-size:.83rem;gap:8px;">
-            <i class="bi bi-image" style="font-size:2.2rem;color:#444;"></i>
-            Sin imagen — ábrelo en el editor visual para subir una
+        <div id="prevWrap" onclick="editorAbrir()"
+             style="margin-top:14px;border-radius:12px;background:#11201a;position:relative;
+                    cursor:pointer;padding:22px;display:flex;align-items:center;
+                    justify-content:center;min-height:210px;overflow:hidden;">
+          <div id="prevBg" style="position:absolute;inset:0;
+                      background:linear-gradient(155deg,#183328,#2b6a4a,#183328);opacity:.5;"></div>
+          <div id="prevCard"
+               style="position:relative;z-index:2;width:100%;max-width:210px;overflow:hidden;
+                      border-radius:{{ p.get('popup_radio',14) }}px;
+                      background:{{ p.get('popup_bg','#111111') }};
+                      box-shadow:0 10px 30px rgba(0,0,0,.55);">
+            <div id="prevImgW" style="position:relative;line-height:0;">
+              <img id="prevImg"
+                   src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
+                   alt=""
+                   style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
+                          aspect-ratio:{{ p.get('popup_ancho',520) }} / {{ p.get('imagen_altura',300) }};
+                          object-fit:{{ p.get('imagen_fit','cover') }};"
+                   onerror="this.style.display='none';document.getElementById('prevPh').style.display='flex';">
+              <div id="prevPh"
+                   style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
+                          width:100%;aspect-ratio:{{ p.get('popup_ancho',520) }} / {{ p.get('imagen_altura',300) }};
+                          background:#243029;flex-direction:column;align-items:center;
+                          justify-content:center;color:#5d7a6c;font-size:.68rem;gap:6px;text-align:center;padding:10px;">
+                <i class="bi bi-image" style="font-size:1.5rem;"></i>Sin imagen
+              </div>
+              <div id="prevOv"
+                   style="position:absolute;left:0;right:0;padding:5px 8px;line-height:1.25;
+                          background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
+                          color:{{ p.get('overlay_color_texto','#fff') }};
+                          display:{{ 'block' if p.get('overlay_activo') else 'none' }};">
+                <div id="prevOvT" style="font-weight:700;font-size:.6rem;">{{ p.get('overlay_titulo','') }}</div>
+                <div id="prevOvS" style="font-size:.53rem;opacity:.85;margin-top:1px;">{{ p.get('overlay_subtitulo','') }}</div>
+              </div>
+              <div id="prevBtn"
+                   style="position:absolute;display:{{ 'inline-flex' if p.get('boton_activo') else 'none' }};
+                          align-items:center;justify-content:center;white-space:nowrap;
+                          font-weight:700;font-size:.55rem;padding:3px 9px;line-height:1;
+                          border-radius:{{ (p.get('boton_radio',6) / 2.5) | round(1) }}px;
+                          background:{{ p.get('boton_color_fondo','#02534C') }};
+                          color:{{ p.get('boton_color_texto','#ffffff') }};
+                          box-shadow:0 1px 5px rgba(0,0,0,.4);">{{ p.get('boton_texto','Ver más') }}</div>
+            </div>
+            <div id="prevCont"
+                 style="padding:7px 9px;display:{{ 'block' if p.get('contenido_activo') else 'none' }};
+                        background:{{ p.get('contenido_bg','#ffffff') }};
+                        color:{{ p.get('contenido_color_texto','#222222') }};">
+              <div id="prevContT" style="font-weight:700;font-size:.6rem;line-height:1.25;">{{ p.get('contenido_titulo','') }}</div>
+              <div id="prevContD" style="font-size:.53rem;line-height:1.4;opacity:.85;margin-top:2px;">{{ p.get('contenido_descripcion','') }}</div>
+            </div>
           </div>
-          <img id="prevImg"
-               src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
-               alt=""
-               style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
-                      height:190px;object-fit:{{ p.get('imagen_fit','cover') }};"
-               onerror="this.style.display='none';document.getElementById('prevPh').style.display='flex';">
-          <div id="prevOv"
-               style="position:absolute;left:0;right:0;padding:7px 11px;
-                      background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
-                      color:{{ p.get('overlay_color_texto','#fff') }};
-                      display:{{ 'block' if p.get('overlay_activo') else 'none' }};
-                      {{ 'top:0' if p.get('overlay_posicion') == 'top' else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center' else 'bottom:0' }};">
-            <div id="prevOvT" style="font-weight:700;font-size:.78rem;">{{ p.get('overlay_titulo','') }}</div>
-            <div id="prevOvS" style="font-size:.7rem;opacity:.85;">{{ p.get('overlay_subtitulo','') }}</div>
-          </div>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+          <div style="position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
                       opacity:0;transition:opacity .2s;font-size:.82rem;color:#fff;font-weight:600;"
-               onmouseover="this.style.opacity='1';this.style.background='rgba(2,83,76,.5)'"
+               onmouseover="this.style.opacity='1';this.style.background='rgba(2,83,76,.62)'"
                onmouseout="this.style.opacity='0';this.style.background='transparent'">
             <i class="bi bi-pencil-square me-2"></i>Editar diseño
           </div>
+        </div>
+        <div style="font-size:.68rem;color:#bbb;text-align:center;margin-top:6px;">
+          Miniatura a escala · el editor lo muestra sobre la web real
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;">
@@ -740,8 +769,13 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
         <i class="bi bi-phone me-1"></i>Celular
       </button>
     </div>
-    <span id="fp_scaleTag" style="display:none;background:rgba(255,180,0,.15);color:#ffb400;
+    <span id="fp_scaleTag" style="display:none;background:rgba(255,255,255,.09);color:rgba(255,255,255,.6);
           font-size:.68rem;padding:3px 9px;border-radius:5px;"></span>
+    <span id="fp_avisoAlto" title="En pantallas de este alto el popup no cabe entero y el visitante tendrá que desplazarse dentro de él."
+          style="display:none;background:rgba(255,180,0,.16);color:#ffb400;
+          font-size:.68rem;padding:3px 9px;border-radius:5px;cursor:help;">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>No cabe entero
+    </span>
     <label style="display:flex;align-items:center;gap:6px;margin-left:8px;cursor:pointer;
                   color:rgba(255,255,255,.55);font-size:.7rem;user-select:none;">
       <input type="checkbox" id="fp_webReal" checked onchange="fp_toggleWeb(this.checked)"
@@ -758,7 +792,12 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
     </button>
   </div>
 
-  <div id="fpBgSim" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
+  <div id="fpViewport" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
+              overflow:hidden;background:#0a0f0c;">
+  <div id="fpStage" style="position:absolute;left:50%;top:50%;transform-origin:center center;
+              overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.09),0 24px 70px rgba(0,0,0,.7);">
+
+  <div id="fpBgSim" style="position:absolute;inset:0;z-index:1;
               overflow:hidden;pointer-events:none;background:#183328;">
     <div id="fpBgFake" style="position:absolute;inset:0;">
       <div style="background:#02534C;height:62px;display:flex;align-items:center;
@@ -783,13 +822,18 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
                    transition:opacity .35s;pointer-events:none;"></iframe>
   </div>
 
-  <div id="fpBackdrop" style="position:absolute;left:340px;right:0;top:52px;bottom:0;
+  <div id="fpBackdrop" style="position:absolute;inset:0;
               background:rgba(0,0,0,.65);z-index:2;pointer-events:none;"></div>
 
-  <div id="fpPreviewArea" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
-              display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;">
+  <div id="fpPreviewArea" style="position:absolute;inset:0;z-index:3;
+              display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;">
+    <div id="fpCardHost" style="display:contents;"></div>
+  </div>
 
-    <div id="fpPhoneWrap" style="display:none;position:relative;flex-shrink:0;">
+  </div>
+
+  <div id="fpPhoneHost" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:4;">
+    <div id="fpPhoneWrap" style="position:relative;flex-shrink:0;">
       <div style="position:absolute;left:-5px;top:110px;width:4px;height:28px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
       <div style="position:absolute;left:-5px;top:150px;width:4px;height:44px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
       <div style="position:absolute;right:-5px;top:130px;width:4px;height:52px;background:#5c5c5e;border-radius:0 2px 2px 0;"></div>
@@ -828,14 +872,15 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
         <div id="fpPhoneBd" style="position:absolute;inset:0;background:rgba(0,0,0,.65);z-index:2;pointer-events:none;"></div>
 
         <div id="fpPhoneSlot" style="position:absolute;inset:0;z-index:3;
-             display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden;"></div>
+             display:flex;align-items:center;justify-content:center;padding:14px;overflow:hidden;"></div>
       </div>
     </div>
+  </div>
 
     <div id="fpCard"
-         style="border-radius:{{ p.get('popup_radio',14) }}px;overflow:hidden;position:relative;
+         style="border-radius:{{ p.get('popup_radio',14) }}px;overflow-y:auto;overflow-x:hidden;position:relative;
                 box-shadow:0 18px 60px rgba(0,0,0,.5);background:{{ p.get('popup_bg','#111') }};
-                width:520px;max-width:calc(100vw - 380px);transition:width .2s;">
+                width:520px;max-width:100%;min-width:0;flex:0 1 auto;">
       <div id="fpX" style="position:absolute;top:10px;right:10px;z-index:10;
                   background:rgba(0,0,0,.55);color:#fff;border-radius:50%;
                   width:32px;height:32px;display:flex;align-items:center;
@@ -901,7 +946,7 @@ var SOMBRAS = {
   md:'0 8px 28px rgba(0,0,0,.35)', lg:'0 18px 60px rgba(0,0,0,.5)'
 };
 var ALINEA = {izquierda:'left', centro:'center', derecha:'right'};
-var _mob = false;
+var _mob = false, _escala = 1;
 
 function _e(id){ return document.getElementById(id); }
 function _v(id,d){ var e=_e(id); return e ? e.value : d; }
@@ -969,46 +1014,70 @@ function fp_apply(k,v){
     anim:     function(v){ _e('h_anim').value=v; fp_chips(); }
   };
   if(M[k]) M[k](v);
+  fp_rThumb();
+}
+
+function fp_escalar(){
+  var vp=_e('fpViewport'), st=_e('fpStage');
+  if(!vp||!st) return;
+  var r=vp.getBoundingClientRect();
+  var w=Math.max(320, window.innerWidth), h=Math.max(400, window.innerHeight);
+  st.style.width=w+'px'; st.style.height=h+'px';
+  var k=Math.min((r.width-56)/w, (r.height-56)/h, 1);
+  _escala=k;
+  st.style.transform='translate(-50%,-50%) scale('+k+')';
+  var tag=_e('fp_scaleTag');
+  if(tag && !_mob){
+    tag.textContent='pantalla de '+w+'×'+h+' al '+Math.round(k*100)+'%';
+    tag.style.display='inline-block';
+  }
 }
 
 function fp_rCard(){
   var c=_e('fpCard'); if(!c) return;
   var aw=+_v('h_ancho',520)||520;
-  var w=_mob?Math.min(351,aw):aw;
-  c.style.width=w+'px';
+  c.style.width=aw+'px';
   c.style.minWidth='0';
-  c.style.flex='0 0 auto';
-  c.style.maxWidth=_mob?'100%':'calc(100vw - 380px)';
+  c.style.maxWidth='100%';
+  c.style.maxHeight=_mob?'100%':'calc(100% - 0px)';
   c.style.borderRadius=(+_v('h_radio',14)||0)+'px';
   c.style.background=_v('h_bg','#111')||'#111';
   c.style.boxShadow=SOMBRAS[_v('h_som','lg')]||SOMBRAS.lg;
   var bw=+_v('h_bw',0)||0;
   c.style.border=bw?(bw+'px solid '+(_v('h_bc','#fff')||'#fff')):'none';
-  var st=_e('fp_scaleTag');
-  if(st){
-    if(_mob){ st.textContent='celular · diseño real '+aw+'px'; st.style.display='inline-block'; }
-    else if(w<aw){ st.textContent='~'+Math.round(w/aw*100)+'% escala'; st.style.display='inline-block'; }
-    else st.style.display='none';
-  }
+  var tag=_e('fp_scaleTag');
+  if(tag && _mob){ tag.textContent='celular 375px · diseño de '+aw+'px'; tag.style.display='inline-block'; }
   if(_e('fp_lblAnc')) _e('fp_lblAnc').textContent=aw+'px';
   if(_e('fp_lblRad')) _e('fp_lblRad').textContent=(+_v('h_radio',14)||0)+'px';
   if(_e('fp_lblBw'))  _e('fp_lblBw').textContent=bw+'px';
-  if(_e('fp_iW'))     _e('fp_iW').textContent=w;
+  if(_e('fp_iW'))     _e('fp_iW').textContent=aw;
+  setTimeout(fp_avisoAlto, 60);
+}
+
+function fp_avisoAlto(){
+  var c=_e('fpCard'), av=_e('fp_avisoAlto');
+  if(!c||!av) return;
+  var corta = c.scrollHeight > c.clientHeight + 2;
+  av.style.display = corta ? 'inline-block' : 'none';
 }
 
 function fp_rImg(){
   var alt=+_v('h_altura',300)||300, fit=_v('h_fit','cover')||'cover', modo=_v('h_imod','ratio');
   var aw=+_v('h_ancho',520)||520;
   var fi=_e('fpImg'), ph=_e('fpPh');
-  var cw=_mob?Math.min(351,aw):aw;
-  var h=(modo==='ratio')?Math.round(alt*(cw/aw)):alt;
-  if(fi){ fi.style.height=h+'px'; fi.style.objectFit=fit; }
-  if(ph)  ph.style.height=h+'px';
+  if(fi){
+    fi.style.objectFit=fit;
+    if(modo==='ratio'){ fi.style.aspectRatio=aw+' / '+alt; fi.style.height='auto'; }
+    else { fi.style.aspectRatio=''; fi.style.height=alt+'px'; }
+  }
+  if(ph){
+    if(modo==='ratio'){ ph.style.aspectRatio=aw+' / '+alt; ph.style.height='auto'; }
+    else { ph.style.aspectRatio=''; ph.style.height=alt+'px'; }
+  }
   if(_e('fp_lblAlt')) _e('fp_lblAlt').textContent=alt+'px';
-  if(_e('fp_iH'))     _e('fp_iH').textContent=h;
-  var t=_e('fp_thumb'); if(t) t.style.maxHeight=Math.min(alt,160)+'px';
-  var pi=_e('prevImg'); if(pi&&pi.style.display==='block') pi.style.objectFit=fit;
+  if(_e('fp_iH'))     _e('fp_iH').textContent=alt;
   fp_markAlt(alt);
+  setTimeout(fp_avisoAlto, 60);
 }
 
 function fp_rPos(){
@@ -1050,7 +1119,7 @@ function fp_rOv(){
   var on=_chk('h_ov_on');
   el.style.display=on?'block':'none';
   var box=_e('fp_ovBox'); if(box) box.style.opacity=on?'1':'.35';
-  if(!on){ _syncPrevOv(false); return; }
+  if(!on) return;
   var pos=_v('h_ov_pos','bottom')||'bottom';
   el.style.top=''; el.style.bottom=''; el.style.transform='';
   if(pos==='top') el.style.top='0';
@@ -1059,22 +1128,78 @@ function fp_rOv(){
   el.style.background=_v('h_ov_cf','rgba(0,0,0,.55)');
   el.style.color=_v('h_ov_ct','#fff');
   el.style.textAlign=ALINEA[_v('h_ov_al','izquierda')]||'left';
-  if(_e('fpOvT')) _e('fpOvT').textContent=_v('h_ov_tit','');
-  if(_e('fpOvS')) _e('fpOvS').textContent=_v('h_ov_sub','');
-  _syncPrevOv(true,pos,el.style.background,el.style.color);
+  var t=_e('fpOvT'), s=_e('fpOvS');
+  if(t){ t.textContent=_v('h_ov_tit',''); t.style.display=t.textContent?'block':'none'; }
+  if(s){ s.textContent=_v('h_ov_sub',''); s.style.display=s.textContent?'block':'none'; }
 }
 
-function _syncPrevOv(on,pos,bg,cl){
-  var po=_e('prevOv'); if(!po) return;
-  po.style.display=on?'block':'none';
-  if(!on) return;
-  po.style.background=bg; po.style.color=cl;
-  po.style.top=''; po.style.bottom=''; po.style.transform='';
-  if(pos==='top') po.style.top='0';
-  else if(pos==='center'){ po.style.top='50%'; po.style.transform='translateY(-50%)'; }
-  else po.style.bottom='0';
-  if(_e('prevOvT')) _e('prevOvT').textContent=_v('h_ov_tit','');
-  if(_e('prevOvS')) _e('prevOvS').textContent=_v('h_ov_sub','');
+function fp_rThumb(){
+  var card=_e('prevCard'); if(!card) return;
+  var aw=+_v('h_ancho',520)||520, alt=+_v('h_altura',300)||300;
+  card.style.borderRadius=Math.max(2, Math.round((+_v('h_radio',14)||0)/2.5))+'px';
+  card.style.background=_v('h_bg','#111');
+  var bw=+_v('h_bw',0)||0;
+  card.style.border=bw?(Math.max(1,Math.round(bw/2.5))+'px solid '+_v('h_bc','#fff')):'none';
+
+  var ratio=aw+' / '+alt;
+  ['prevImg','prevPh'].forEach(function(id){
+    var el=_e(id); if(!el) return;
+    el.style.aspectRatio=ratio; el.style.height='auto';
+  });
+  var im=_e('prevImg'); if(im) im.style.objectFit=_v('h_fit','cover');
+
+  var ov=_e('prevOv');
+  if(ov){
+    var on=_chk('h_ov_on');
+    ov.style.display=on?'block':'none';
+    if(on){
+      var pos=_v('h_ov_pos','bottom');
+      ov.style.top=''; ov.style.bottom=''; ov.style.transform='';
+      if(pos==='top') ov.style.top='0';
+      else if(pos==='center'){ ov.style.top='50%'; ov.style.transform='translateY(-50%)'; }
+      else ov.style.bottom='0';
+      ov.style.background=_v('h_ov_cf','rgba(0,0,0,.55)');
+      ov.style.color=_v('h_ov_ct','#fff');
+      ov.style.textAlign=ALINEA[_v('h_ov_al','izquierda')]||'left';
+      var t=_e('prevOvT'), s=_e('prevOvS');
+      if(t){ t.textContent=_v('h_ov_tit',''); t.style.display=t.textContent?'block':'none'; }
+      if(s){ s.textContent=_v('h_ov_sub',''); s.style.display=s.textContent?'block':'none'; }
+    }
+  }
+
+  var bt=_e('prevBtn');
+  if(bt){
+    var bon=_chk('h_btn_on');
+    bt.style.display=bon?'inline-flex':'none';
+    if(bon){
+      bt.textContent=_v('h_btn_txt','Ver más')||'Ver más';
+      bt.style.background=_v('h_btn_cf','#02534C');
+      bt.style.color=_v('h_btn_ct','#fff');
+      bt.style.borderRadius=Math.max(1, Math.round((+_v('h_btn_rad',6)||0)/2.5))+'px';
+      var py=+_v('h_pos_y',85)||85, px=+_v('h_pos_x',50)||50;
+      if(_chk('h_btn_full')){
+        bt.style.left='6px'; bt.style.right='6px'; bt.style.top=py+'%';
+        bt.style.transform='translateY(-50%)';
+      } else {
+        bt.style.right=''; bt.style.left=px+'%'; bt.style.top=py+'%';
+        bt.style.transform='translate(-50%,-50%)';
+      }
+    }
+  }
+
+  var ct=_e('prevCont');
+  if(ct){
+    var con=_chk('h_cont_on');
+    ct.style.display=con?'block':'none';
+    if(con){
+      ct.style.background=_v('h_cont_bg','#ffffff');
+      ct.style.color=_v('h_cont_ct','#222222');
+      ct.style.textAlign=ALINEA[_v('h_cont_al','izquierda')]||'left';
+      var tt=_e('prevContT'), dd=_e('prevContD');
+      if(tt){ tt.textContent=_v('h_cont_tit',''); tt.style.display=tt.textContent?'block':'none'; }
+      if(dd){ dd.textContent=_v('h_cont_desc',''); dd.style.display=dd.textContent?'block':'none'; }
+    }
+  }
 }
 
 function fp_rBtn(){
@@ -1230,14 +1355,13 @@ function fp_modo(m){
   if(D){ D.style.background=_mob?'transparent':'rgba(255,255,255,.14)'; D.style.color=_mob?'rgba(255,255,255,.45)':'#fff'; D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)'; }
   if(M){ M.style.background=_mob?'rgba(255,255,255,.14)':'transparent'; M.style.color=_mob?'#fff':'rgba(255,255,255,.45)'; M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)'; }
 
-  var bg=_e('fpBgSim'), bd=_e('fpBackdrop');
-  if(bg) bg.style.display=_mob?'none':'block';
-  if(bd) bd.style.display=_mob?'none':'block';
-
-  var pf=_e('fpPhoneWrap'), slot=_e('fpPhoneSlot'), pa=_e('fpPreviewArea'), card=_e('fpCard');
-  if(pf&&pa&&card){
-    if(_mob){ pf.style.display='block'; if(slot) slot.appendChild(card); pa.style.alignItems='center'; pa.style.justifyContent='center'; }
-    else { pf.style.display='none'; pa.appendChild(card); fp_rPos(); }
+  var stage=_e('fpStage'), phost=_e('fpPhoneHost');
+  var slot=_e('fpPhoneSlot'), host=_e('fpCardHost'), card=_e('fpCard');
+  if(stage) stage.style.display=_mob?'none':'block';
+  if(phost) phost.style.display=_mob?'flex':'none';
+  if(card){
+    if(_mob){ if(slot) slot.appendChild(card); }
+    else { if(host) host.appendChild(card); fp_rPos(); fp_escalar(); }
   }
   fp_cargarWeb(_mob ? 'fpSiteMob' : 'fpSite');
   fp_rCard(); fp_rImg(); fp_rBtn();
@@ -1302,7 +1426,7 @@ function fp_init(){
 
   fp_markAnc(); fp_markRad();
   fp_rCard(); fp_rImg(); fp_rPos(); fp_rBackdrop(); fp_rClose();
-  fp_rOv(); fp_rBtn(); fp_rContent(); fp_chips();
+  fp_rOv(); fp_rBtn(); fp_rContent(); fp_chips(); fp_rThumb();
 }
 
 function editorAbrir(){
@@ -1310,8 +1434,13 @@ function editorAbrir(){
   _e('fpOv').style.display='block';
   document.body.style.overflow='hidden';
   fp_modo('desktop');
+  fp_escalar();
   fp_playAnim();
 }
+
+window.addEventListener('resize', function(){
+  if(_e('fpOv') && _e('fpOv').style.display !== 'none' && !_mob) fp_escalar();
+});
 function editorCerrar(){
   _e('fpOv').style.display='none';
   document.body.style.overflow='';
@@ -1352,7 +1481,7 @@ function pagCambio(){
   var s=_e('selPaginas'), b=_e('boxRutas');
   if(s&&b) b.style.display=(s.value==='rutas')?'block':'none';
 }
-dispCambio(); pagCambio();
+dispCambio(); pagCambio(); fp_rThumb();
 
 (function(){
   var btn=_e('fpBtn'), wrap=_e('fpImgW'), drag=false, sX, sY, sL, sT;
