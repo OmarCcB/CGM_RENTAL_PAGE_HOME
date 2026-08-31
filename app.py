@@ -773,36 +773,39 @@ def inject_globals():
     _today = _date.today().isoformat()
     popup_activo = None
     try:
-        _path = (request.path or "/").rstrip("/") or "/"
-        _pc = get_conn()
-        try:
-            _rows = _pc.execute(
-                """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
-                   AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
-                   ORDER BY prioridad DESC, id DESC""",
-                (_today, _today, cc),
-            ).fetchall()
-        except Exception:
-            _rows = _pc.execute(
-                """SELECT * FROM popups WHERE activo=1
-                   AND fecha_inicio<=? AND fecha_fin>=?
-                   ORDER BY id DESC""",
-                (_today, _today),
-            ).fetchall()
-        _pc.close()
-        for _r in _rows:
-            _d = dict(_r)
-            if not _d.get("imagen"):
-                continue
-            _me = _d.get("mostrar_en") or "todas"
-            if _me == "home" and _path != "/":
-                continue
-            if _me == "rutas":
-                _lista = [x.strip().rstrip("/") or "/" for x in (_d.get("rutas") or "").split(",") if x.strip()]
-                if not any(_path == x or _path.startswith(x + "/") for x in _lista):
+        if not request.args.get("_preview"):
+            _path = (request.path or "/").rstrip("/") or "/"
+            _es_home = _path in ("/", "/" + cc)
+            _pc = get_conn()
+            try:
+                _rows = _pc.execute(
+                    """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
+                       AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
+                       ORDER BY prioridad DESC, id DESC""",
+                    (_today, _today, cc),
+                ).fetchall()
+            except Exception:
+                _rows = _pc.execute(
+                    """SELECT * FROM popups WHERE activo=1
+                       AND fecha_inicio<=? AND fecha_fin>=?
+                       ORDER BY id DESC""",
+                    (_today, _today),
+                ).fetchall()
+            _pc.close()
+            for _r in _rows:
+                _d = dict(_r)
+                if not _d.get("imagen"):
                     continue
-            popup_activo = _d
-            break
+                _me = _d.get("mostrar_en") or "todas"
+                if _me == "home" and not _es_home:
+                    continue
+                if _me == "rutas":
+                    _lista = [x.strip().rstrip("/") or "/" for x in (_d.get("rutas") or "").split(",") if x.strip()]
+                    _rel = _path[len(cc) + 1:] or "/" if _path.startswith("/" + cc) else _path
+                    if not any(_rel == x or _rel.startswith(x + "/") or _path == x or _path.startswith(x + "/") for x in _lista):
+                        continue
+                popup_activo = _d
+                break
     except Exception:
         popup_activo = None
 

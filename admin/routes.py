@@ -2094,21 +2094,69 @@ def popup_estadisticas(pid):
     if not popup:
         flash("Popup no encontrado.", "danger")
         return redirect(url_for("admin.popups_list"))
-    return render_template("admin/popup_stats.html", popup=dict(popup))
+    return render_template(
+        "admin/popup_stats.html",
+        popup=dict(popup),
+        campana=_popup_campana(dict(popup)),
+    )
+
+
+def _popup_campana(p):
+    from datetime import date, datetime as _dt
+
+    def _fecha(v):
+        try:
+            return _dt.strptime((v or "")[:10], "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return None
+
+    hoy, ini, fin = date.today(), _fecha(p.get("fecha_inicio")), _fecha(p.get("fecha_fin"))
+    info = {
+        "estado": "inactivo", "etiqueta": "Desactivado", "color": "#9aa0a6",
+        "dias_totales": None, "dias_corridos": None, "dias_restantes": None, "avance": 0,
+    }
+    if ini and fin:
+        info["dias_totales"] = (fin - ini).days + 1
+        info["dias_corridos"] = max(0, min((hoy - ini).days + 1, info["dias_totales"]))
+        info["dias_restantes"] = max(0, (fin - hoy).days)
+        if info["dias_totales"]:
+            info["avance"] = round(info["dias_corridos"] / info["dias_totales"] * 100)
+    if not p.get("activo"):
+        return info
+    if ini and hoy < ini:
+        info.update(estado="programado", etiqueta="Programado", color="#0d6efd")
+    elif fin and hoy > fin:
+        info.update(estado="finalizado", etiqueta="Finalizado", color="#6c757d")
+    else:
+        info.update(estado="activo", etiqueta="En vivo", color="#1a9e6f")
+    return info
 
 
 @admin_bp.route("/popups/<int:pid>/stats-data")
 @admin_required
 def popup_stats_data(pid):
+    from datetime import date, timedelta
+
+    try:
+        dias = max(7, min(365, int(request.args.get("dias", 30))))
+    except (ValueError, TypeError):
+        dias = 30
+
+    desde = (date.today() - timedelta(days=dias - 1)).isoformat()
     conn = get_conn()
     rows = conn.execute(
         """SELECT fecha, vistas, clics FROM popup_stats
-           WHERE popup_id=? ORDER BY fecha DESC LIMIT 30""",
-        (pid,),
+           WHERE popup_id=? AND fecha>=? ORDER BY fecha ASC""",
+        (pid, desde),
     ).fetchall()
     conn.close()
-    data = [{"fecha": r["fecha"], "vistas": r["vistas"], "clics": r["clics"]}
-            for r in reversed(rows)]
+
+    reales = {r["fecha"]: (r["vistas"], r["clics"]) for r in rows}
+    data = []
+    for i in range(dias):
+        f = (date.today() - timedelta(days=dias - 1 - i)).isoformat()
+        v, c = reales.get(f, (0, 0))
+        data.append({"fecha": f, "vistas": v, "clics": c})
     return jsonify(data)
 
 

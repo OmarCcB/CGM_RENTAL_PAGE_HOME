@@ -1,11 +1,11 @@
 {% extends "admin/base.html" %}
-{% block title %}Estadísticas — {{ popup.titulo or 'Popup #' ~ popup.id }}{% endblock %}
+{% block title %}Resultados — {{ popup.titulo or 'Popup #' ~ popup.id }}{% endblock %}
 {% block breadcrumb %}
   <a href="{{ url_for('admin.popups_list') }}">Popups</a>
   <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
   <a href="{{ url_for('admin.popup_editar', pid=popup.id) }}">{{ popup.titulo or 'Popup #' ~ popup.id }}</a>
   <i class="bi bi-chevron-right mx-1" style="font-size:.7rem;"></i>
-  Estadísticas
+  Resultados
 {% endblock %}
 
 {% block extra_head %}
@@ -13,177 +13,326 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+{% set v = popup.total_vistas or 0 %}
+{% set c = popup.total_clics or 0 %}
+{% set tasa = (c / v * 100) if v else 0 %}
+
+<style>
+.st-card{background:#fff;border:1px solid #e8ecea;border-radius:14px;padding:20px 22px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.st-kpi{position:relative;overflow:hidden;}
+.st-kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc);}
+.st-kpi-num{font-size:2.4rem;font-weight:800;line-height:1.05;letter-spacing:-1px;font-variant-numeric:tabular-nums;color:#111;}
+.st-kpi-lbl{font-size:.82rem;font-weight:600;color:#3f4a46;margin-top:2px;}
+.st-kpi-hint{font-size:.72rem;color:#98a2a0;margin-top:5px;line-height:1.45;}
+.st-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.74rem;font-weight:700;}
+.st-dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+.st-h{font-size:.95rem;font-weight:700;color:#0f2a24;display:flex;align-items:center;gap:8px;margin:0;}
+.st-sub{font-size:.76rem;color:#98a2a0;margin-top:3px;}
+.st-seg{display:inline-flex;background:#f1f4f3;border-radius:9px;padding:3px;gap:2px;}
+.st-seg button{border:none;background:none;padding:5px 13px;border-radius:7px;font-size:.76rem;font-weight:600;color:#6b7773;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.st-seg button:hover{color:#0f2a24;}
+.st-seg button.on{background:#fff;color:#02534C;box-shadow:0 1px 3px rgba(16,24,40,.1);}
+.st-waffle{display:grid;grid-template-columns:repeat(20,1fr);gap:4px;max-width:420px;}
+.st-w{aspect-ratio:1;border-radius:3px;background:#e4e9e7;}
+.st-w.on{background:#f59e0b;}
+.st-tbl{width:100%;border-collapse:collapse;font-size:.84rem;}
+.st-tbl th{text-align:left;font-size:.7rem;font-weight:700;color:#98a2a0;text-transform:uppercase;letter-spacing:.4px;padding:0 12px 10px;border-bottom:1px solid #eef1f0;}
+.st-tbl td{padding:11px 12px;border-bottom:1px solid #f4f6f5;font-variant-numeric:tabular-nums;}
+.st-tbl tr:last-child td{border-bottom:none;}
+.st-tbl tbody tr:hover{background:#fafbfb;}
+.st-bar{height:6px;border-radius:3px;background:#eef1f0;overflow:hidden;min-width:60px;}
+.st-bar i{display:block;height:100%;background:#02534C;border-radius:3px;}
+.st-empty{text-align:center;padding:52px 20px;color:#a8b0ae;}
+</style>
+
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
   <div>
-    <h1 class="adm-page-title mb-0">
-      <i class="bi bi-bar-chart-line me-2"></i>Estadísticas
-    </h1>
-    <p class="adm-page-sub mb-0">{{ popup.titulo or 'Popup #' ~ popup.id }}</p>
+    <h1 class="adm-page-title mb-1"><i class="bi bi-graph-up-arrow me-2"></i>Resultados</h1>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span style="font-size:.9rem;color:#5a6663;">{{ popup.titulo or 'Popup #' ~ popup.id }}</span>
+      <span class="st-pill" style="background:{{ campana.color }}18;color:{{ campana.color }};">
+        <span class="st-dot"></span>{{ campana.etiqueta }}
+      </span>
+    </div>
   </div>
   <a href="{{ url_for('admin.popup_editar', pid=popup.id) }}" class="btn-adm-ghost">
     <i class="bi bi-arrow-left me-1"></i>Volver al popup
   </a>
 </div>
 
-<!-- KPIs resumen -->
-<div class="row g-3 mb-4" id="kpiRow">
-  {% set ctr = ((popup.total_clics / popup.total_vistas * 100) | round(1)) if popup.total_vistas else 0 %}
-  {% for icon, label, val, color in [
-    ('bi-eye', 'Vistas totales', popup.total_vistas or 0, '#02534C'),
-    ('bi-cursor', 'Clics totales', popup.total_clics or 0, '#0d6efd'),
-    ('bi-percent', 'CTR', ctr ~ '%', '#6f42c1'),
+<div class="st-card mb-3" style="background:linear-gradient(135deg,#f7fbfa,#fff);">
+  <div class="row g-4 align-items-center">
+    <div class="col-12 col-lg-5">
+      <div style="font-size:.72rem;font-weight:700;color:#98a2a0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+        Qué tan bien funciona
+      </div>
+      {% if v %}
+      <div style="font-size:1.32rem;font-weight:700;color:#0f2a24;line-height:1.4;">
+        De cada 100 personas que vieron el popup,
+        <span style="color:#f59e0b;">{{ tasa | round(0) | int }} hicieron clic</span>.
+      </div>
+      <div style="font-size:.83rem;color:#7a8582;margin-top:10px;line-height:1.6;">
+        En números reales: lo vieron <strong>{{ v }}</strong>
+        {{ 'persona' if v == 1 else 'personas' }} y
+        <strong>{{ c }}</strong> {{ 'hizo' if c == 1 else 'hicieron' }} clic.
+        {% if tasa >= 5 %}Es un resultado bueno para un popup.
+        {% elif tasa >= 2 %}Está dentro de lo normal.
+        {% elif c %}Está por debajo de lo habitual; prueba cambiar la imagen o el texto del botón.
+        {% endif %}
+      </div>
+      {% else %}
+      <div style="font-size:1.15rem;font-weight:700;color:#0f2a24;line-height:1.4;">
+        Todavía nadie ha visto este popup.
+      </div>
+      <div style="font-size:.83rem;color:#7a8582;margin-top:10px;line-height:1.6;">
+        Los números aparecen aquí en cuanto el primer visitante lo vea.
+        {% if campana.estado == 'inactivo' %}Ahora mismo está desactivado.
+        {% elif campana.estado == 'programado' %}Empieza el {{ popup.fecha_inicio }}.
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-12 col-lg-7">
+      <div class="st-waffle" id="waffle"></div>
+      <div style="display:flex;gap:18px;margin-top:12px;font-size:.74rem;color:#98a2a0;">
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#f59e0b;margin-right:5px;"></span>Hicieron clic</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#e4e9e7;margin-right:5px;"></span>Solo lo vieron</span>
+        <span style="margin-left:auto;">Cada cuadrito = 1 de cada 100 personas</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  {% for icon, num, lbl, hint, acc in [
+    ('bi-eye', v, 'Personas que lo vieron', 'Cada persona cuenta una sola vez por visita, aunque navegue varias páginas.', '#02534C'),
+    ('bi-hand-index', c, 'Personas que hicieron clic', 'Pulsaron el botón o la imagen y fueron al enlace.', '#f59e0b'),
+    ('bi-percent', (tasa | round(1)) ~ '%', 'Tasa de clic', 'La proporción entre los dos números de arriba. En marketing se le llama CTR.', '#7c3aed')
   ] %}
-  <div class="col-12 col-sm-4">
-    <div class="adm-card text-center py-3">
-      <i class="bi {{ icon }}" style="font-size:1.6rem;color:{{ color }};"></i>
-      <div style="font-size:1.8rem;font-weight:800;color:{{ color }};margin:4px 0;">{{ val }}</div>
-      <div style="font-size:.8rem;color:#888;">{{ label }}</div>
+  <div class="col-12 col-md-4">
+    <div class="st-card st-kpi h-100" style="--acc:{{ acc }};">
+      <i class="bi {{ icon }}" style="font-size:1.1rem;color:{{ acc }};"></i>
+      <div class="st-kpi-num">{{ num }}</div>
+      <div class="st-kpi-lbl">{{ lbl }}</div>
+      <div class="st-kpi-hint">{{ hint }}</div>
     </div>
   </div>
   {% endfor %}
 </div>
 
-<!-- Gráfico diario -->
-<div class="adm-card mb-4">
-  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-    <h6 class="fw-bold mb-0" style="color:#02534C;">
-      <i class="bi bi-graph-up me-1"></i>Vistas y clics — últimos 30 días
-    </h6>
-    <div id="mejorDia" style="font-size:.8rem;color:#888;"></div>
+{% if campana.dias_totales %}
+<div class="st-card mb-3">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <div class="st-h"><i class="bi bi-calendar-range"></i>Avance de la campaña</div>
+    <div style="font-size:.79rem;color:#7a8582;">
+      {% if campana.estado == 'activo' %}
+        Día {{ campana.dias_corridos }} de {{ campana.dias_totales }} ·
+        {% if campana.dias_restantes %}quedan {{ campana.dias_restantes }} {{ 'día' if campana.dias_restantes == 1 else 'días' }}
+        {% else %}último día{% endif %}
+      {% elif campana.estado == 'finalizado' %}Terminó el {{ popup.fecha_fin }}
+      {% elif campana.estado == 'programado' %}Empieza el {{ popup.fecha_inicio }}
+      {% else %}Del {{ popup.fecha_inicio }} al {{ popup.fecha_fin }}{% endif %}
+    </div>
   </div>
-  <div style="position:relative;height:260px;">
-    <canvas id="statsChart"></canvas>
+  <div class="st-bar" style="height:8px;">
+    <i style="width:{{ campana.avance }}%;background:{{ campana.color }};"></i>
   </div>
-  <div id="noData" style="display:none;text-align:center;padding:40px;color:#aaa;">
-    <i class="bi bi-clock-history" style="font-size:2.5rem;display:block;margin-bottom:8px;"></i>
-    Aún no hay datos. Los datos se registran a partir de la primera vista.
+</div>
+{% endif %}
+
+<div class="st-card mb-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <div class="st-h"><i class="bi bi-activity"></i>Evolución día a día</div>
+      <div class="st-sub" id="resumenRango">Cargando…</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <div class="st-seg" id="segTipo">
+        <button type="button" data-t="area" class="on">Área</button>
+        <button type="button" data-t="line">Líneas</button>
+        <button type="button" data-t="bar">Barras</button>
+      </div>
+      <div class="st-seg" id="segRango">
+        <button type="button" data-d="7">7 días</button>
+        <button type="button" data-d="30" class="on">30 días</button>
+        <button type="button" data-d="90">90 días</button>
+      </div>
+    </div>
+  </div>
+  <div style="position:relative;height:290px;"><canvas id="grafico"></canvas></div>
+  <div id="sinDatos" class="st-empty" style="display:none;">
+    <i class="bi bi-bar-chart" style="font-size:2.4rem;display:block;margin-bottom:10px;opacity:.5;"></i>
+    Aún no hay actividad registrada en este periodo.
   </div>
 </div>
 
-<!-- Tabla de últimos 30 días -->
-<div class="adm-card">
-  <h6 class="fw-bold mb-3" style="color:#02534C;">
-    <i class="bi bi-table me-1"></i>Detalle por día
-  </h6>
+<div class="st-card">
+  <div class="st-h mb-1"><i class="bi bi-list-ul"></i>Detalle por día</div>
+  <div class="st-sub mb-3">Solo se listan los días con actividad.</div>
   <div class="table-responsive">
-    <table class="table table-sm table-hover align-middle mb-0" style="font-size:.84rem;">
-      <thead style="background:#f5f5f5;">
+    <table class="st-tbl">
+      <thead>
         <tr>
           <th>Fecha</th>
-          <th class="text-center"><i class="bi bi-eye me-1"></i>Vistas</th>
-          <th class="text-center"><i class="bi bi-cursor me-1"></i>Clics</th>
-          <th class="text-center"><i class="bi bi-percent me-1"></i>CTR</th>
-          <th>Proporción</th>
+          <th style="text-align:right;">Lo vieron</th>
+          <th style="text-align:right;">Clics</th>
+          <th style="text-align:right;">Tasa de clic</th>
+          <th style="width:32%;">Comparado con el mejor día</th>
         </tr>
       </thead>
-      <tbody id="statsBody">
-        <tr><td colspan="5" class="text-center py-3" style="color:#aaa;">Cargando…</td></tr>
-      </tbody>
+      <tbody id="tabla"><tr><td colspan="5" class="st-empty">Cargando…</td></tr></tbody>
     </table>
   </div>
 </div>
 
 <script>
-(function() {
-  var URL = '/admin/popups/{{ popup.id }}/stats-data';
-  var ctx = document.getElementById('statsChart').getContext('2d');
+(function(){
+  var PID = {{ popup.id }};
+  var VERDE = '#02534C', AMBAR = '#f59e0b';
+  var tipo = 'area', rango = 30, chart = null, datos = [];
 
-  fetch(URL)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var canvas = document.getElementById('statsChart');
-      var noData = document.getElementById('noData');
-      var tbody  = document.getElementById('statsBody');
+  var waffle = document.getElementById('waffle');
+  if (waffle) {
+    var pintados = Math.round({{ tasa }});
+    var html = '';
+    for (var i = 0; i < 100; i++) html += '<div class="st-w' + (i < pintados ? ' on' : '') + '"></div>';
+    waffle.innerHTML = html;
+  }
 
-      if (!data.length) {
-        canvas.style.display = 'none';
-        noData.style.display = 'block';
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3" style="color:#aaa;">Sin datos aún.</td></tr>';
-        return;
-      }
+  function fmtFecha(f){
+    var p = f.split('-');
+    return p[2] + '/' + p[1];
+  }
 
-      var labels  = data.map(function(d) { return d.fecha.slice(5); });
-      var vistas  = data.map(function(d) { return d.vistas; });
-      var clics   = data.map(function(d) { return d.clics; });
+  function degradado(ctx, color){
+    var g = ctx.createLinearGradient(0, 0, 0, 290);
+    g.addColorStop(0, color + '55');
+    g.addColorStop(1, color + '05');
+    return g;
+  }
 
-      /* mejor día */
-      var maxV = Math.max.apply(null, vistas);
-      var maxIdx = vistas.indexOf(maxV);
-      if (maxV > 0) {
-        document.getElementById('mejorDia').innerHTML =
-          'Mejor día: <strong>' + data[maxIdx].fecha + '</strong> (' + maxV + ' vistas)';
-      }
+  function dibujar(){
+    var cv = document.getElementById('grafico'), vacio = document.getElementById('sinDatos');
+    var hayAlgo = datos.some(function(d){ return d.vistas || d.clics; });
+    cv.style.display = hayAlgo ? 'block' : 'none';
+    vacio.style.display = hayAlgo ? 'none' : 'block';
+    if (chart) { chart.destroy(); chart = null; }
+    if (!hayAlgo) return;
 
-      /* Chart.js */
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Vistas',
-              data: vistas,
-              backgroundColor: 'rgba(2,83,76,.6)',
-              borderColor: '#02534C',
-              borderWidth: 1,
-              borderRadius: 4,
-              order: 2,
-            },
-            {
-              label: 'Clics',
-              data: clics,
-              backgroundColor: 'rgba(13,110,253,.7)',
-              borderColor: '#0d6efd',
-              borderWidth: 1,
-              borderRadius: 4,
-              order: 1,
-            },
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: { position: 'top', labels: { font: { size: 12 } } },
-            tooltip: {
-              callbacks: {
-                afterBody: function(items) {
-                  var v = items[0].raw, c = items[1] ? items[1].raw : 0;
-                  return v > 0 ? 'CTR: ' + (c/v*100).toFixed(1) + '%' : '';
-                }
+    var ctx = cv.getContext('2d');
+    var esArea = tipo === 'area';
+    var base = {
+      tension: .35,
+      borderWidth: 2,
+      pointRadius: rango > 40 ? 0 : 3,
+      pointHoverRadius: 5,
+      borderRadius: 5,
+      maxBarThickness: 26
+    };
+
+    chart = new Chart(ctx, {
+      type: tipo === 'bar' ? 'bar' : 'line',
+      data: {
+        labels: datos.map(function(d){ return fmtFecha(d.fecha); }),
+        datasets: [
+          Object.assign({}, base, {
+            label: 'Lo vieron', data: datos.map(function(d){ return d.vistas; }),
+            borderColor: VERDE, backgroundColor: esArea ? degradado(ctx, VERDE) : VERDE,
+            fill: esArea
+          }),
+          Object.assign({}, base, {
+            label: 'Hicieron clic', data: datos.map(function(d){ return d.clics; }),
+            borderColor: AMBAR, backgroundColor: esArea ? degradado(ctx, AMBAR) : AMBAR,
+            fill: esArea
+          })
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top', align: 'end',
+            labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, padding: 16, font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: '#0f2a24', padding: 11, cornerRadius: 8, displayColors: true,
+            usePointStyle: true, titleFont: { size: 12 }, bodyFont: { size: 12 },
+            callbacks: {
+              title: function(it){ return datos[it[0].dataIndex].fecha; },
+              afterBody: function(it){
+                var d = datos[it[0].dataIndex];
+                if (!d.vistas) return '';
+                return '\nTasa de clic: ' + (d.clics / d.vistas * 100).toFixed(1) + '%';
               }
             }
-          },
-          scales: {
-            x: { ticks: { font: { size: 10 }, maxRotation: 45 } },
-            y: { beginAtZero: true, ticks: { font: { size: 11 } } }
           }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#a8b0ae', maxRotation: 0, autoSkipPadding: 18 } },
+          y: { beginAtZero: true, border: { display: false }, grid: { color: '#f1f4f3' },
+               ticks: { font: { size: 11 }, color: '#a8b0ae', precision: 0 } }
         }
-      });
-
-      /* tabla */
-      var html = '';
-      var dataRev = data.slice().reverse();
-      dataRev.forEach(function(d) {
-        var ctr = d.vistas > 0 ? (d.clics / d.vistas * 100).toFixed(1) : '—';
-        var pct = d.vistas > 0 ? Math.round(d.clics / d.vistas * 100) : 0;
-        html += '<tr>'
-          + '<td><strong>' + d.fecha + '</strong></td>'
-          + '<td class="text-center">' + d.vistas + '</td>'
-          + '<td class="text-center" style="color:#0d6efd;">' + d.clics + '</td>'
-          + '<td class="text-center" style="color:#6f42c1;">' + (ctr === '—' ? '—' : ctr + '%') + '</td>'
-          + '<td><div style="background:#eee;border-radius:4px;height:8px;width:100%;min-width:80px;">'
-          + '<div style="background:#02534C;height:8px;border-radius:4px;width:' + pct + '%;"></div>'
-          + '</div></td>'
-          + '</tr>';
-      });
-      tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-2" style="color:#aaa;">Sin datos.</td></tr>';
-    })
-    .catch(function() {
-      document.getElementById('statsChart').style.display = 'none';
-      document.getElementById('noData').style.display = 'block';
+      }
     });
+  }
+
+  function pintarTabla(){
+    var tb = document.getElementById('tabla');
+    var conDatos = datos.filter(function(d){ return d.vistas || d.clics; }).reverse();
+    if (!conDatos.length) {
+      tb.innerHTML = '<tr><td colspan="5" class="st-empty">Sin actividad en este periodo.</td></tr>';
+      return;
+    }
+    var pico = Math.max.apply(null, conDatos.map(function(d){ return d.vistas; })) || 1;
+    tb.innerHTML = conDatos.map(function(d){
+      var tasa = d.vistas ? (d.clics / d.vistas * 100).toFixed(1) + '%' : '—';
+      var pct = Math.round(d.vistas / pico * 100);
+      return '<tr>'
+        + '<td style="font-weight:600;color:#0f2a24;">' + d.fecha + '</td>'
+        + '<td style="text-align:right;">' + d.vistas + '</td>'
+        + '<td style="text-align:right;color:' + AMBAR + ';font-weight:600;">' + d.clics + '</td>'
+        + '<td style="text-align:right;color:#7c3aed;font-weight:600;">' + tasa + '</td>'
+        + '<td><div class="st-bar"><i style="width:' + pct + '%;"></i></div></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function resumen(){
+    var tv = datos.reduce(function(a, d){ return a + d.vistas; }, 0);
+    var tc = datos.reduce(function(a, d){ return a + d.clics; }, 0);
+    var act = datos.filter(function(d){ return d.vistas; });
+    var el = document.getElementById('resumenRango');
+    if (!tv) { el.textContent = 'Sin actividad en los últimos ' + rango + ' días.'; return; }
+    var mejor = datos.reduce(function(a, d){ return d.vistas > a.vistas ? d : a; }, datos[0]);
+    el.innerHTML = 'En los últimos ' + rango + ' días: <strong>' + tv + '</strong> '
+      + (tv === 1 ? 'vista' : 'vistas') + ' y <strong>' + tc + '</strong> '
+      + (tc === 1 ? 'clic' : 'clics') + ' · Mejor día: <strong>' + mejor.fecha
+      + '</strong> (' + mejor.vistas + ') · Promedio ' + (tv / Math.max(act.length, 1)).toFixed(1) + ' por día activo';
+  }
+
+  function cargar(){
+    fetch('/admin/popups/' + PID + '/stats-data?dias=' + rango)
+      .then(function(r){ return r.json(); })
+      .then(function(d){ datos = d; dibujar(); pintarTabla(); resumen(); })
+      .catch(function(){
+        document.getElementById('grafico').style.display = 'none';
+        document.getElementById('sinDatos').style.display = 'block';
+        document.getElementById('resumenRango').textContent = 'No se pudieron cargar los datos.';
+      });
+  }
+
+  function segmento(id, attr, fn){
+    document.getElementById(id).addEventListener('click', function(e){
+      var b = e.target.closest('button'); if (!b) return;
+      this.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
+      fn(b.dataset[attr]);
+    });
+  }
+  segmento('segTipo', 't', function(v){ tipo = v; dibujar(); });
+  segmento('segRango', 'd', function(v){ rango = +v; cargar(); });
+
+  cargar();
 })();
 </script>
 {% endblock %}
