@@ -31,13 +31,42 @@ input[type="radio"]:checked + .popt-opt {
   font-size:.82rem; font-weight:700; color:#02534C;
   display:flex; align-items:center; gap:6px; margin-bottom:12px;
 }
+/* Fullscreen sidebar styles */
+.fp-section-hdr {
+  color:#7dd3b8; font-size:.72rem; font-weight:700; letter-spacing:.5px;
+  margin-bottom:10px; display:flex; align-items:center; gap:6px;
+}
+.fp-input {
+  width:100%; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.13);
+  border-radius:7px; padding:7px 10px; color:#fff; font-size:.8rem; outline:none;
+  transition:border-color .15s; box-sizing:border-box;
+}
+.fp-input:focus { border-color:#02534C; }
+.fp-input::placeholder { color:rgba(255,255,255,.3); }
+.fp-input-sm { padding:5px 8px!important; font-size:.76rem!important; }
+.fp-range { width:100%; accent-color:#02534C; cursor:pointer; }
+.fp-radio-group { display:flex; gap:5px; flex-wrap:wrap; }
+.fp-radio-group label { flex:1; min-width:50px; cursor:pointer; }
+.fp-opt {
+  background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.13);
+  border-radius:7px; padding:6px 5px; text-align:center; font-size:.72rem;
+  color:rgba(255,255,255,.6); cursor:pointer; transition:all .15s; display:block;
+}
+input[type="radio"]:checked + .fp-opt {
+  background:rgba(2,83,76,.5); border-color:#02534C; color:#7dd3b8;
+}
+.fp-switch { display:flex; align-items:center; gap:8px; cursor:pointer; }
+.fp-switch input { accent-color:#02534C; width:16px; height:16px; cursor:pointer; }
+.fp-switch span { color:rgba(255,255,255,.7); font-size:.78rem; }
+.fp-divider { border:none; border-top:1px solid rgba(255,255,255,.08); margin:0; }
+.fp-section { padding:14px 16px; }
+/* Animations */
 @keyframes cgmPfadeP  { from{opacity:0} to{opacity:1} }
 @keyframes cgmPslideP { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
 @keyframes cgmPzoomP  { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
 @keyframes cgmPdropP  { from{opacity:0;transform:translateY(-28px)} to{opacity:1;transform:translateY(0)} }
 @keyframes cgmPbounceP{ 0%{opacity:0;transform:scale(.7)} 60%{transform:scale(1.06)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
 @keyframes cgmPflipP  { from{opacity:0;transform:rotateY(80deg)} to{opacity:1;transform:rotateY(0)} }
-@keyframes cgmPcloseP { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(.9)} }
 </style>
 
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
@@ -114,12 +143,11 @@ input[type="radio"]:checked + .popt-opt {
                font-size:.83rem;justify-content:center;margin-bottom:8px;">
           <i class="bi bi-upload"></i>
           {{ 'Cambiar imagen' if p.get('imagen') else 'Subir imagen' }}
-          <input type="file" name="imagen_file" accept=".jpg,.jpeg,.png,.webp"
+          <input type="file" name="imagen_file" id="mainImgFile" accept=".jpg,.jpeg,.png,.webp"
                  style="display:none;" onchange="onImgChange(this)">
         </label>
         <div style="font-size:.74rem;color:#888;margin-bottom:14px;">JPG, PNG o WebP → se guarda como WebP.</div>
 
-        <!-- Ajuste -->
         <label class="form-label fw-semibold" style="font-size:.83rem;">Ajuste de imagen</label>
         <div class="popt-radio-group mb-3">
           {% for val, label, icon, desc in [
@@ -140,7 +168,6 @@ input[type="radio"]:checked + .popt-opt {
           {% endfor %}
         </div>
 
-        <!-- Altura de imagen -->
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.83rem;">
             Altura imagen: <strong id="alturaLabel">{{ (p.get('imagen_altura') or 280) }}px</strong>
@@ -155,18 +182,17 @@ input[type="radio"]:checked + .popt-opt {
           </div>
         </div>
 
-        <!-- Ancho del popup -->
         <div>
           <label class="form-label fw-semibold" style="font-size:.83rem;">
             Ancho máximo: <strong id="anchoLabel">{{ (p.get('popup_ancho') or 520) }}px</strong>
           </label>
           <input type="range" name="popup_ancho" id="anchoRange"
-                 min="300" max="700" step="10"
+                 min="300" max="750" step="10"
                  value="{{ p.get('popup_ancho') or 520 }}"
                  oninput="onAnchoChange(this.value)"
                  class="form-range">
           <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>Compacto (300px)</span><span>Amplio (700px)</span>
+            <span>Compacto (300px)</span><span>Amplio (750px)</span>
           </div>
         </div>
       </div>
@@ -183,7 +209,6 @@ input[type="radio"]:checked + .popt-opt {
             <label class="form-check-label" for="overlayActivoSwitch" style="font-size:.85rem;">Activar</label>
           </div>
         </div>
-
         <div id="overlayConfig" style="{{ '' if p.get('overlay_activo') else 'display:none;' }}">
           <div class="mb-2">
             <label class="form-label fw-semibold" style="font-size:.82rem;">Título</label>
@@ -251,7 +276,6 @@ input[type="radio"]:checked + .popt-opt {
             <label class="form-check-label" for="botonActivoSwitch" style="font-size:.85rem;">Activar botón</label>
           </div>
         </div>
-
         <div id="botonConfig" style="{{ '' if p.get('boton_activo') else 'display:none;' }}">
           <div class="mb-2">
             <label class="form-label fw-semibold" style="font-size:.82rem;">Texto del botón</label>
@@ -298,7 +322,7 @@ input[type="radio"]:checked + .popt-opt {
             </div>
           </div>
           <div style="background:#f0f9f7;border-radius:7px;padding:8px 11px;font-size:.78rem;color:#02534C;">
-            <i class="bi bi-hand-index me-1"></i><strong>Arrastra el botón</strong> en la vista previa.
+            <i class="bi bi-hand-index me-1"></i><strong>Arrastra el botón</strong> en el editor visual.
           </div>
         </div>
         <div id="botonInfoSinBoton" style="{{ 'display:none;' if p.get('boton_activo') else '' }}font-size:.8rem;color:#888;">
@@ -309,8 +333,6 @@ input[type="radio"]:checked + .popt-opt {
       <!-- Comportamiento -->
       <div class="adm-card">
         <div class="section-title"><i class="bi bi-sliders"></i>Comportamiento</div>
-
-        <!-- Frecuencia -->
         <label class="form-label fw-semibold" style="font-size:.83rem;">Frecuencia de aparición</label>
         <div class="popt-radio-group mb-3">
           {% for val, label, icon, desc in [
@@ -330,7 +352,6 @@ input[type="radio"]:checked + .popt-opt {
           {% endfor %}
         </div>
 
-        <!-- Delay -->
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.83rem;">
             Retraso: <strong id="delayLabel">{{ p.get('delay_ms',800) }}ms</strong>
@@ -344,7 +365,6 @@ input[type="radio"]:checked + .popt-opt {
           </div>
         </div>
 
-        <!-- País -->
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.83rem;">Mostrar en</label>
           <select name="pais_filtro" class="form-select form-select-sm">
@@ -354,7 +374,6 @@ input[type="radio"]:checked + .popt-opt {
           </select>
         </div>
 
-        <!-- Animación -->
         <div>
           <div class="d-flex align-items-center justify-content-between mb-2">
             <label class="form-label fw-semibold mb-0" style="font-size:.83rem;">Animación de entrada</label>
@@ -409,45 +428,55 @@ input[type="radio"]:checked + .popt-opt {
       </div>
     </div>
 
-    <!-- ── COLUMNA DERECHA: Vista previa ──────────────────── -->
+    <!-- ── COLUMNA DERECHA: thumbnail + editor ───────────── -->
     <div class="col-12 col-xl-7">
       <div class="adm-card" style="position:sticky;top:80px;">
-        <div class="section-title"><i class="bi bi-eye"></i>Vista previa</div>
+        <div class="section-title"><i class="bi bi-pencil-square"></i>Editor visual</div>
 
-        <!-- Botón principal fullscreen -->
+        <!-- Botón principal -->
         <button type="button" onclick="openFullPreview()"
-                style="width:100%;padding:18px 24px;border-radius:10px;border:none;
+                style="width:100%;padding:20px 24px;border-radius:12px;border:none;
                        background:linear-gradient(135deg,#02534C,#037a6d);color:#fff;
                        font-size:1.05rem;font-weight:700;cursor:pointer;
-                       display:flex;align-items:center;justify-content:center;gap:10px;
-                       box-shadow:0 4px 16px rgba(2,83,76,.35);
+                       display:flex;align-items:center;justify-content:center;gap:12px;
+                       box-shadow:0 4px 18px rgba(2,83,76,.4);
                        transition:transform .15s,box-shadow .15s;"
-                onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 6px 22px rgba(2,83,76,.45)'"
-                onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(2,83,76,.35)'">
-          <i class="bi bi-fullscreen" style="font-size:1.3rem;"></i>
-          Ver vista previa completa
+                onmouseover="this.style.transform='scale(1.015)';this.style.boxShadow='0 6px 24px rgba(2,83,76,.5)'"
+                onmouseout="this.style.transform='';this.style.boxShadow='0 4px 18px rgba(2,83,76,.4)'">
+          <i class="bi bi-layout-sidebar-reverse" style="font-size:1.4rem;"></i>
+          <span>Abrir editor visual</span>
+          <span style="font-size:.75rem;opacity:.8;margin-left:4px;">— edita y previsualiza en pantalla completa</span>
         </button>
-        <div style="text-align:center;margin-top:8px;font-size:.73rem;color:#999;">
-          Abre una pantalla completa mostrando exactamente cómo se verá el popup
+
+        <!-- Chips de características -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
+            <i class="bi bi-sliders me-1"></i>Imagen, texto y botón
+          </span>
+          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
+            <i class="bi bi-phone me-1"></i>Vista desktop/mobile
+          </span>
+          <span style="background:#e8f5f3;color:#02534C;border-radius:20px;padding:3px 10px;font-size:.73rem;">
+            <i class="bi bi-hand-index me-1"></i>Botón arrastrable
+          </span>
         </div>
 
-        <!-- Thumbnail rápido (solo imagen) -->
-        <div style="margin-top:16px;border-radius:8px;overflow:hidden;background:#333;position:relative;line-height:0;">
+        <!-- Thumbnail rápido -->
+        <div style="margin-top:16px;border-radius:10px;overflow:hidden;background:#333;position:relative;line-height:0;">
           <div id="previewPlaceholder"
                style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                      width:100%;height:160px;background:#444;
+                      width:100%;height:150px;background:#444;
                       align-items:center;justify-content:center;
                       flex-direction:column;color:#888;font-size:.8rem;gap:6px;">
             <i class="bi bi-image" style="font-size:2rem;"></i>
-            Sin imagen
+            Sin imagen — súbela desde "Imagen" o en el editor visual
           </div>
           <img id="previewImg"
                src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
                style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
-                      height:160px;object-fit:{{ p.get('imagen_fit','cover') }};"
+                      height:150px;object-fit:{{ p.get('imagen_fit','cover') }};"
                onload="this.style.display='block';document.getElementById('previewPlaceholder').style.display='none';"
                onerror="this.style.display='none';document.getElementById('previewPlaceholder').style.display='flex';">
-          <!-- Overlay indicador (no interactivo) -->
           <div id="previewOverlay" style="position:absolute;left:0;right:0;padding:6px 10px;
                background:{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }};
                color:{{ p.get('overlay_color_texto','#ffffff') }};
@@ -457,21 +486,35 @@ input[type="radio"]:checked + .popt-opt {
             <div id="previewOverlaySub" style="font-size:.7rem;opacity:.85;">{{ p.get('overlay_subtitulo','') }}</div>
           </div>
         </div>
-        <div style="margin-top:6px;font-size:.72rem;color:#999;text-align:center;">
-          Thumbnail — haz clic en "Ver vista previa completa" para ver el tamaño real
+        <div style="margin-top:5px;font-size:.71rem;color:#aaa;text-align:center;">
+          Vista reducida — el editor visual muestra el tamaño exacto
         </div>
 
-        <!-- Info dimensiones -->
-        <div style="margin-top:12px;padding:10px 14px;background:#f6f8f7;border-radius:8px;
-                    font-size:.78rem;color:#555;display:flex;gap:16px;justify-content:center;">
-          <span><i class="bi bi-arrows-expand me-1 text-success"></i>Ancho: <strong id="infoAncho">{{ p.get('popup_ancho') or 520 }}px</strong></span>
-          <span><i class="bi bi-arrow-down-up me-1 text-success"></i>Altura img: <strong id="infoAltura">{{ p.get('imagen_altura') or 280 }}px</strong></span>
-          <span><i class="bi bi-aspect-ratio me-1 text-success"></i>Fit: <strong id="infoFit">{{ p.get('imagen_fit','cover') }}</strong></span>
+        <!-- Info chips -->
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;">
+          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
+            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ANCHO</div>
+            <strong id="infoAncho" style="color:#02534C;">{{ p.get('popup_ancho') or 520 }}px</strong>
+          </div>
+          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
+            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ALTURA IMG</div>
+            <strong id="infoAltura" style="color:#02534C;">{{ p.get('imagen_altura') or 280 }}px</strong>
+          </div>
+          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
+            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">AJUSTE</div>
+            <strong id="infoFit" style="color:#02534C;">{{ p.get('imagen_fit','cover') }}</strong>
+          </div>
+          <div style="background:#f6f8f7;border-radius:8px;padding:8px 14px;font-size:.78rem;color:#444;flex:1;min-width:100px;text-align:center;">
+            <div style="color:#888;font-size:.68rem;margin-bottom:2px;">ANIMACIÓN</div>
+            <strong id="infoAnim" style="color:#02534C;">{{ p.get('animacion','fade') }}</strong>
+          </div>
         </div>
 
-        <!-- Drag info -->
-        <div id="posIndicator" style="margin-top:8px;font-size:.74rem;color:#888;text-align:center;">
-          Botón CTA — arrástralo en la vista previa completa o ajusta X/Y manualmente
+        <!-- Posición botón -->
+        <div id="posIndicator" style="margin-top:10px;font-size:.74rem;color:#888;text-align:center;">
+          Botón CTA en X:<strong id="infoPosX">{{ p.get('boton_pos_x',50) }}</strong>%
+          Y:<strong id="infoPosY">{{ p.get('boton_pos_y',85) }}</strong>%
+          — arrástralo en el editor visual
         </div>
       </div>
     </div>
@@ -480,72 +523,317 @@ input[type="radio"]:checked + .popt-opt {
 </form>
 
 <!-- ══════════════════════════════════════════════════════════
-     OVERLAY DE VISTA PREVIA COMPLETA (fullscreen)
+     EDITOR VISUAL FULLSCREEN (split: sidebar + preview)
 ══════════════════════════════════════════════════════════════ -->
-<div id="fpOverlay" style="position:fixed;inset:0;z-index:99998;display:none;overflow:hidden;">
+<div id="fpOverlay" style="position:fixed;inset:0;z-index:99998;display:none;font-family:system-ui,sans-serif;">
 
-  <!-- Fondo: simulación de la página CGM Rental -->
-  <div style="position:absolute;inset:0;background:#1a3c2c;">
-    <!-- Nav simulada -->
-    <div style="background:#02534C;height:64px;display:flex;align-items:center;
-                padding:0 28px;gap:20px;box-shadow:0 2px 12px rgba(0,0,0,.4);">
-      <div style="background:#fff;border-radius:5px;padding:5px 12px;
-                  font-weight:900;color:#02534C;font-size:.9rem;letter-spacing:1px;">
-        CGM RENTAL
+  <!-- ── SIDEBAR IZQUIERDO (320px) ──────────────────────── -->
+  <div id="fpSidebar"
+       style="position:absolute;left:0;top:0;bottom:0;width:320px;
+              background:#0d1f15;overflow-y:auto;z-index:5;
+              border-right:1px solid rgba(255,255,255,.1);">
+
+    <!-- Sidebar header -->
+    <div style="padding:13px 16px;background:#02534C;display:flex;align-items:center;gap:10px;
+                position:sticky;top:0;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4);">
+      <i class="bi bi-pencil-square" style="color:#fff;font-size:1rem;"></i>
+      <span style="font-weight:700;color:#fff;font-size:.88rem;">Editor visual</span>
+      <span style="margin-left:auto;font-size:.7rem;color:rgba(255,255,255,.55);">
+        ESC para cerrar
+      </span>
+    </div>
+
+    <!-- ── Imagen ── -->
+    <div class="fp-section">
+      <div class="fp-section-hdr"><i class="bi bi-image"></i>IMAGEN</div>
+
+      <!-- Thumbnail de imagen actual -->
+      <div style="position:relative;border-radius:8px;overflow:hidden;background:#1e3a28;
+                  margin-bottom:10px;cursor:pointer;min-height:90px;
+                  display:flex;align-items:center;justify-content:center;"
+           onclick="document.getElementById('fpImgFile').click()">
+        <img id="fp_imgThumb" src="" alt=""
+             style="width:100%;max-height:130px;object-fit:cover;display:none;">
+        <div id="fp_imgThumbPh"
+             style="text-align:center;color:#4a8a6a;padding:18px;font-size:.8rem;">
+          <i class="bi bi-cloud-upload" style="font-size:1.6rem;display:block;margin-bottom:6px;"></i>
+          Clic para subir / cambiar imagen
+        </div>
       </div>
-      <div style="display:flex;gap:20px;margin-left:20px;">
-        {% for n in ['NOSOTROS','ALQUILER','USADOS','BLOG','CONTACTO'] %}
-        <span style="color:rgba(255,255,255,.75);font-size:.75rem;font-weight:600;letter-spacing:.5px;">{{ n }}</span>
+      <input type="file" id="fpImgFile" accept=".jpg,.jpeg,.png,.webp"
+             style="display:none;" onchange="fp_onImgChange(this)">
+
+      <!-- Fit -->
+      <div style="margin-bottom:10px;">
+        <div style="color:rgba(255,255,255,.45);font-size:.7rem;margin-bottom:6px;">Ajuste de imagen</div>
+        <div class="fp-radio-group">
+          {% for val, lbl in [('cover','Recortar'),('contain','Completa'),('fill','Estirar')] %}
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="fp_fit" value="{{ val }}" style="display:none;" onchange="fp_update()">
+            <div class="fp-opt">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Altura -->
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="color:rgba(255,255,255,.5);font-size:.71rem;">Altura imagen</span>
+          <strong id="fp_alturaLabel" style="color:#7dd3b8;font-size:.78rem;">280px</strong>
+        </div>
+        <input type="range" id="fp_alturaRange" min="80" max="550" step="10" value="280"
+               class="fp-range" oninput="fp_update()">
+        <div style="display:flex;justify-content:space-between;font-size:.66rem;color:rgba(255,255,255,.25);margin-top:2px;">
+          <span>80px</span><span>550px</span>
+        </div>
+      </div>
+
+      <!-- Ancho -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="color:rgba(255,255,255,.5);font-size:.71rem;">Ancho popup</span>
+          <strong id="fp_anchoLabel" style="color:#7dd3b8;font-size:.78rem;">520px</strong>
+        </div>
+        <input type="range" id="fp_anchoRange" min="300" max="750" step="10" value="520"
+               class="fp-range" oninput="fp_update()">
+        <div style="display:flex;justify-content:space-between;font-size:.66rem;color:rgba(255,255,255,.25);margin-top:2px;">
+          <span>300px</span><span>750px</span>
+        </div>
+      </div>
+    </div>
+    <hr class="fp-divider">
+
+    <!-- ── Texto superpuesto ── -->
+    <div class="fp-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-section-hdr mb-0"><i class="bi bi-fonts"></i>TEXTO SUPERPUESTO</div>
+        <label class="fp-switch">
+          <input type="checkbox" id="fp_overlayActivo" onchange="fp_update()">
+          <span>Activar</span>
+        </label>
+      </div>
+      <div id="fp_overlayBody" style="transition:opacity .2s;">
+        <input type="text" id="fp_overlayTitulo" placeholder="Título principal"
+               class="fp-input" style="margin-bottom:6px;" oninput="fp_update()">
+        <input type="text" id="fp_overlaySubtitulo" placeholder="Subtítulo"
+               class="fp-input" style="margin-bottom:8px;" oninput="fp_update()">
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Color fondo</div>
+            <input type="text" id="fp_overlayColorFondo" placeholder="rgba(0,0,0,.55)"
+                   class="fp-input fp-input-sm" oninput="fp_update()">
+          </div>
+          <div>
+            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Texto</div>
+            <input type="color" id="fp_overlayColorTexto" value="#ffffff"
+                   style="width:44px;height:33px;border:1.5px solid rgba(255,255,255,.2);
+                          border-radius:6px;cursor:pointer;background:transparent;padding:2px;"
+                   oninput="fp_update()">
+          </div>
+        </div>
+        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Posición</div>
+        <div class="fp-radio-group">
+          {% for val, lbl in [('top','Arriba'),('center','Centro'),('bottom','Abajo')] %}
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="fp_ovPos" value="{{ val }}" style="display:none;" onchange="fp_update()">
+            <div class="fp-opt">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <hr class="fp-divider">
+
+    <!-- ── Botón CTA ── -->
+    <div class="fp-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-section-hdr mb-0"><i class="bi bi-cursor"></i>BOTÓN CTA</div>
+        <label class="fp-switch">
+          <input type="checkbox" id="fp_botonActivo" onchange="fp_update()">
+          <span>Activar</span>
+        </label>
+      </div>
+      <div id="fp_botonBody" style="transition:opacity .2s;">
+        <input type="text" id="fp_botonTexto" placeholder="Texto del botón" value="Ver más"
+               class="fp-input" style="margin-bottom:8px;" oninput="fp_update()">
+        <div style="display:flex;gap:10px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Fondo</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="color" id="fp_botonColorFondo" value="#02534C"
+                     style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;padding:1px;flex-shrink:0;"
+                     oninput="fp_syncColorP('fp_botonColorFondo','fp_botonColorFondoHex');fp_update()">
+              <input type="text" id="fp_botonColorFondoHex" value="#02534C"
+                     class="fp-input fp-input-sm" style="min-width:0;"
+                     oninput="fp_syncColorH('fp_botonColorFondoHex','fp_botonColorFondo');fp_update()">
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:4px;">Texto</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="color" id="fp_botonColorTexto" value="#ffffff"
+                     style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;padding:1px;flex-shrink:0;"
+                     oninput="fp_syncColorP('fp_botonColorTexto','fp_botonColorTextoHex');fp_update()">
+              <input type="text" id="fp_botonColorTextoHex" value="#ffffff"
+                     class="fp-input fp-input-sm" style="min-width:0;"
+                     oninput="fp_syncColorH('fp_botonColorTextoHex','fp_botonColorTexto');fp_update()">
+            </div>
+          </div>
+        </div>
+        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Tamaño</div>
+        <div class="fp-radio-group" style="margin-bottom:8px;">
+          {% for val, lbl in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
+          <label style="flex:1;cursor:pointer;">
+            <input type="radio" name="fp_botonTam" value="{{ val }}" style="display:none;" onchange="fp_update()">
+            <div class="fp-opt">{{ lbl }}</div>
+          </label>
+          {% endfor %}
+        </div>
+        <div style="background:rgba(2,83,76,.25);border:1px solid rgba(2,83,76,.4);border-radius:7px;
+                    padding:7px 10px;font-size:.72rem;color:#7dd3b8;">
+          <i class="bi bi-hand-index me-1"></i>Arrastra el botón sobre la imagen en la previsualización
+        </div>
+      </div>
+    </div>
+    <hr class="fp-divider">
+
+    <!-- ── Animación ── -->
+    <div class="fp-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="fp-section-hdr mb-0"><i class="bi bi-stars"></i>ANIMACIÓN</div>
+        <button type="button" onclick="fp_playAnim()"
+                style="font-size:.72rem;padding:4px 12px;background:rgba(2,83,76,.35);color:#7dd3b8;
+                       border:1px solid rgba(2,83,76,.5);border-radius:6px;cursor:pointer;">
+          <i class="bi bi-play-fill"></i> Ver
+        </button>
+      </div>
+      <div class="fp-radio-group" style="flex-wrap:wrap;gap:5px;">
+        {% for val, lbl in [('fade','Fade'),('slide','Slide↑'),('drop','Drop↓'),('zoom','Zoom'),('bounce','Bounce'),('flip','Flip')] %}
+        <label style="cursor:pointer;">
+          <input type="radio" name="fp_anim" value="{{ val }}" style="display:none;" onchange="fp_update()">
+          <div class="fp-opt" style="padding:5px 10px;font-size:.72rem;">{{ lbl }}</div>
+        </label>
         {% endfor %}
       </div>
     </div>
-    <!-- Hero simulado -->
-    <div style="position:relative;height:calc(100vh - 64px);
+    <hr class="fp-divider">
+
+    <!-- Footer sticky -->
+    <div style="padding:14px 16px;position:sticky;bottom:0;background:#0d1f15;
+                border-top:1px solid rgba(255,255,255,.1);">
+      <button type="button" onclick="fp_applyAndClose()"
+              style="width:100%;padding:12px;background:linear-gradient(135deg,#02534C,#037a6d);
+                     color:#fff;border:none;border-radius:9px;font-weight:700;
+                     font-size:.88rem;cursor:pointer;display:flex;align-items:center;
+                     justify-content:center;gap:8px;box-shadow:0 3px 12px rgba(2,83,76,.4);">
+        <i class="bi bi-check-lg"></i>Aplicar y cerrar
+      </button>
+      <div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;margin-top:6px;">
+        Sincroniza los cambios al formulario · Guarda con el botón principal
+      </div>
+    </div>
+  </div><!-- /sidebar -->
+
+  <!-- ── BARRA SUPERIOR (sobre el preview) ──────────────── -->
+  <div style="position:absolute;left:320px;right:0;top:0;height:52px;z-index:6;
+              background:rgba(0,0,0,.88);backdrop-filter:blur(10px);
+              display:flex;align-items:center;gap:10px;padding:0 20px;
+              border-bottom:1px solid rgba(255,255,255,.1);">
+    <i class="bi bi-eye" style="color:rgba(255,255,255,.5);font-size:.9rem;"></i>
+    <span style="color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;">VISTA PREVIA REAL</span>
+    <span style="color:rgba(255,255,255,.15);">|</span>
+    <button type="button" onclick="fp_setMode('desktop')" id="fp_btnD"
+            class="preview-mode-btn active"
+            style="border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;">
+      <i class="bi bi-display me-1"></i>Desktop
+    </button>
+    <button type="button" onclick="fp_setMode('mobile')" id="fp_btnM"
+            class="preview-mode-btn"
+            style="border-color:rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);">
+      <i class="bi bi-phone me-1"></i>Mobile
+    </button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+      <span style="color:rgba(255,255,255,.4);font-size:.72rem;">
+        <i class="bi bi-arrows-expand me-1" style="color:#7dd3b8;"></i>
+        <strong id="fp_infoAncho" style="color:#7dd3b8;">520px</strong>
+        ×
+        <strong id="fp_infoAltura" style="color:#7dd3b8;">280px</strong>
+      </span>
+      <button type="button" onclick="fp_applyAndClose()"
+              style="padding:7px 16px;background:#02534C;color:#fff;border:none;
+                     border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;">
+        <i class="bi bi-check-lg me-1"></i>Aplicar
+      </button>
+      <button type="button" onclick="fp_close()"
+              style="padding:7px 16px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);
+                     border:1.5px solid rgba(255,255,255,.2);border-radius:7px;
+                     font-size:.8rem;font-weight:600;cursor:pointer;">
+        <i class="bi bi-x-lg me-1"></i>Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- ── ÁREA DE PREVIEW ──────────────────────────────────── -->
+
+  <!-- Fondo simulado CGM -->
+  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;z-index:1;overflow:hidden;">
+    <div style="background:#02534C;height:64px;display:flex;align-items:center;
+                padding:0 28px;gap:20px;flex-shrink:0;">
+      <div style="background:#fff;border-radius:4px;padding:4px 10px;
+                  font-weight:900;color:#02534C;font-size:.85rem;letter-spacing:1px;">
+        CGM RENTAL
+      </div>
+      {% for n in ['NOSOTROS','ALQUILER','USADOS','BLOG','CONTACTO'] %}
+      <span style="color:rgba(255,255,255,.7);font-size:.73rem;font-weight:600;letter-spacing:.5px;">{{ n }}</span>
+      {% endfor %}
+    </div>
+    <div style="height:calc(100% - 64px);
                 background:linear-gradient(135deg,#1e4a36 0%,#2d7a55 60%,#1a3c2c 100%);
-                overflow:hidden;">
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                  color:rgba(255,255,255,.07);font-size:5vw;font-weight:900;text-align:center;
-                  pointer-events:none;user-select:none;line-height:1.1;">
+                display:flex;align-items:center;justify-content:center;">
+      <div style="color:rgba(255,255,255,.05);font-size:5vw;font-weight:900;text-align:center;
+                  line-height:1.1;user-select:none;pointer-events:none;">
         ALQUILER Y VENTA<br>DE MAQUINARIA
       </div>
     </div>
   </div>
 
-  <!-- Backdrop oscuro (igual que en producción) -->
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:1;"></div>
+  <!-- Backdrop oscuro -->
+  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;
+              background:rgba(0,0,0,.6);z-index:2;pointer-events:none;"></div>
 
-  <!-- Popup a TAMAÑO REAL, centrado -->
-  <div style="position:absolute;inset:0;z-index:2;display:flex;
-              align-items:center;justify-content:center;padding:20px;overflow:auto;">
+  <!-- Popup centrado -->
+  <div style="position:absolute;left:320px;right:0;top:52px;bottom:0;z-index:3;
+              display:flex;align-items:center;justify-content:center;
+              padding:20px;overflow:auto;">
     <div id="fpCard"
          style="border-radius:12px;overflow:hidden;position:relative;
-                box-shadow:0 24px 60px rgba(0,0,0,.85);background:#111;
-                width:{{ p.get('popup_ancho') or 520 }}px;max-width:95vw;">
-      <!-- Botón cerrar del popup (decorativo, en fp el cierre es el botón de abajo) -->
+                box-shadow:0 24px 64px rgba(0,0,0,.9);background:#111;
+                width:520px;max-width:95%;">
+      <!-- Botón × decorativo -->
       <div style="position:absolute;top:10px;right:10px;z-index:10;
                   background:rgba(0,0,0,.55);color:#fff;border-radius:50%;
                   width:30px;height:30px;display:flex;align-items:center;
-                  justify-content:center;font-size:17px;">
+                  justify-content:center;font-size:17px;pointer-events:none;">
         &times;
       </div>
       <!-- Imagen -->
       <div id="fpImgWrap" style="position:relative;line-height:0;">
         <div id="fpPlaceholder"
              style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                    width:100%;background:#444;
+                    width:100%;background:#2a2a2a;
                     height:{{ p.get('imagen_altura') or 280 }}px;
-                    align-items:center;justify-content:center;
-                    flex-direction:column;color:#888;gap:8px;">
+                    flex-direction:column;align-items:center;justify-content:center;
+                    color:#555;gap:8px;">
           <i class="bi bi-image" style="font-size:2.5rem;"></i>
-          <span style="font-size:.85rem;">Sin imagen</span>
+          <span style="font-size:.85rem;">Sin imagen — súbela desde el panel izquierdo</span>
         </div>
         <img id="fpImg"
              src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
+             alt=""
              style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
                     height:{{ p.get('imagen_altura') or 280 }}px;
-                    object-fit:{{ p.get('imagen_fit','cover') }};"
-             onload="this.style.display='block';document.getElementById('fpPlaceholder').style.display='none';"
-             onerror="this.style.display='none';document.getElementById('fpPlaceholder').style.display='flex';">
+                    object-fit:{{ p.get('imagen_fit','cover') }};">
         <!-- Overlay texto -->
         <div id="fpOvText"
              style="position:absolute;left:0;right:0;padding:12px 16px;
@@ -558,7 +846,7 @@ input[type="radio"]:checked + .popt-opt {
           <div id="fpOvTit" style="font-weight:700;font-size:1rem;line-height:1.2;">{{ p.get('overlay_titulo','') }}</div>
           <div id="fpOvSub" style="font-size:.85rem;opacity:.85;margin-top:3px;">{{ p.get('overlay_subtitulo','') }}</div>
         </div>
-        <!-- Botón CTA (arrastrable dentro del fullscreen) -->
+        <!-- Botón CTA arrastrable -->
         <div id="fpBtn"
              style="position:absolute;
                     left:{{ p.get('boton_pos_x',50) }}%;
@@ -568,37 +856,17 @@ input[type="radio"]:checked + .popt-opt {
                     align-items:center;justify-content:center;
                     cursor:grab;user-select:none;white-space:nowrap;
                     border-radius:6px;font-weight:700;border:none;
-                    box-shadow:0 2px 10px rgba(0,0,0,.5);">
+                    box-shadow:0 2px 10px rgba(0,0,0,.5);
+                    padding:9px 22px;font-size:14px;
+                    background:{{ p.get('boton_color_fondo','#02534C') }};
+                    color:{{ p.get('boton_color_texto','#ffffff') }};">
+          {{ p.get('boton_texto','Ver más') }}
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Barra de control inferior -->
-  <div style="position:fixed;bottom:0;left:0;right:0;z-index:99999;
-              background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
-              display:flex;align-items:center;justify-content:center;gap:16px;
-              padding:12px 24px;border-top:1px solid rgba(255,255,255,.1);">
-    <span style="color:rgba(255,255,255,.6);font-size:.78rem;">
-      <i class="bi bi-info-circle me-1"></i>
-      Así se verá el popup en la página real
-    </span>
-    <span style="color:rgba(255,255,255,.3);">|</span>
-    <button type="button" onclick="setFpMode('desktop')" id="fpBtnD"
-            class="preview-mode-btn active" style="border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;">
-      <i class="bi bi-display me-1"></i>Desktop
-    </button>
-    <button type="button" onclick="setFpMode('mobile')" id="fpBtnM"
-            class="preview-mode-btn" style="border-color:rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);">
-      <i class="bi bi-phone me-1"></i>Mobile
-    </button>
-    <button type="button" onclick="closeFullPreview()"
-            style="background:#e53e3e;color:#fff;border:none;border-radius:8px;
-                   padding:8px 20px;font-size:.85rem;font-weight:600;cursor:pointer;">
-      <i class="bi bi-x-lg me-1"></i>Cerrar
-    </button>
-  </div>
-</div>
+</div><!-- /fpOverlay -->
 
 <script>
 var BTN_SIZES = {
@@ -615,74 +883,77 @@ var ANIM_MAP = {
   flip:   'cgmPflipP .5s ease',
 };
 
+function _el(id) { return document.getElementById(id); }
+function _qv(sel) { var e = document.querySelector(sel); return e ? e.value : null; }
+function _qc(sel) { var e = document.querySelector(sel); return e ? e.checked : false; }
+
+/* ── Helpers formulario principal ──────────────────────── */
 function syncHex(pickerId, hexId) {
-  document.getElementById(hexId).value = document.getElementById(pickerId).value;
+  _el(hexId).value = _el(pickerId).value;
 }
 function syncPicker(hexId, pickerId) {
-  var v = document.getElementById(hexId).value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById(pickerId).value = v;
+  var v = _el(hexId).value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) _el(pickerId).value = v;
 }
 
-/* ── Sliders ───────────────────────────────────────── */
 function onAlturaChange(val) {
-  var lbl = document.getElementById('alturaLabel');
-  var img = document.getElementById('previewImg');
-  var info = document.getElementById('infoAltura');
+  var lbl  = _el('alturaLabel');
+  var img  = _el('previewImg');
+  var info = _el('infoAltura');
   if (lbl)  lbl.textContent  = val + 'px';
   if (img)  img.style.height = val + 'px';
   if (info) info.textContent = val + 'px';
 }
 function onAnchoChange(val) {
-  var lbl  = document.getElementById('anchoLabel');
-  var info = document.getElementById('infoAncho');
+  var lbl  = _el('anchoLabel');
+  var info = _el('infoAncho');
   if (lbl)  lbl.textContent  = val + 'px';
   if (info) info.textContent = val + 'px';
 }
 
-/* ── Thumbnail (actualización rápida) ──────────────── */
 function updatePreview() {
-  var img    = document.getElementById('previewImg');
-  var ov     = document.getElementById('previewOverlay');
-  var ovTit  = document.getElementById('previewOverlayTit');
-  var ovSub  = document.getElementById('previewOverlaySub');
-
-  var fit     = (document.querySelector('input[name="imagen_fit"]:checked') || {}).value || 'cover';
-  var alturaR = document.getElementById('alturaRange');
-  var infoFit = document.getElementById('infoFit');
-  if (img) {
-    img.style.objectFit = fit;
-    if (alturaR) img.style.height = alturaR.value + 'px';
-  }
-  if (infoFit) infoFit.textContent = fit;
-
-  var ovOn = document.getElementById('overlayActivoSwitch').checked;
+  var img   = _el('previewImg');
+  var ov    = _el('previewOverlay');
+  var ovTit = _el('previewOverlayTit');
+  var ovSub = _el('previewOverlaySub');
+  var fit   = _qv('input[name="imagen_fit"]:checked') || 'cover';
+  var altR  = _el('alturaRange');
+  var infoF = _el('infoFit');
+  var infoA = _el('infoAnim');
+  if (img)  { img.style.objectFit = fit; if (altR) img.style.height = altR.value + 'px'; }
+  if (infoF) infoF.textContent = fit;
+  if (infoA) infoA.textContent = _qv('input[name="animacion"]:checked') || 'fade';
+  var ovOn = _qc('#overlayActivoSwitch');
   if (ov) {
     ov.style.display = ovOn ? 'block' : 'none';
     if (ovOn) {
-      var pos = (document.querySelector('input[name="overlay_posicion"]:checked') || {}).value || 'bottom';
+      var pos = _qv('input[name="overlay_posicion"]:checked') || 'bottom';
       ov.style.top = ''; ov.style.bottom = ''; ov.style.transform = '';
-      if (pos === 'top') { ov.style.top = '0'; }
+      if (pos === 'top') ov.style.top = '0';
       else if (pos === 'center') { ov.style.top = '50%'; ov.style.transform = 'translateY(-50%)'; }
-      else { ov.style.bottom = '0'; }
-      var cfEl = document.getElementById('overlayColorFondo');
-      var ctEl = document.getElementById('overlayColorTexto');
-      if (cfEl) ov.style.background = cfEl.value;
-      if (ctEl) ov.style.color = ctEl.value;
-      if (ovTit) ovTit.textContent = (document.getElementById('overlayTitulo') || {}).value || '';
-      if (ovSub) ovSub.textContent = (document.getElementById('overlaySubtitulo') || {}).value || '';
+      else ov.style.bottom = '0';
+      var cf = _el('overlayColorFondo'), ct = _el('overlayColorTexto');
+      if (cf) ov.style.background = cf.value;
+      if (ct) ov.style.color = ct.value;
+      if (ovTit) ovTit.textContent = (_el('overlayTitulo') || {}).value || '';
+      if (ovSub) ovSub.textContent = (_el('overlaySubtitulo') || {}).value || '';
     }
   }
+  // Posición botón
+  var px = _el('inputPosX'), py = _el('inputPosY');
+  if (px && _el('infoPosX')) _el('infoPosX').textContent = px.value;
+  if (py && _el('infoPosY')) _el('infoPosY').textContent = py.value;
 }
 
 function toggleBotonConfig() {
-  var on = document.getElementById('botonActivoSwitch').checked;
-  document.getElementById('botonConfig').style.display      = on ? '' : 'none';
-  document.getElementById('botonInfoSinBoton').style.display = on ? 'none' : '';
+  var on = _qc('#botonActivoSwitch');
+  _el('botonConfig').style.display      = on ? '' : 'none';
+  _el('botonInfoSinBoton').style.display = on ? 'none' : '';
 }
 function toggleOverlayConfig() {
-  var on = document.getElementById('overlayActivoSwitch').checked;
-  document.getElementById('overlayConfig').style.display = on ? '' : 'none';
-  document.getElementById('overlayInfoOff').style.display = on ? 'none' : '';
+  var on = _qc('#overlayActivoSwitch');
+  _el('overlayConfig').style.display  = on ? '' : 'none';
+  _el('overlayInfoOff').style.display = on ? 'none' : '';
 }
 
 function onImgChange(input) {
@@ -690,146 +961,292 @@ function onImgChange(input) {
   var reader = new FileReader();
   reader.onload = function(e) {
     var src = e.target.result;
-    /* thumbnail */
-    var img = document.getElementById('previewImg');
-    var ph  = document.getElementById('previewPlaceholder');
+    var img = _el('previewImg'), ph = _el('previewPlaceholder');
     img.onload = function() { img.style.display='block'; if(ph) ph.style.display='none'; };
     img.onerror = function() { img.style.display='none'; if(ph) ph.style.display='flex'; };
     img.src = src;
-    /* fullscreen */
-    var fpI = document.getElementById('fpImg');
-    var fpP = document.getElementById('fpPlaceholder');
-    if (fpI) {
-      fpI.onload = function() { fpI.style.display='block'; if(fpP) fpP.style.display='none'; };
-      fpI.onerror = function() { fpI.style.display='none'; if(fpP) fpP.style.display='flex'; };
-      fpI.src = src;
-    }
+    var fpI = _el('fpImg'), fpP = _el('fpPlaceholder');
+    if (fpI) { fpI.src = src; fpI.style.display='block'; }
+    if (fpP) fpP.style.display = 'none';
+    _fp_setThumb(src);
   };
   reader.readAsDataURL(input.files[0]);
 }
 
 function previewAnim() { openFullPreview(); }
 
-/* ── Fullscreen preview ────────────────────────────── */
-function openFullPreview() {
-  var anchoR  = document.getElementById('anchoRange');
-  var alturaR = document.getElementById('alturaRange');
-  var fitEl   = document.querySelector('input[name="imagen_fit"]:checked');
-  var ancho   = anchoR  ? parseInt(anchoR.value)  : 520;
-  var altura  = alturaR ? parseInt(alturaR.value) : 280;
-  var fit     = fitEl   ? fitEl.value             : 'cover';
+/* ══════════════════════════════════════════════════════════
+   EDITOR VISUAL (fullscreen)
+══════════════════════════════════════════════════════════ */
 
-  var fpCard  = document.getElementById('fpCard');
-  var fpImg   = document.getElementById('fpImg');
-  var fpPh    = document.getElementById('fpPlaceholder');
-  var fpOvT   = document.getElementById('fpOvText');
-  var fpOvTit = document.getElementById('fpOvTit');
-  var fpOvSub = document.getElementById('fpOvSub');
-  var fpBtn   = document.getElementById('fpBtn');
-  var thumb   = document.getElementById('previewImg');
+/* ── Color helpers sidebar ──────────────────────────────── */
+function fp_syncColorP(pickId, hexId) {
+  var e = _el(hexId); if (e) e.value = _el(pickId).value;
+}
+function fp_syncColorH(hexId, pickId) {
+  var v = _el(hexId) ? _el(hexId).value : '';
+  if (/^#[0-9a-fA-F]{6}$/.test(v) && _el(pickId)) _el(pickId).value = v;
+}
 
-  /* ancho + modo actual */
-  if (fpCard) {
-    var isM = document.getElementById('fpBtnM') && document.getElementById('fpBtnM').classList.contains('active');
-    fpCard.style.width = (isM ? Math.min(390, ancho) : ancho) + 'px';
+/* ── Subir imagen desde sidebar ─────────────────────────── */
+function fp_onImgChange(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var src = e.target.result;
+    _fp_setThumb(src);
+    /* Actualizar popup preview */
+    var fpI = _el('fpImg'), fpP = _el('fpPlaceholder');
+    if (fpI) { fpI.src = src; fpI.style.display = 'block'; }
+    if (fpP) fpP.style.display = 'none';
+    /* Actualizar thumbnail principal */
+    var img = _el('previewImg'), ph = _el('previewPlaceholder');
+    if (img) { img.src = src; img.style.display = 'block'; }
+    if (ph)  ph.style.display = 'none';
+    /* Transferir archivo al input del formulario */
+    var mainFile = _el('mainImgFile');
+    if (mainFile) {
+      try { var dt = new DataTransfer(); dt.items.add(file); mainFile.files = dt.files; } catch(err){}
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function _fp_setThumb(src) {
+  var t = _el('fp_imgThumb'), ph = _el('fp_imgThumbPh');
+  if (t) { t.src = src; t.style.display = 'block'; }
+  if (ph) ph.style.display = 'none';
+}
+
+/* ── Sincronizar formulario principal → sidebar ─────────── */
+function fp_syncFromForm() {
+  /* Fit */
+  var fit = _qv('input[name="imagen_fit"]:checked') || 'cover';
+  var fitEl = document.querySelector('input[name="fp_fit"][value="' + fit + '"]');
+  if (fitEl) fitEl.checked = true;
+
+  /* Sliders */
+  var altR = _el('alturaRange'), ancR = _el('anchoRange');
+  var fpAlt = _el('fp_alturaRange'), fpAnc = _el('fp_anchoRange');
+  if (fpAlt && altR) fpAlt.value = altR.value;
+  if (fpAnc && ancR) fpAnc.value = ancR.value;
+
+  /* Imagen */
+  var mainImg = _el('previewImg');
+  if (mainImg && mainImg.style.display === 'block' && mainImg.src) {
+    _fp_setThumb(mainImg.src);
   }
 
-  /* imagen */
-  var hasImg = thumb && thumb.style.display === 'block';
-  if (fpImg) {
-    fpImg.src            = hasImg ? thumb.src : '';
-    fpImg.style.height   = altura + 'px';
-    fpImg.style.objectFit = fit;
-    fpImg.style.display  = hasImg ? 'block' : 'none';
-  }
-  if (fpPh) { fpPh.style.height = altura + 'px'; fpPh.style.display = hasImg ? 'none' : 'flex'; }
+  /* Overlay */
+  var ovOn = _qc('#overlayActivoSwitch');
+  if (_el('fp_overlayActivo'))     _el('fp_overlayActivo').checked     = ovOn;
+  if (_el('fp_overlayTitulo'))     _el('fp_overlayTitulo').value       = (_el('overlayTitulo') || {}).value || '';
+  if (_el('fp_overlaySubtitulo'))  _el('fp_overlaySubtitulo').value    = (_el('overlaySubtitulo') || {}).value || '';
+  if (_el('fp_overlayColorFondo')) _el('fp_overlayColorFondo').value   = (_el('overlayColorFondo') || {}).value || 'rgba(0,0,0,0.55)';
+  if (_el('fp_overlayColorTexto')) _el('fp_overlayColorTexto').value   = (_el('overlayColorTexto') || {}).value || '#ffffff';
+  var ovPos = _qv('input[name="overlay_posicion"]:checked') || 'bottom';
+  var ovPEl = document.querySelector('input[name="fp_ovPos"][value="' + ovPos + '"]');
+  if (ovPEl) ovPEl.checked = true;
 
-  /* overlay */
-  var ovOn = document.getElementById('overlayActivoSwitch').checked;
+  /* Botón */
+  var btnOn = _qc('#botonActivoSwitch');
+  if (_el('fp_botonActivo')) _el('fp_botonActivo').checked = btnOn;
+  var bTxt = (_el('botonTexto') || {}).value || 'Ver más';
+  if (_el('fp_botonTexto')) _el('fp_botonTexto').value = bTxt;
+  var bcf = (_el('botonColorFondo') || {}).value || '#02534C';
+  if (_el('fp_botonColorFondo'))    _el('fp_botonColorFondo').value    = bcf;
+  if (_el('fp_botonColorFondoHex')) _el('fp_botonColorFondoHex').value = bcf;
+  var bct = (_el('botonColorTexto') || {}).value || '#ffffff';
+  if (_el('fp_botonColorTexto'))    _el('fp_botonColorTexto').value    = bct;
+  if (_el('fp_botonColorTextoHex')) _el('fp_botonColorTextoHex').value = bct;
+  var btnTam = _qv('input[name="boton_tamano"]:checked') || 'md';
+  var btnTEl = document.querySelector('input[name="fp_botonTam"][value="' + btnTam + '"]');
+  if (btnTEl) btnTEl.checked = true;
+
+  /* Animación */
+  var anim = _qv('input[name="animacion"]:checked') || 'fade';
+  var animEl = document.querySelector('input[name="fp_anim"][value="' + anim + '"]');
+  if (animEl) animEl.checked = true;
+
+  /* Posición botón */
+  var pX = (_el('inputPosX') || {}).value || 50;
+  var pY = (_el('inputPosY') || {}).value || 85;
+  var fpB = _el('fpBtn');
+  if (fpB) { fpB.style.left = pX + '%'; fpB.style.top = pY + '%'; }
+}
+
+/* ── Sincronizar sidebar → formulario principal ─────────── */
+function fp_syncToForm() {
+  /* Fit */
+  var fit = _qv('input[name="fp_fit"]:checked');
+  if (fit) {
+    var fEl = document.querySelector('input[name="imagen_fit"][value="' + fit + '"]');
+    if (fEl) fEl.checked = true;
+  }
+  /* Sliders */
+  var fpAlt = _el('fp_alturaRange'), fpAnc = _el('fp_anchoRange');
+  var mainAlt = _el('alturaRange'), mainAnc = _el('anchoRange');
+  if (fpAlt && mainAlt) { mainAlt.value = fpAlt.value; onAlturaChange(fpAlt.value); }
+  if (fpAnc && mainAnc) { mainAnc.value = fpAnc.value; onAnchoChange(fpAnc.value); }
+  /* Overlay */
+  var ovOn = _el('fp_overlayActivo') && _el('fp_overlayActivo').checked;
+  if (_el('overlayActivoSwitch')) { _el('overlayActivoSwitch').checked = !!ovOn; toggleOverlayConfig(); }
+  if (_el('overlayTitulo')    && _el('fp_overlayTitulo'))    _el('overlayTitulo').value    = _el('fp_overlayTitulo').value;
+  if (_el('overlaySubtitulo') && _el('fp_overlaySubtitulo')) _el('overlaySubtitulo').value = _el('fp_overlaySubtitulo').value;
+  if (_el('overlayColorFondo')&& _el('fp_overlayColorFondo')) _el('overlayColorFondo').value = _el('fp_overlayColorFondo').value;
+  if (_el('overlayColorTexto')&& _el('fp_overlayColorTexto')) {
+    _el('overlayColorTexto').value  = _el('fp_overlayColorTexto').value;
+    _el('overlayColorTextoP').value = _el('fp_overlayColorTexto').value;
+  }
+  var ovPos = _qv('input[name="fp_ovPos"]:checked');
+  if (ovPos) {
+    var opEl = document.querySelector('input[name="overlay_posicion"][value="' + ovPos + '"]');
+    if (opEl) opEl.checked = true;
+  }
+  /* Botón */
+  var bOn = _el('fp_botonActivo') && _el('fp_botonActivo').checked;
+  if (_el('botonActivoSwitch')) { _el('botonActivoSwitch').checked = !!bOn; toggleBotonConfig(); }
+  if (_el('botonTexto') && _el('fp_botonTexto')) _el('botonTexto').value = _el('fp_botonTexto').value;
+  if (_el('botonColorFondo')    && _el('fp_botonColorFondo'))    { _el('botonColorFondo').value = _el('fp_botonColorFondo').value; _el('botonColorFondoHex').value = _el('fp_botonColorFondoHex').value; }
+  if (_el('botonColorTexto')    && _el('fp_botonColorTexto'))    { _el('botonColorTexto').value = _el('fp_botonColorTexto').value; _el('botonColorTextoHex').value = _el('fp_botonColorTextoHex').value; }
+  var bTam = _qv('input[name="fp_botonTam"]:checked');
+  if (bTam) {
+    var btEl = document.querySelector('input[name="boton_tamano"][value="' + bTam + '"]');
+    if (btEl) btEl.checked = true;
+  }
+  /* Animación */
+  var anim = _qv('input[name="fp_anim"]:checked');
+  if (anim) {
+    var anEl = document.querySelector('input[name="animacion"][value="' + anim + '"]');
+    if (anEl) anEl.checked = true;
+  }
+  updatePreview();
+}
+
+/* ── Actualizar preview desde sidebar ────────────────────── */
+function fp_update() {
+  var fpCard = _el('fpCard');
+  var fpImg  = _el('fpImg');
+  var fpPh   = _el('fpPlaceholder');
+  var fpOvT  = _el('fpOvText');
+  var fpOvTit= _el('fpOvTit');
+  var fpOvSub= _el('fpOvSub');
+  var fpBtn  = _el('fpBtn');
+
+  /* Dimensiones */
+  var ancho  = parseInt((_el('fp_anchoRange')  || {value:'520'}).value);
+  var altura = parseInt((_el('fp_alturaRange') || {value:'280'}).value);
+  var isMobile = _el('fp_btnM') && _el('fp_btnM').classList.contains('active');
+  var cardW  = (isMobile ? Math.min(390, ancho) : ancho);
+  if (fpCard) fpCard.style.width = cardW + 'px';
+
+  /* Labels */
+  if (_el('fp_alturaLabel')) _el('fp_alturaLabel').textContent = altura + 'px';
+  if (_el('fp_anchoLabel'))  _el('fp_anchoLabel').textContent  = ancho  + 'px';
+  if (_el('fp_infoAncho'))   _el('fp_infoAncho').textContent   = cardW  + 'px';
+  if (_el('fp_infoAltura'))  _el('fp_infoAltura').textContent  = altura + 'px';
+
+  /* Imagen */
+  var fit = _qv('input[name="fp_fit"]:checked') || 'cover';
+  if (fpImg) { fpImg.style.height = altura + 'px'; fpImg.style.objectFit = fit; }
+  if (fpPh)  fpPh.style.height = altura + 'px';
+  var t = _el('fp_imgThumb');
+  if (t) t.style.objectFit = fit;
+
+  /* Overlay */
+  var ovOn = _el('fp_overlayActivo') && _el('fp_overlayActivo').checked;
+  if (_el('fp_overlayBody')) _el('fp_overlayBody').style.opacity = ovOn ? '1' : '.4';
   if (fpOvT) {
     fpOvT.style.display = ovOn ? 'block' : 'none';
     if (ovOn) {
-      var pos = (document.querySelector('input[name="overlay_posicion"]:checked') || {}).value || 'bottom';
+      var pos = _qv('input[name="fp_ovPos"]:checked') || 'bottom';
       fpOvT.style.top = ''; fpOvT.style.bottom = ''; fpOvT.style.transform = '';
-      if (pos === 'top') { fpOvT.style.top = '0'; }
+      if (pos === 'top') fpOvT.style.top = '0';
       else if (pos === 'center') { fpOvT.style.top = '50%'; fpOvT.style.transform = 'translateY(-50%)'; }
-      else { fpOvT.style.bottom = '0'; }
-      var cf = document.getElementById('overlayColorFondo');
-      var ct = document.getElementById('overlayColorTexto');
+      else fpOvT.style.bottom = '0';
+      var cf = _el('fp_overlayColorFondo'), ct = _el('fp_overlayColorTexto');
       if (cf) fpOvT.style.background = cf.value;
       if (ct) fpOvT.style.color = ct.value;
-      if (fpOvTit) fpOvTit.textContent = (document.getElementById('overlayTitulo') || {}).value || '';
-      if (fpOvSub) fpOvSub.textContent = (document.getElementById('overlaySubtitulo') || {}).value || '';
+      if (fpOvTit) fpOvTit.textContent = (_el('fp_overlayTitulo')    || {value:''}).value;
+      if (fpOvSub) fpOvSub.textContent = (_el('fp_overlaySubtitulo') || {value:''}).value;
     }
   }
 
-  /* botón */
-  var btnOn = document.getElementById('botonActivoSwitch').checked;
+  /* Botón */
+  var bOn = _el('fp_botonActivo') && _el('fp_botonActivo').checked;
+  if (_el('fp_botonBody')) _el('fp_botonBody').style.opacity = bOn ? '1' : '.4';
   if (fpBtn) {
-    fpBtn.style.display = btnOn ? 'flex' : 'none';
-    if (btnOn) {
-      var posX = parseInt((document.getElementById('inputPosX') || {}).value || 50);
-      var posY = parseInt((document.getElementById('inputPosY') || {}).value || 85);
-      var txt  = (document.getElementById('botonTexto') || {}).value || 'Ver más';
-      var cf2  = document.getElementById('botonColorFondo') ? document.getElementById('botonColorFondo').value : '#02534C';
-      var ct2  = document.getElementById('botonColorTexto') ? document.getElementById('botonColorTexto').value : '#fff';
-      var tam  = (document.querySelector('input[name="boton_tamano"]:checked') || {}).value || 'md';
-      var s    = BTN_SIZES[tam] || BTN_SIZES.md;
-      fpBtn.style.left         = posX + '%';
-      fpBtn.style.top          = posY + '%';
-      fpBtn.style.background   = cf2;
-      fpBtn.style.color        = ct2;
+    fpBtn.style.display = bOn ? 'flex' : 'none';
+    if (bOn) {
+      var txt = (_el('fp_botonTexto') || {value:'Ver más'}).value || 'Ver más';
+      var bcf = (_el('fp_botonColorFondo')  || {value:'#02534C'}).value;
+      var bct = (_el('fp_botonColorTexto')  || {value:'#fff'}).value;
+      var tam = _qv('input[name="fp_botonTam"]:checked') || 'md';
+      var s   = BTN_SIZES[tam] || BTN_SIZES.md;
+      fpBtn.style.background   = bcf;
+      fpBtn.style.color        = bct;
       fpBtn.style.padding      = s.padding;
       fpBtn.style.fontSize     = s.fontSize;
       fpBtn.style.borderRadius = s.borderRadius;
       fpBtn.textContent        = txt;
     }
   }
+}
 
-  /* mostrar + animación */
-  document.getElementById('fpOverlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
+/* ── Animación ──────────────────────────────────────────── */
+function fp_playAnim() {
+  var fpCard = _el('fpCard');
+  if (!fpCard) return;
+  var anim = _qv('input[name="fp_anim"]:checked') || 'fade';
+  fpCard.style.animation = 'none';
+  void fpCard.offsetHeight;
+  fpCard.style.animation = ANIM_MAP[anim] || ANIM_MAP.fade;
+}
+
+/* ── Modo desktop / mobile ──────────────────────────────── */
+function fp_setMode(mode) {
+  var isM  = mode === 'mobile';
+  var btnD = _el('fp_btnD'), btnM = _el('fp_btnM');
+  if (btnD) { btnD.classList.toggle('active', !isM); btnD.style.background = isM ? 'transparent' : 'rgba(255,255,255,.15)'; btnD.style.color = isM ? 'rgba(255,255,255,.6)' : '#fff'; btnD.style.borderColor = isM ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.3)'; }
+  if (btnM) { btnM.classList.toggle('active', isM);  btnM.style.background = isM ? 'rgba(255,255,255,.15)' : 'transparent'; btnM.style.color = isM ? '#fff' : 'rgba(255,255,255,.6)'; btnM.style.borderColor = isM ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.2)'; }
+  fp_update();
+}
+
+/* ── Abrir / cerrar / aplicar ────────────────────────────── */
+function openFullPreview() {
+  fp_syncFromForm();
+  fp_update();
+  _el('fpOverlay').style.display = 'block';
+  document.body.style.overflow   = 'hidden';
+  fp_setMode('desktop');
+  var fpCard = _el('fpCard');
   if (fpCard) {
-    var anim = (document.querySelector('input[name="animacion"]:checked') || {}).value || 'fade';
+    var anim = _qv('input[name="fp_anim"]:checked') || _qv('input[name="animacion"]:checked') || 'fade';
     fpCard.style.animation = 'none';
     void fpCard.offsetHeight;
     fpCard.style.animation = ANIM_MAP[anim] || ANIM_MAP.fade;
   }
 }
-
-function closeFullPreview() {
-  document.getElementById('fpOverlay').style.display = 'none';
-  document.body.style.overflow = '';
+function fp_close() {
+  _el('fpOverlay').style.display = 'none';
+  document.body.style.overflow   = '';
 }
-
-function setFpMode(mode) {
-  var fpCard = document.getElementById('fpCard');
-  var fpBtnD = document.getElementById('fpBtnD');
-  var fpBtnM = document.getElementById('fpBtnM');
-  var ancho  = parseInt((document.getElementById('anchoRange') || {value:'520'}).value);
-  if (mode === 'mobile') {
-    if (fpCard) fpCard.style.width = Math.min(390, ancho) + 'px';
-    fpBtnM.classList.add('active'); fpBtnD.classList.remove('active');
-    fpBtnM.style.background='rgba(255,255,255,.15)'; fpBtnM.style.color='#fff';
-    fpBtnD.style.background='transparent';           fpBtnD.style.color='rgba(255,255,255,.6)';
-  } else {
-    if (fpCard) fpCard.style.width = ancho + 'px';
-    fpBtnD.classList.add('active'); fpBtnM.classList.remove('active');
-    fpBtnD.style.background='rgba(255,255,255,.15)'; fpBtnD.style.color='#fff';
-    fpBtnM.style.background='transparent';           fpBtnM.style.color='rgba(255,255,255,.6)';
-  }
+function fp_applyAndClose() {
+  fp_syncToForm();
+  fp_close();
 }
+function closeFullPreview() { fp_close(); }
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeFullPreview();
+  if (e.key === 'Escape' && _el('fpOverlay') && _el('fpOverlay').style.display !== 'none') fp_close();
 });
 
-/* ── Drag botón en fullscreen ──────────────────────── */
+/* ── Drag botón CTA ──────────────────────────────────────── */
 (function() {
-  var btn    = document.getElementById('fpBtn');
-  var wrap   = document.getElementById('fpImgWrap');
-  var inputX = document.getElementById('inputPosX');
-  var inputY = document.getElementById('inputPosY');
+  var btn    = _el('fpBtn');
+  var wrap   = _el('fpImgWrap');
+  var inputX = _el('inputPosX');
+  var inputY = _el('inputPosY');
   var dragging = false, sMouseX, sMouseY, sLeft, sTop;
 
   function startDrag(mx, my) {
@@ -843,16 +1260,16 @@ document.addEventListener('keydown', function(e) {
   function moveDrag(mx, my) {
     if (!dragging) return;
     var rect = wrap.getBoundingClientRect();
-    var nx = Math.min(95, Math.max(5, sLeft + ((mx - sMouseX) / rect.width)  * 100));
-    var ny = Math.min(95, Math.max(5, sTop  + ((my - sMouseY) / rect.height) * 100));
+    var nx = Math.min(95, Math.max(5, sLeft + (mx - sMouseX) / rect.width  * 100));
+    var ny = Math.min(95, Math.max(5, sTop  + (my - sMouseY) / rect.height * 100));
     btn.style.left = nx + '%'; btn.style.top = ny + '%';
-    if (inputX) inputX.value = Math.round(nx);
-    if (inputY) inputY.value = Math.round(ny);
+    if (inputX) { inputX.value = Math.round(nx); if (_el('infoPosX')) _el('infoPosX').textContent = Math.round(nx); }
+    if (inputY) { inputY.value = Math.round(ny); if (_el('infoPosY')) _el('infoPosY').textContent = Math.round(ny); }
   }
   function endDrag() { if (dragging) { dragging = false; btn.style.cursor = 'grab'; } }
 
   if (btn && wrap) {
-    btn.addEventListener('mousedown', function(e) { startDrag(e.clientX, e.clientY); e.preventDefault(); });
+    btn.addEventListener('mousedown',  function(e) { startDrag(e.clientX, e.clientY); e.preventDefault(); });
     document.addEventListener('mousemove', function(e) { moveDrag(e.clientX, e.clientY); });
     document.addEventListener('mouseup', endDrag);
     btn.addEventListener('touchstart', function(e) { startDrag(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive:false});
@@ -861,10 +1278,9 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 
-/* ── Init ──────────────────────────────────────────── */
+/* ── Init ────────────────────────────────────────────────── */
 (function() {
-  var ar = document.getElementById('alturaRange');
-  var nr = document.getElementById('anchoRange');
+  var ar = _el('alturaRange'), nr = _el('anchoRange');
   if (ar) onAlturaChange(ar.value);
   if (nr) onAnchoChange(nr.value);
   updatePreview();
