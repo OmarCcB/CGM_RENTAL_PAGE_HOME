@@ -1255,109 +1255,159 @@
   {% block extra_scripts %}{% endblock %}
 
   {% if popup_activo and popup_activo.get('imagen') %}
-  <!-- ── Popup modal ─────────────────────────────────────────────────────────── -->
   {% set _pa = popup_activo %}
+  {% set _pid = _pa.get('id') | int %}
   {% set _img = _pa.get('imagen') %}
-  {% set _fit = _pa.get('imagen_fit','cover') if _pa.get('imagen_fit') else 'cover' %}
-  {% set _btn_on = _pa.get('boton_activo') %}
-  {% set _btn_sz = {'sm':'6px 16px;font-size:13px;border-radius:4px', 'md':'10px 24px;font-size:15px;border-radius:6px', 'lg':'14px 32px;font-size:17px;border-radius:8px'} %}
-  {% set _sz_key = _pa.get('boton_tamano','md') if _pa.get('boton_tamano') in ['sm','md','lg'] else 'md' %}
-  {% set _anim = _pa.get('animacion','fade') if _pa.get('animacion') in ['fade','slide','drop','zoom','bounce','flip'] else 'fade' %}
-  {% set _delay = _pa.get('delay_ms', 800) | int %}
-  {% set _freq  = _pa.get('frecuencia','siempre') if _pa.get('frecuencia') in ['siempre','sesion','dia'] else 'siempre' %}
-  {% set _pid   = _pa.get('id') | int %}
+  {% set _fit = _pa.get('imagen_fit') or 'cover' %}
+  {% set _imod = _pa.get('imagen_modo') or 'ratio' %}
   {% set _altura = (_pa.get('imagen_altura') or 280) | int %}
   {% set _ancho  = (_pa.get('popup_ancho') or 520) | int %}
   {% set _radio  = (_pa.get('popup_radio') or 14) | int %}
-  {% set _bg     = _pa.get('popup_bg','#111111') %}
+  {% set _bg     = _pa.get('popup_bg') or '#111111' %}
+  {% set _ppos   = _pa.get('popup_posicion') or 'centro' %}
+  {% set _bw     = (_pa.get('popup_borde_ancho') or 0) | int %}
+  {% set _bc     = _pa.get('popup_borde_color') or '#ffffff' %}
+  {% set _bdc    = _pa.get('backdrop_color') or 'rgba(0,0,0,0.65)' %}
+  {% set _bdb    = (_pa.get('backdrop_blur') or 0) | int %}
+  {% set _xst    = _pa.get('cerrar_estilo') or 'dentro' %}
+  {% set _xcol   = _pa.get('cerrar_color') or '#ffffff' %}
+  {% set _xdel   = (_pa.get('cerrar_delay_ms') or 0) | int %}
+  {% set _bdcl   = 1 if (_xst == 'oculto' or _pa.get('backdrop_cerrar', 1)) else 0 %}
+  {% set _btn_on = _pa.get('boton_activo') %}
+  {% set _bfull  = _pa.get('boton_ancho_completo') %}
+  {% set _brad   = (_pa.get('boton_radio') or 6) | int %}
+  {% set _btn_sz = {'sm':'6px 16px;font-size:13px', 'md':'10px 24px;font-size:15px', 'lg':'14px 32px;font-size:17px'} %}
+  {% set _sz_key = _pa.get('boton_tamano','md') if _pa.get('boton_tamano') in ['sm','md','lg'] else 'md' %}
+  {% set _somMap = {'none':'none','sm':'0 2px 10px rgba(0,0,0,.25)','md':'0 8px 28px rgba(0,0,0,.35)','lg':'0 18px 60px rgba(0,0,0,.5)'} %}
+  {% set _shadow = _somMap.get(_pa.get('popup_sombra') or 'lg', _somMap['lg']) %}
+  {% set _posMap = {'centro':'align-items:center;justify-content:center;','arriba':'align-items:flex-start;justify-content:center;','abajo':'align-items:flex-end;justify-content:center;','inf-derecha':'align-items:flex-end;justify-content:flex-end;','inf-izquierda':'align-items:flex-end;justify-content:flex-start;'} %}
+  {% set _flexPos = _posMap.get(_ppos, _posMap['centro']) %}
+  {% set _alMap = {'izquierda':'left','centro':'center','derecha':'right'} %}
+  {% set _ovAl = _alMap.get(_pa.get('overlay_alineacion') or 'izquierda', 'left') %}
+  {% set _ctAl = _alMap.get(_pa.get('contenido_alineacion') or 'izquierda', 'left') %}
+  {% set _anim = _pa.get('animacion','fade') if _pa.get('animacion') in ['fade','slide','drop','zoom','bounce','flip'] else 'fade' %}
+  {% set _delay = (_pa.get('delay_ms') or 0) | int %}
+  {% set _freq  = _pa.get('frecuencia','siempre') if _pa.get('frecuencia') in ['siempre','sesion','dia'] else 'siempre' %}
+  {% set _disp  = _pa.get('disparador','tiempo') if _pa.get('disparador') in ['tiempo','scroll','salida'] else 'tiempo' %}
+  {% set _spct  = (_pa.get('scroll_pct') or 50) | int %}
   <style>
   @keyframes cgmPfade   { from{opacity:0} to{opacity:1} }
   @keyframes cgmPslide  { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
   @keyframes cgmPdrop   { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes cgmPzoom   { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+  @keyframes cgmPzoom   { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
   @keyframes cgmPbounce { 0%{opacity:0;transform:scale(.7)} 60%{transform:scale(1.06)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
-  @keyframes cgmPflip   { from{opacity:0;transform:perspective(500px) rotateY(80deg)} to{opacity:1;transform:perspective(500px) rotateY(0)} }
-  @keyframes cgmPclose  { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(.9)} }
-  #cgmPopupOverlay { transition: opacity .2s; }
+  @keyframes cgmPflip   { from{opacity:0;transform:perspective(600px) rotateY(80deg)} to{opacity:1;transform:perspective(600px) rotateY(0)} }
+  @keyframes cgmPclose  { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(.94)} }
+  #cgmPopOv{
+    display:none;position:fixed;inset:0;z-index:9999;
+    background:{{ _bdc }};{{ _flexPos }}
+    padding:20px;overflow-y:auto;overscroll-behavior:contain;
+    {% if _bdb %}backdrop-filter:blur({{ _bdb }}px);-webkit-backdrop-filter:blur({{ _bdb }}px);{% endif %}
+  }
+  #cgmPopOv.is-open{ display:flex; }
+  #cgmPopCard{
+    position:relative;width:100%;min-width:0;flex:0 1 auto;max-width:{{ _ancho }}px;
+    max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);
+    overflow-y:auto;overflow-x:hidden;
+    border-radius:{{ _radio }}px;background:{{ _bg }};
+    box-shadow:{{ _shadow }};
+    {% if _bw %}border:{{ _bw }}px solid {{ _bc }};{% endif %}
+    {% if _xst == 'fuera' %}margin-top:46px;{% endif %}
+  }
+  #cgmPopCard::-webkit-scrollbar{ width:6px; }
+  #cgmPopCard::-webkit-scrollbar-thumb{ background:rgba(128,128,128,.4);border-radius:3px; }
+  #cgmPopX{
+    position:absolute;z-index:12;width:34px;height:34px;
+    display:none;align-items:center;justify-content:center;
+    border:none;border-radius:50%;cursor:pointer;font-size:20px;line-height:1;
+    color:{{ _xcol }};transition:transform .15s,opacity .15s;padding:0;
+    {% if _xst == 'fuera' %}
+    top:-42px;right:0;background:rgba(0,0,0,.45);
+    {% else %}
+    top:10px;right:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+    {% endif %}
+  }
+  #cgmPopX.is-ready{ display:flex; }
+  #cgmPopX:hover{ transform:scale(1.1); }
+  #cgmPopX:focus-visible{ outline:2px solid {{ _xcol }};outline-offset:2px; }
+  #cgmPopImgW{ position:relative;line-height:0; }
+  #cgmPopImgW img{
+    width:100%;display:block;object-fit:{{ _fit }};
+    {% if _imod == 'ratio' %}aspect-ratio:{{ _ancho }} / {{ _altura }};height:auto;
+    {% else %}height:{{ _altura }}px;{% endif %}
+  }
+  #cgmPopCta{
+    position:absolute;display:inline-flex;align-items:center;justify-content:center;
+    text-decoration:none;font-weight:700;line-height:1;white-space:nowrap;
+    border-radius:{{ _brad }}px;padding:{{ _btn_sz[_sz_key] }};
+    background:{{ _pa.get('boton_color_fondo') or '#02534C' }};
+    color:{{ _pa.get('boton_color_texto') or '#ffffff' }};
+    box-shadow:0 2px 12px rgba(0,0,0,.35);transition:filter .15s,transform .15s;
+    {% if _bfull %}left:16px;right:16px;top:{{ _pa.get('boton_pos_y',85) }}%;transform:translateY(-50%);
+    {% else %}left:{{ _pa.get('boton_pos_x',50) }}%;top:{{ _pa.get('boton_pos_y',85) }}%;transform:translate(-50%,-50%);{% endif %}
+  }
+  #cgmPopCta:hover{ filter:brightness(1.08); }
+  #cgmPopOvT{ position:absolute;left:0;right:0;padding:12px 18px;text-align:{{ _ovAl }};line-height:1.35; }
+  #cgmPopBody{ padding:18px 22px;text-align:{{ _ctAl }}; }
+  @media (max-width:600px){
+    #cgmPopOv{ padding:14px; }
+    #cgmPopCta{ padding:9px 18px;font-size:14px; }
+    #cgmPopOvT{ padding:10px 14px; }
+    #cgmPopBody{ padding:14px 16px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    #cgmPopCard{ animation:none !important; }
+    #cgmPopX,#cgmPopCta{ transition:none; }
+  }
   </style>
-  <div id="cgmPopupOverlay"
-       style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);
-              align-items:center;justify-content:center;padding:16px;">
-    <div id="cgmPopupCard"
-         style="position:relative;max-width:{{ _ancho }}px;width:100%;border-radius:{{ _radio }}px;overflow:hidden;
-                box-shadow:0 8px 40px rgba(0,0,0,.4);background:{{ _bg }};">
-      <!-- X cerrar -->
-      <button onclick="cgmPopupClose()" aria-label="Cerrar popup"
-              style="position:absolute;top:10px;right:10px;z-index:10;
-                     background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;
-                     width:34px;height:34px;font-size:18px;cursor:pointer;
-                     display:flex;align-items:center;justify-content:center;line-height:1;">
-        &times;
-      </button>
-      <!-- Imagen + overlay + botón -->
-      <div style="position:relative;line-height:0;">
+  <div id="cgmPopOv" role="dialog" aria-modal="true" aria-label="{{ _pa.get('titulo') or 'Aviso' }}">
+    <div id="cgmPopCard">
+      {% if _xst != 'oculto' %}
+      <button type="button" id="cgmPopX" aria-label="Cerrar">&times;</button>
+      {% endif %}
+      <div id="cgmPopImgW">
         {% if _pa.get('link_url') and not _btn_on %}
-        <a href="{{ _pa.link_url }}"
+        <a href="{{ _pa.link_url }}" data-cgm-cta
            target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}"
-           rel="noopener" onclick="cgmPopupClic();cgmPopupClose()" style="display:block;">
+           rel="noopener" style="display:block;">
           <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
-               alt="{{ _pa.get('titulo') or 'Popup' }}"
-               style="width:100%;display:block;cursor:pointer;height:{{ _altura }}px;object-fit:{{ _fit }};"
-               onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+               alt="{{ _pa.get('titulo') or '' }}" decoding="async" fetchpriority="low"
+               width="{{ _ancho }}" height="{{ _altura }}">
         </a>
         {% else %}
         <img src="{{ url_for('static', filename='images/popups/' + _img) }}"
-             alt="{{ _pa.get('titulo') or 'Popup' }}"
-             style="width:100%;display:block;height:{{ _altura }}px;object-fit:{{ _fit }};"
-             onerror="document.getElementById('cgmPopupOverlay').style.display='none'">
+             alt="{{ _pa.get('titulo') or '' }}" decoding="async" fetchpriority="low"
+             width="{{ _ancho }}" height="{{ _altura }}">
         {% endif %}
         {% if _pa.get('overlay_activo') and (_pa.get('overlay_titulo') or _pa.get('overlay_subtitulo')) %}
-        {% set _ovpos = _pa.get('overlay_posicion','bottom') %}
-        <div style="position:absolute;left:0;right:0;
-                    {% if _ovpos == 'top' %}top:0;{% elif _ovpos == 'center' %}top:50%;transform:translateY(-50%);{% else %}bottom:0;{% endif %}
-                    padding:10px 16px;
-                    background:{{ _pa.get('overlay_color_fondo','rgba(0,0,0,0.55)') }};
-                    color:{{ _pa.get('overlay_color_texto','#ffffff') }};">
+        {% set _ovpos = _pa.get('overlay_posicion') or 'bottom' %}
+        <div id="cgmPopOvT"
+             style="{% if _ovpos == 'top' %}top:0;{% elif _ovpos == 'center' %}top:50%;transform:translateY(-50%);{% else %}bottom:0;{% endif %}
+                    background:{{ _pa.get('overlay_color_fondo') or 'rgba(0,0,0,0.55)' }};
+                    color:{{ _pa.get('overlay_color_texto') or '#ffffff' }};">
           {% if _pa.get('overlay_titulo') %}
-          <div style="font-weight:700;font-size:1rem;line-height:1.2;">{{ _pa.overlay_titulo }}</div>
+          <div style="font-weight:700;font-size:1.02rem;">{{ _pa.overlay_titulo }}</div>
           {% endif %}
           {% if _pa.get('overlay_subtitulo') %}
-          <div style="font-size:.82rem;opacity:.88;margin-top:2px;">{{ _pa.overlay_subtitulo }}</div>
+          <div style="font-size:.83rem;opacity:.88;margin-top:3px;">{{ _pa.overlay_subtitulo }}</div>
           {% endif %}
         </div>
         {% endif %}
         {% if _btn_on %}
-        <a href="{{ _pa.get('link_url') or '#' }}"
-           {% if _pa.get('link_url') %}
-           target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}" rel="noopener"
-           onclick="cgmPopupClic();cgmPopupClose()"
-           {% else %}
-           onclick="cgmPopupClose();return false;"
-           {% endif %}
-           style="position:absolute;
-                  left:{{ _pa.get('boton_pos_x',50) }}%;
-                  top:{{ _pa.get('boton_pos_y',85) }}%;
-                  transform:translate(-50%,-50%);
-                  display:inline-flex;align-items:center;justify-content:center;
-                  text-decoration:none;font-weight:700;line-height:1;
-                  background:{{ _pa.get('boton_color_fondo','#02534C') }};
-                  color:{{ _pa.get('boton_color_texto','#ffffff') }};
-                  padding:{{ _btn_sz[_sz_key] }};
-                  box-shadow:0 2px 10px rgba(0,0,0,.35);
-                  white-space:nowrap;">
-          {{ _pa.get('boton_texto','Ver más') }}
-        </a>
+        <a id="cgmPopCta" href="{{ _pa.get('link_url') or '#' }}"
+           {% if _pa.get('link_url') %}data-cgm-cta target="{{ '_blank' if _pa.get('abrir_nueva_ventana') else '_self' }}" rel="noopener"
+           {% else %}data-cgm-dismiss{% endif %}>{{ _pa.get('boton_texto') or 'Ver más' }}</a>
         {% endif %}
       </div>
       {% if _pa.get('contenido_activo') and (_pa.get('contenido_titulo') or _pa.get('contenido_descripcion')) %}
-      <div style="padding:16px 20px;
-                  background:{{ _pa.get('contenido_bg','#ffffff') }};
-                  color:{{ _pa.get('contenido_color_texto','#222222') }};">
+      <div id="cgmPopBody"
+           style="background:{{ _pa.get('contenido_bg') or '#ffffff' }};
+                  color:{{ _pa.get('contenido_color_texto') or '#222222' }};">
         {% if _pa.get('contenido_titulo') %}
-        <div style="font-weight:700;font-size:1rem;line-height:1.2;margin-bottom:6px;">{{ _pa.contenido_titulo }}</div>
+        <div style="font-weight:700;font-size:1.04rem;line-height:1.25;margin-bottom:7px;">{{ _pa.contenido_titulo }}</div>
         {% endif %}
         {% if _pa.get('contenido_descripcion') %}
-        <div style="font-size:.87rem;line-height:1.55;opacity:.85;">{{ _pa.contenido_descripcion }}</div>
+        <div style="font-size:.88rem;line-height:1.6;opacity:.85;">{{ _pa.contenido_descripcion }}</div>
         {% endif %}
       </div>
       {% endif %}
@@ -1365,91 +1415,141 @@
   </div>
   <script>
   (function() {
-    var POPUP_ID   = {{ _pid }};
-    var FREQ       = '{{ _freq }}';
-    var DELAY      = {{ _delay }};
-    var ANIM_MAP   = {
-      fade:   'cgmPfade .45s ease',
-      slide:  'cgmPslide .45s ease',
-      drop:   'cgmPdrop .45s ease',
-      zoom:   'cgmPzoom .38s ease',
-      bounce: 'cgmPbounce .65s ease',
-      flip:   'cgmPflip .45s ease',
+    var ID       = {{ _pid }};
+    var FREQ     = '{{ _freq }}';
+    var DELAY    = {{ _delay }};
+    var TRIGGER  = '{{ _disp }}';
+    var SCROLLPCT= {{ _spct }};
+    var XDELAY   = {{ _xdel }};
+    var BDCLOSE  = {{ _bdcl }};
+    var ANIM_MAP = {
+      fade:'cgmPfade .45s ease', slide:'cgmPslide .45s ease', drop:'cgmPdrop .45s ease',
+      zoom:'cgmPzoom .4s ease', bounce:'cgmPbounce .65s ease', flip:'cgmPflip .5s ease'
     };
-    var ANIM       = ANIM_MAP['{{ _anim }}'] || ANIM_MAP.fade;
-    var STORE_KEY  = 'cgmP_' + POPUP_ID;
+    var ANIM  = ANIM_MAP['{{ _anim }}'] || ANIM_MAP.fade;
+    var SKEY  = 'cgmP_' + ID;
+    var VKEY  = 'cgmPv_' + ID;
+    var ov    = document.getElementById('cgmPopOv');
+    var card  = document.getElementById('cgmPopCard');
+    var xbtn  = document.getElementById('cgmPopX');
+    if (!ov || !card) return;
+
+    var opened = false, lastFocus = null, armed = true;
+
+    function ss(fn, d) { try { return fn(); } catch(e) { return d; } }
 
     function shouldShow() {
-      if (FREQ === 'siempre') return true;
-      if (FREQ === 'sesion') {
-        try { return !sessionStorage.getItem(STORE_KEY); } catch(e) { return true; }
-      }
+      if (FREQ === 'sesion') return ss(function(){ return !sessionStorage.getItem(SKEY); }, true);
       if (FREQ === 'dia') {
-        try {
-          var today = new Date().toISOString().slice(0,10);
-          return localStorage.getItem(STORE_KEY) !== today;
-        } catch(e) { return true; }
+        var t = new Date().toISOString().slice(0,10);
+        return ss(function(){ return localStorage.getItem(SKEY) !== t; }, true);
       }
       return true;
     }
 
     function markShown() {
-      if (FREQ === 'sesion') {
-        try { sessionStorage.setItem(STORE_KEY, '1'); } catch(e) {}
-      } else if (FREQ === 'dia') {
-        try { localStorage.setItem(STORE_KEY, new Date().toISOString().slice(0,10)); } catch(e) {}
+      if (FREQ === 'sesion') ss(function(){ sessionStorage.setItem(SKEY, '1'); });
+      else if (FREQ === 'dia') ss(function(){ localStorage.setItem(SKEY, new Date().toISOString().slice(0,10)); });
+    }
+
+    function beacon(url, id) {
+      var body = JSON.stringify({popup_id: id});
+      if (navigator.sendBeacon) {
+        try { navigator.sendBeacon(url, new Blob([body], {type:'application/json'})); return; } catch(e) {}
       }
+      try { fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:body, keepalive:true}); } catch(e) {}
     }
 
     function trackVista() {
-      try {
-        fetch('/api/popup-vista', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({popup_id: POPUP_ID})
-        });
-      } catch(e) {}
+      if (ss(function(){ return sessionStorage.getItem(VKEY); }, null)) return;
+      ss(function(){ sessionStorage.setItem(VKEY, '1'); });
+      beacon('/api/popup-vista', ID);
     }
 
-    if (shouldShow()) {
-      setTimeout(function() {
-        var overlay = document.getElementById('cgmPopupOverlay');
-        var card    = document.getElementById('cgmPopupCard');
-        if (!overlay) return;
-        overlay.style.display = 'flex';
-        if (card) card.style.animation = ANIM;
-        markShown();
-        trackVista();
-      }, DELAY);
+    function focusables() {
+      return card.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])');
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;
+      var f = focusables();
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    function open() {
+      if (opened || !armed) return;
+      opened = true; armed = false;
+      lastFocus = document.activeElement;
+      ov.classList.add('is-open');
+      card.style.animation = ANIM;
+      document.documentElement.style.overflow = 'hidden';
+      document.addEventListener('keydown', onKey, true);
+      if (xbtn) {
+        if (XDELAY > 0) setTimeout(function(){ xbtn.classList.add('is-ready'); }, XDELAY);
+        else xbtn.classList.add('is-ready');
+      }
+      setTimeout(function(){
+        var f = focusables();
+        if (f.length) f[0].focus();
+        else card.setAttribute('tabindex','-1'), card.focus();
+      }, 60);
+      markShown();
+      trackVista();
+    }
+
+    function close() {
+      if (!opened) return;
+      opened = false;
+      document.removeEventListener('keydown', onKey, true);
+      document.documentElement.style.overflow = '';
+      card.style.animation = 'cgmPclose .22s ease forwards';
+      setTimeout(function(){
+        ov.classList.remove('is-open');
+        card.style.animation = '';
+        if (lastFocus && lastFocus.focus) lastFocus.focus();
+      }, 220);
+    }
+
+    if (xbtn) xbtn.addEventListener('click', close);
+
+    if (BDCLOSE) {
+      ov.addEventListener('click', function(e){ if (e.target === ov) close(); });
+    }
+
+    card.addEventListener('click', function(e){
+      var cta = e.target.closest('[data-cgm-cta]');
+      if (cta) { beacon('/api/popup-clic', ID); setTimeout(close, 60); return; }
+      if (e.target.closest('[data-cgm-dismiss]')) { e.preventDefault(); close(); }
+    });
+
+    var img = card.querySelector('img');
+    if (img) img.addEventListener('error', function(){ armed = false; ov.classList.remove('is-open'); });
+
+    if (!shouldShow()) return;
+
+    if (TRIGGER === 'scroll') {
+      var onScroll = function() {
+        var h = document.documentElement.scrollHeight - window.innerHeight;
+        var pct = h > 0 ? (window.scrollY / h) * 100 : 100;
+        if (pct >= SCROLLPCT) { window.removeEventListener('scroll', onScroll); open(); }
+      };
+      window.addEventListener('scroll', onScroll, {passive:true});
+    } else if (TRIGGER === 'salida') {
+      var onLeave = function(e) {
+        if (e.clientY <= 0) { document.removeEventListener('mouseout', onLeave); open(); }
+      };
+      document.addEventListener('mouseout', onLeave);
+      if (window.matchMedia('(pointer:coarse)').matches) {
+        setTimeout(function(){ document.removeEventListener('mouseout', onLeave); open(); }, Math.max(DELAY, 6000));
+      }
+    } else {
+      setTimeout(open, DELAY);
     }
   })();
-
-  function cgmPopupClose() {
-    var overlay = document.getElementById('cgmPopupOverlay');
-    var card    = document.getElementById('cgmPopupCard');
-    if (!overlay) return;
-    if (card) {
-      card.style.animation = 'cgmPclose .22s ease forwards';
-      setTimeout(function() { overlay.style.display = 'none'; card.style.animation = ''; }, 230);
-    } else {
-      overlay.style.display = 'none';
-    }
-  }
-  function cgmPopupClic() {
-    try {
-      fetch('/api/popup-clic', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({popup_id: {{ _pid }} })
-      });
-    } catch(e) {}
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') cgmPopupClose();
-  });
-  document.getElementById('cgmPopupOverlay').addEventListener('click', function(e) {
-    if (e.target === this) cgmPopupClose();
-  });
   </script>
   {% endif %}
 

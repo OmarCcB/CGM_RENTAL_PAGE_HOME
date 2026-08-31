@@ -10,58 +10,52 @@
 {% set p = popup or {} %}
 
 <style>
-.popt-opt {
-  border:2px solid #ddd; border-radius:8px; padding:9px 6px;
-  text-align:center; font-size:.76rem; cursor:pointer;
-  transition:all .15s; color:#555; line-height:1.4; display:block;
-}
-.popt-opt i { font-size:1.1rem; display:block; margin-bottom:3px; }
-input[type="radio"]:checked + .popt-opt {
-  border-color:#02534C; background:#e8f5f3; color:#02534C; font-weight:600;
-}
-.section-title {
-  font-size:.82rem; font-weight:700; color:#02534C;
-  display:flex; align-items:center; gap:6px; margin-bottom:12px;
-}
-/* ─ Sidebar ─ */
-.fp-hdr { color:#7dd3b8; font-size:.7rem; font-weight:700; letter-spacing:.5px; margin-bottom:8px; display:flex; align-items:center; gap:5px; }
-.fp-in {
-  width:100%; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12);
-  border-radius:7px; padding:7px 10px; color:#fff; font-size:.8rem; outline:none;
-  transition:border-color .15s; box-sizing:border-box;
-}
-.fp-in:focus { border-color:#02534C; }
-.fp-in::placeholder { color:rgba(255,255,255,.3); }
-.fp-in-sm { padding:5px 8px!important; font-size:.76rem!important; }
-.fp-range { width:100%; accent-color:#02534C; cursor:pointer; }
-.fp-rg { display:flex; gap:5px; flex-wrap:wrap; }
-.fp-rg label { flex:1; cursor:pointer; }
-.fp-opt {
-  background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.12);
-  border-radius:7px; padding:7px 5px; text-align:center; font-size:.72rem;
-  color:rgba(255,255,255,.55); cursor:pointer; transition:all .15s; display:block;
-}
-.fp-opt:hover { background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.22); }
-input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-color:#02534C; color:#7dd3b8; font-weight:600; }
-.fp-sw { display:flex; align-items:center; gap:8px; cursor:pointer; }
-.fp-sw input { accent-color:#02534C; width:16px; height:16px; cursor:pointer; }
-.fp-sw span { color:rgba(255,255,255,.75); font-size:.8rem; }
-.fp-div { border:none; border-top:1px solid rgba(255,255,255,.07); margin:0; }
-.fp-sec { padding:14px 18px; }
-.fp-preset {
-  flex:1; padding:6px 3px; font-size:.68rem; background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.1); border-radius:6px; color:rgba(255,255,255,.55);
-  cursor:pointer; transition:all .15s; text-align:center; white-space:nowrap; line-height:1.3;
-}
-.fp-preset:hover { background:rgba(255,255,255,.12); color:#fff; }
-.fp-preset.on { background:rgba(2,83,76,.45); border-color:#02534C; color:#7dd3b8; }
+.popt-opt{border:2px solid #ddd;border-radius:8px;padding:9px 6px;text-align:center;font-size:.76rem;cursor:pointer;transition:all .15s;color:#555;line-height:1.4;display:block;}
+.popt-opt i{font-size:1.1rem;display:block;margin-bottom:3px;}
+input[type="radio"]:checked + .popt-opt{border-color:#02534C;background:#e8f5f3;color:#02534C;font-weight:600;}
+.section-title{font-size:.82rem;font-weight:700;color:#02534C;display:flex;align-items:center;gap:6px;margin-bottom:12px;}
 
-@keyframes cgmFade   { from{opacity:0} to{opacity:1} }
-@keyframes cgmSlide  { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
-@keyframes cgmZoom   { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
-@keyframes cgmDrop   { from{opacity:0;transform:translateY(-32px)} to{opacity:1;transform:translateY(0)} }
-@keyframes cgmBounce { 0%{opacity:0;transform:scale(.7)} 55%{transform:scale(1.07)} 80%{transform:scale(.97)} 100%{opacity:1;transform:scale(1)} }
-@keyframes cgmFlip   { from{opacity:0;transform:rotateY(85deg)} to{opacity:1;transform:rotateY(0)} }
+.fp-tabs{display:flex;background:#071711;position:sticky;top:0;z-index:6;border-bottom:1px solid rgba(255,255,255,.08);}
+.fp-tab{flex:1;padding:11px 4px;background:none;border:none;color:rgba(255,255,255,.4);font-size:.63rem;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;}
+.fp-tab i{display:block;font-size:1rem;margin-bottom:3px;}
+.fp-tab:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.04);}
+.fp-tab.on{color:#7dd3b8;border-bottom-color:#7dd3b8;background:rgba(125,211,184,.07);}
+.fp-pane{display:none;padding:16px 18px 28px;}
+.fp-pane.on{display:block;}
+
+.fp-hdr{color:#7dd3b8;font-size:.68rem;font-weight:700;letter-spacing:.6px;margin:0 0 10px;display:flex;align-items:center;gap:6px;text-transform:uppercase;}
+.fp-lbl{color:rgba(255,255,255,.45);font-size:.7rem;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.fp-val{color:#7dd3b8;font-size:.72rem;font-weight:700;background:rgba(2,83,76,.3);padding:2px 8px;border-radius:4px;}
+.fp-in{width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 10px;color:#fff;font-size:.8rem;outline:none;transition:border-color .15s;box-sizing:border-box;}
+.fp-in:focus{border-color:#7dd3b8;}
+.fp-in::placeholder{color:rgba(255,255,255,.28);}
+.fp-range{width:100%;accent-color:#7dd3b8;cursor:pointer;}
+.fp-rg{display:flex;gap:5px;flex-wrap:wrap;}
+.fp-rg label{flex:1;cursor:pointer;min-width:0;}
+.fp-opt{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 4px;text-align:center;font-size:.7rem;color:rgba(255,255,255,.55);cursor:pointer;transition:all .15s;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fp-opt i{display:block;font-size:.92rem;margin-bottom:3px;}
+.fp-opt:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.22);}
+input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:#7dd3b8;color:#7dd3b8;font-weight:600;}
+.fp-sw{display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:12px;}
+.fp-sw input{accent-color:#7dd3b8;width:16px;height:16px;cursor:pointer;flex-shrink:0;}
+.fp-sw span{color:rgba(255,255,255,.8);font-size:.79rem;font-weight:600;}
+.fp-grp{margin-bottom:16px;}
+.fp-note{color:rgba(255,255,255,.3);font-size:.66rem;line-height:1.45;margin-top:5px;}
+.fp-preset{flex:1;padding:6px 3px;font-size:.67rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:rgba(255,255,255,.55);cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;}
+.fp-preset:hover{background:rgba(255,255,255,.13);color:#fff;}
+.fp-preset.on{background:rgba(2,83,76,.5);border-color:#7dd3b8;color:#7dd3b8;font-weight:600;}
+.fp-cp{width:34px;height:30px;border:1.5px solid rgba(255,255,255,.15);border-radius:6px;background:none;cursor:pointer;padding:2px;flex-shrink:0;}
+.fp-row{display:flex;gap:7px;align-items:center;}
+.fp-sws{display:flex;gap:5px;margin-top:7px;}
+.fp-sws button{width:24px;height:24px;border-radius:5px;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;padding:0;transition:transform .12s;}
+.fp-sws button:hover{transform:scale(1.15);}
+
+@keyframes cgmFade{from{opacity:0}to{opacity:1}}
+@keyframes cgmSlide{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cgmZoom{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes cgmDrop{from{opacity:0;transform:translateY(-32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cgmBounce{0%{opacity:0;transform:scale(.7)}55%{transform:scale(1.07)}80%{transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
+@keyframes cgmFlip{from{opacity:0;transform:perspective(600px) rotateY(85deg)}to{opacity:1;transform:perspective(600px) rotateY(0)}}
 </style>
 
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
@@ -84,52 +78,60 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
       action="{{ url_for('admin.popup_editar', pid=p.id) if popup else url_for('admin.popup_nuevo') }}"
       enctype="multipart/form-data" id="popupForm">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-  <!-- Input de archivo real (lo rellena el editor visual vía DataTransfer) -->
   <input type="file" name="imagen_file" id="h_file" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
 
-  <!-- ════ INPUTS OCULTOS — propiedades visuales ════
-       El editor visual los escribe directamente.
-       El form los envía al servidor al guardar.        -->
-  <input type="hidden" name="imagen_actual"       id="h_img_actual"  value="{{ p.get('imagen','') }}">
-  <input type="hidden" name="imagen_fit"          id="h_fit"         value="{{ p.get('imagen_fit','cover') }}">
-  <input type="hidden" name="imagen_altura"       id="h_altura"      value="{{ p.get('imagen_altura',300) }}">
-  <input type="hidden" name="popup_ancho"         id="h_ancho"       value="{{ p.get('popup_ancho',560) }}">
-  <input type="hidden" name="overlay_titulo"      id="h_ov_tit"      value="{{ p.get('overlay_titulo','') }}">
-  <input type="hidden" name="overlay_subtitulo"   id="h_ov_sub"      value="{{ p.get('overlay_subtitulo','') }}">
-  <input type="hidden" name="overlay_color_fondo" id="h_ov_cf"       value="{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }}">
-  <input type="hidden" name="overlay_color_texto" id="h_ov_ct"       value="{{ p.get('overlay_color_texto','#ffffff') }}">
-  <input type="hidden" name="overlay_posicion"    id="h_ov_pos"      value="{{ p.get('overlay_posicion','bottom') }}">
-  <input type="hidden" name="boton_texto"         id="h_btn_txt"     value="{{ p.get('boton_texto','Ver más') }}">
-  <input type="hidden" name="boton_color_fondo"   id="h_btn_cf"      value="{{ p.get('boton_color_fondo','#02534C') }}">
-  <input type="hidden" name="boton_color_texto"   id="h_btn_ct"      value="{{ p.get('boton_color_texto','#ffffff') }}">
-  <input type="hidden" name="boton_tamano"        id="h_btn_tam"     value="{{ p.get('boton_tamano','md') }}">
-  <input type="hidden" name="animacion"           id="h_anim"        value="{{ p.get('animacion','fade') }}">
-  <input type="hidden" name="boton_pos_x"         id="h_pos_x"       value="{{ p.get('boton_pos_x',50) }}">
-  <input type="hidden" name="boton_pos_y"         id="h_pos_y"       value="{{ p.get('boton_pos_y',85) }}">
-  <!-- Checkboxes ocultos para booleanos -->
-  <input type="checkbox" name="overlay_activo"   id="h_ov_on"   value="1" style="display:none;" {{ 'checked' if p.get('overlay_activo') else '' }}>
-  <input type="checkbox" name="boton_activo"     id="h_btn_on"  value="1" style="display:none;" {{ 'checked' if p.get('boton_activo') else '' }}>
-  <input type="checkbox" name="contenido_activo" id="h_cont_on" value="1" style="display:none;" {{ 'checked' if p.get('contenido_activo') else '' }}>
-  <!-- Nuevas propiedades visuales del card -->
-  <input type="hidden" name="popup_radio"           id="h_radio"    value="{{ p.get('popup_radio',14) }}">
-  <input type="hidden" name="popup_bg"              id="h_bg"       value="{{ p.get('popup_bg','#111111') }}">
-  <input type="hidden" name="contenido_titulo"      id="h_cont_tit" value="{{ p.get('contenido_titulo','') }}">
+  <input type="hidden" name="imagen_actual"        id="h_img_actual" value="{{ p.get('imagen','') }}">
+  <input type="hidden" name="imagen_fit"           id="h_fit"        value="{{ p.get('imagen_fit','cover') }}">
+  <input type="hidden" name="imagen_modo"          id="h_imod"       value="{{ p.get('imagen_modo','ratio') }}">
+  <input type="hidden" name="imagen_altura"        id="h_altura"     value="{{ p.get('imagen_altura',300) }}">
+  <input type="hidden" name="popup_ancho"          id="h_ancho"      value="{{ p.get('popup_ancho',520) }}">
+  <input type="hidden" name="popup_radio"          id="h_radio"      value="{{ p.get('popup_radio',14) }}">
+  <input type="hidden" name="popup_bg"             id="h_bg"         value="{{ p.get('popup_bg','#111111') }}">
+  <input type="hidden" name="popup_posicion"       id="h_ppos"       value="{{ p.get('popup_posicion','centro') }}">
+  <input type="hidden" name="popup_sombra"         id="h_som"        value="{{ p.get('popup_sombra','lg') }}">
+  <input type="hidden" name="popup_borde_ancho"    id="h_bw"         value="{{ p.get('popup_borde_ancho',0) }}">
+  <input type="hidden" name="popup_borde_color"    id="h_bc"         value="{{ p.get('popup_borde_color','#ffffff') }}">
+  <input type="hidden" name="backdrop_color"       id="h_bdc"        value="{{ p.get('backdrop_color','rgba(0,0,0,0.65)') }}">
+  <input type="hidden" name="backdrop_blur"        id="h_bdb"        value="{{ p.get('backdrop_blur',0) }}">
+  <input type="hidden" name="cerrar_estilo"        id="h_xst"        value="{{ p.get('cerrar_estilo','dentro') }}">
+  <input type="hidden" name="cerrar_color"         id="h_xcol"       value="{{ p.get('cerrar_color','#ffffff') }}">
+  <input type="hidden" name="cerrar_delay_ms"      id="h_xdel"       value="{{ p.get('cerrar_delay_ms',0) }}">
+  <input type="hidden" name="overlay_titulo"       id="h_ov_tit"     value="{{ p.get('overlay_titulo','') }}">
+  <input type="hidden" name="overlay_subtitulo"    id="h_ov_sub"     value="{{ p.get('overlay_subtitulo','') }}">
+  <input type="hidden" name="overlay_color_fondo"  id="h_ov_cf"      value="{{ p.get('overlay_color_fondo','rgba(0,0,0,0.55)') }}">
+  <input type="hidden" name="overlay_color_texto"  id="h_ov_ct"      value="{{ p.get('overlay_color_texto','#ffffff') }}">
+  <input type="hidden" name="overlay_posicion"     id="h_ov_pos"     value="{{ p.get('overlay_posicion','bottom') }}">
+  <input type="hidden" name="overlay_alineacion"   id="h_ov_al"      value="{{ p.get('overlay_alineacion','izquierda') }}">
+  <input type="hidden" name="contenido_titulo"     id="h_cont_tit"   value="{{ p.get('contenido_titulo','') }}">
   <input type="hidden" name="contenido_descripcion" id="h_cont_desc" value="{{ p.get('contenido_descripcion','') }}">
-  <input type="hidden" name="contenido_bg"          id="h_cont_bg"  value="{{ p.get('contenido_bg','#ffffff') }}">
-  <input type="hidden" name="contenido_color_texto" id="h_cont_ct"  value="{{ p.get('contenido_color_texto','#222222') }}">
+  <input type="hidden" name="contenido_bg"         id="h_cont_bg"    value="{{ p.get('contenido_bg','#ffffff') }}">
+  <input type="hidden" name="contenido_color_texto" id="h_cont_ct"   value="{{ p.get('contenido_color_texto','#222222') }}">
+  <input type="hidden" name="contenido_alineacion" id="h_cont_al"    value="{{ p.get('contenido_alineacion','izquierda') }}">
+  <input type="hidden" name="boton_texto"          id="h_btn_txt"    value="{{ p.get('boton_texto','Ver más') }}">
+  <input type="hidden" name="boton_color_fondo"    id="h_btn_cf"     value="{{ p.get('boton_color_fondo','#02534C') }}">
+  <input type="hidden" name="boton_color_texto"    id="h_btn_ct"     value="{{ p.get('boton_color_texto','#ffffff') }}">
+  <input type="hidden" name="boton_tamano"         id="h_btn_tam"    value="{{ p.get('boton_tamano','md') }}">
+  <input type="hidden" name="boton_radio"          id="h_btn_rad"    value="{{ p.get('boton_radio',6) }}">
+  <input type="hidden" name="boton_pos_x"          id="h_pos_x"      value="{{ p.get('boton_pos_x',50) }}">
+  <input type="hidden" name="boton_pos_y"          id="h_pos_y"      value="{{ p.get('boton_pos_y',85) }}">
+  <input type="hidden" name="animacion"            id="h_anim"       value="{{ p.get('animacion','fade') }}">
+
+  <input type="checkbox" name="overlay_activo"       id="h_ov_on"    value="1" style="display:none;" {{ 'checked' if p.get('overlay_activo') else '' }}>
+  <input type="checkbox" name="boton_activo"         id="h_btn_on"   value="1" style="display:none;" {{ 'checked' if p.get('boton_activo') else '' }}>
+  <input type="checkbox" name="contenido_activo"     id="h_cont_on"  value="1" style="display:none;" {{ 'checked' if p.get('contenido_activo') else '' }}>
+  <input type="checkbox" name="backdrop_cerrar"      id="h_bdcl"     value="1" style="display:none;" {{ 'checked' if p.get('backdrop_cerrar',1) else '' }}>
+  <input type="checkbox" name="boton_ancho_completo" id="h_btn_full" value="1" style="display:none;" {{ 'checked' if p.get('boton_ancho_completo') else '' }}>
 
   <div class="row g-4">
-
-    <!-- ╔══ IZQUIERDA: Configuración ══╗ -->
     <div class="col-12 col-xl-5" style="display:flex;flex-direction:column;gap:12px;">
 
       <div class="adm-card">
         <div class="section-title"><i class="bi bi-info-circle"></i>Información básica</div>
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.85rem;">Título interno <span class="text-danger">*</span></label>
-          <input type="text" name="titulo" class="form-control" required
+          <input type="text" name="titulo" class="form-control" required maxlength="120"
                  value="{{ p.get('titulo','') }}" placeholder="Ej: Campaña Expomina 2026">
+          <div class="form-text" style="font-size:.72rem;">Sólo para identificarlo en el panel. No se muestra al visitante.</div>
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold" style="font-size:.85rem;">
@@ -138,14 +140,10 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           <input type="url" name="link_url" class="form-control"
                  value="{{ p.get('link_url','') }}" placeholder="https://...">
         </div>
-        <div class="mb-3">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="abrir_nueva_ventana"
-                   id="chkNV" value="1" {{ 'checked' if p.get('abrir_nueva_ventana',1) else '' }}>
-            <label class="form-check-label" for="chkNV" style="font-size:.85rem;">
-              Abrir link en nueva pestaña
-            </label>
-          </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="abrir_nueva_ventana"
+                 id="chkNV" value="1" {{ 'checked' if p.get('abrir_nueva_ventana',1) else '' }}>
+          <label class="form-check-label" for="chkNV" style="font-size:.85rem;">Abrir link en nueva pestaña</label>
         </div>
         <div class="row g-2">
           <div class="col-6">
@@ -160,9 +158,50 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
       </div>
 
       <div class="adm-card">
-        <div class="section-title"><i class="bi bi-sliders"></i>Comportamiento</div>
+        <div class="section-title"><i class="bi bi-lightning-charge"></i>Cuándo aparece</div>
+
+        <label class="form-label fw-semibold" style="font-size:.83rem;">Disparador</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          {% for val, lbl, icon, desc in [
+            ('tiempo','Por tiempo','bi-hourglass-split','Tras unos segundos'),
+            ('scroll','Al hacer scroll','bi-arrow-down-circle','Al bajar en la página'),
+            ('salida','Intención de salida','bi-box-arrow-up-right','Al ir a cerrar')
+          ] %}
+          <label style="flex:1;min-width:92px;cursor:pointer;">
+            <input type="radio" name="disparador" value="{{ val }}" class="d-none" onchange="dispCambio()"
+                   {{ 'checked' if (p.get('disparador') or 'tiempo') == val else '' }}>
+            <div class="popt-opt">
+              <i class="bi {{ icon }}"></i>
+              <strong style="font-size:.73rem;">{{ lbl }}</strong><br>
+              <span style="font-size:.65rem;color:#888;">{{ desc }}</span>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3" id="boxDelay">
+          <label class="form-label fw-semibold" style="font-size:.83rem;">
+            Retraso: <strong id="lblDelay">{{ p.get('delay_ms',800) }}ms</strong>
+          </label>
+          <input type="range" name="delay_ms" min="0" max="20000" step="100"
+                 value="{{ p.get('delay_ms',800) }}" class="form-range"
+                 oninput="document.getElementById('lblDelay').textContent=this.value+'ms'">
+          <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
+            <span>Inmediato</span><span>20 s</span>
+          </div>
+        </div>
+
+        <div class="mb-3" id="boxScroll" style="display:none;">
+          <label class="form-label fw-semibold" style="font-size:.83rem;">
+            Aparece al <strong id="lblScroll">{{ p.get('scroll_pct',50) }}%</strong> de la página
+          </label>
+          <input type="range" name="scroll_pct" min="5" max="100" step="5"
+                 value="{{ p.get('scroll_pct',50) }}" class="form-range"
+                 oninput="document.getElementById('lblScroll').textContent=this.value+'%'">
+        </div>
+
         <label class="form-label fw-semibold" style="font-size:.83rem;">Frecuencia</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
           {% for val, lbl, icon, desc in [
             ('siempre','Siempre','bi-arrow-repeat','Cada visita'),
             ('sesion','Por sesión','bi-window','Una vez por pestaña'),
@@ -170,7 +209,7 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           ] %}
           <label style="flex:1;min-width:80px;cursor:pointer;">
             <input type="radio" name="frecuencia" value="{{ val }}" class="d-none"
-                   {{ 'checked' if p.get('frecuencia','siempre') == val else '' }}>
+                   {{ 'checked' if (p.get('frecuencia') or 'siempre') == val else '' }}>
             <div class="popt-opt">
               <i class="bi {{ icon }}"></i>
               <strong style="font-size:.74rem;">{{ lbl }}</strong><br>
@@ -179,24 +218,36 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           </label>
           {% endfor %}
         </div>
-        <div class="mb-3">
-          <label class="form-label fw-semibold" style="font-size:.83rem;">
-            Retraso: <strong id="lblDelay">{{ p.get('delay_ms',800) }}ms</strong>
-          </label>
-          <input type="range" name="delay_ms" min="0" max="5000" step="100"
-                 value="{{ p.get('delay_ms',800) }}" class="form-range"
-                 oninput="document.getElementById('lblDelay').textContent=this.value+'ms'">
-          <div class="d-flex justify-content-between" style="font-size:.7rem;color:#aaa;margin-top:-4px;">
-            <span>Inmediato</span><span>5 s</span>
+
+        <div class="row g-2 mb-3">
+          <div class="col-7">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">País</label>
+            <select name="pais_filtro" class="form-select form-select-sm">
+              {% for val, lbl in [('todos','🌎 Todos los países'),('pe','🇵🇪 Solo Perú'),('ar','🇦🇷 Solo Argentina')] %}
+              <option value="{{ val }}" {{ 'selected' if (p.get('pais_filtro') or 'todos') == val else '' }}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-5">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Prioridad</label>
+            <input type="number" name="prioridad" class="form-control form-control-sm" min="0" max="999"
+                   value="{{ p.get('prioridad',0) }}">
           </div>
         </div>
-        <div>
-          <label class="form-label fw-semibold" style="font-size:.83rem;">Mostrar en</label>
-          <select name="pais_filtro" class="form-select form-select-sm">
-            {% for val, lbl in [('todos','🌎 Todos los países'),('pe','🇵🇪 Solo Perú'),('ar','🇦🇷 Solo Argentina')] %}
-            <option value="{{ val }}" {{ 'selected' if p.get('pais_filtro','todos') == val else '' }}>{{ lbl }}</option>
-            {% endfor %}
-          </select>
+        <div class="form-text mb-3" style="font-size:.72rem;margin-top:-8px;">
+          Si dos popups coinciden en fechas, gana el de prioridad más alta.
+        </div>
+
+        <label class="form-label fw-semibold" style="font-size:.83rem;">Páginas</label>
+        <select name="mostrar_en" id="selPaginas" class="form-select form-select-sm mb-2" onchange="pagCambio()">
+          {% for val, lbl in [('todas','En todas las páginas'),('home','Solo en la portada'),('rutas','Solo en rutas específicas')] %}
+          <option value="{{ val }}" {{ 'selected' if (p.get('mostrar_en') or 'todas') == val else '' }}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+        <div id="boxRutas" style="display:none;">
+          <input type="text" name="rutas" class="form-control form-control-sm" maxlength="500"
+                 value="{{ p.get('rutas','') }}" placeholder="/alquiler, /contacto, /blog">
+          <div class="form-text" style="font-size:.72rem;">Separadas por coma. Incluye las subpáginas de cada ruta.</div>
         </div>
       </div>
 
@@ -220,12 +271,10 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
       </div>
     </div>
 
-    <!-- ╔══ DERECHA: Diseño visual ══╗ -->
     <div class="col-12 col-xl-7">
       <div class="adm-card" style="position:sticky;top:80px;">
         <div class="section-title"><i class="bi bi-palette"></i>Diseño visual</div>
 
-        <!-- Botón de apertura -->
         <button type="button" onclick="editorAbrir()"
                 style="width:100%;padding:20px 24px;border-radius:12px;border:none;
                        background:linear-gradient(135deg,#01382f,#02534C,#037a6d);color:#fff;
@@ -241,13 +290,12 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           <div style="flex:1;">
             <div style="font-size:1rem;font-weight:700;">Abrir editor visual</div>
             <div style="font-size:.74rem;opacity:.65;margin-top:3px;">
-              Imagen · Texto superpuesto · Botón CTA · Animación · Vista previa en tiempo real
+              Imagen · Card · Fondo · Textos · Botón CTA · Vista previa real
             </div>
           </div>
           <i class="bi bi-arrow-right" style="opacity:.5;font-size:1.1rem;"></i>
         </button>
 
-        <!-- Thumbnail -->
         <div style="margin-top:14px;border-radius:10px;overflow:hidden;background:#1e1e1e;
                     position:relative;line-height:0;cursor:pointer;" onclick="editorAbrir()">
           <div id="prevPh"
@@ -280,14 +328,10 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
             <i class="bi bi-pencil-square me-2"></i>Editar diseño
           </div>
         </div>
-        <div style="font-size:.69rem;color:#bbb;text-align:center;margin-top:4px;">
-          Vista reducida · el editor muestra el popup a tamaño real
-        </div>
 
-        <!-- Info chips -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;">
           {% for lbl, cid, val in [
-            ('ANCHO',    'chip_ancho',  ((p.get('popup_ancho') or 560)|string)+'px'),
+            ('ANCHO',    'chip_ancho',  ((p.get('popup_ancho') or 520)|string)+'px'),
             ('ALT. IMG', 'chip_altura', ((p.get('imagen_altura') or 300)|string)+'px'),
             ('AJUSTE',   'chip_fit',    p.get('imagen_fit','cover')),
             ('ANIMACIÓN','chip_anim',   p.get('animacion','fade'))
@@ -299,56 +343,53 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           {% endfor %}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
-          <div id="chip_ov"
-               style="border-radius:20px;padding:3px 10px;font-size:.72rem;
-                      {{ 'background:#e8f5f3;color:#02534C;' if p.get('overlay_activo') else 'background:#f0f0f0;color:#aaa;' }}">
-            <i class="bi bi-fonts me-1"></i>Texto: {{ 'activo' if p.get('overlay_activo') else 'desactivado' }}
+          <div id="chip_ov" style="border-radius:20px;padding:3px 10px;font-size:.72rem;
+               {{ 'background:#e8f5f3;color:#02534C;' if p.get('overlay_activo') else 'background:#f0f0f0;color:#aaa;' }}">
+            <i class="bi bi-fonts me-1"></i>Texto sobre imagen
           </div>
-          <div id="chip_btn"
-               style="border-radius:20px;padding:3px 10px;font-size:.72rem;
-                      {{ 'background:#e8f5f3;color:#02534C;' if p.get('boton_activo') else 'background:#f0f0f0;color:#aaa;' }}">
-            <i class="bi bi-cursor me-1"></i>Botón: {{ 'activo' if p.get('boton_activo') else 'desactivado' }}
+          <div id="chip_cont" style="border-radius:20px;padding:3px 10px;font-size:.72rem;
+               {{ 'background:#e8f5f3;color:#02534C;' if p.get('contenido_activo') else 'background:#f0f0f0;color:#aaa;' }}">
+            <i class="bi bi-text-paragraph me-1"></i>Contenido
           </div>
-          <div id="chip_pos"
-               style="border-radius:20px;padding:3px 10px;font-size:.72rem;background:#f0f0f0;color:#888;
-                      {{ '' if p.get('boton_activo') else 'display:none;' }}">
-            Pos X:<strong id="cPX">{{ p.get('boton_pos_x',50) }}</strong>%
-            Y:<strong id="cPY">{{ p.get('boton_pos_y',85) }}</strong>%
+          <div id="chip_btn" style="border-radius:20px;padding:3px 10px;font-size:.72rem;
+               {{ 'background:#e8f5f3;color:#02534C;' if p.get('boton_activo') else 'background:#f0f0f0;color:#aaa;' }}">
+            <i class="bi bi-cursor me-1"></i>Botón CTA
           </div>
         </div>
       </div>
     </div>
 
-  </div><!-- /row -->
+  </div>
 </form>
 
-<!-- ══════════════════════════════════════════════════════════
-     EDITOR VISUAL FULLSCREEN
-══════════════════════════════════════════════════════════════ -->
-<div id="fpOv" style="position:fixed;inset:0;z-index:99998;display:none;font-family:system-ui,sans-serif;">
+<div id="fpOv" style="position:fixed;inset:0;z-index:99998;display:none;background:#0a0f0c;font-family:system-ui,sans-serif;">
 
-  <!-- ── SIDEBAR 340px ──────────────────────────────────── -->
-  <div style="position:absolute;left:0;top:0;bottom:0;width:340px;
-              background:#0c1d12;overflow-y:auto;z-index:5;
-              border-right:1px solid rgba(255,255,255,.08);">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:340px;background:#0c1d12;
+              overflow-y:auto;z-index:5;border-right:1px solid rgba(255,255,255,.08);">
 
-    <div style="padding:14px 18px;background:#01382f;display:flex;align-items:center;gap:10px;
-                position:sticky;top:0;z-index:2;box-shadow:0 2px 10px rgba(0,0,0,.5);">
+    <div style="padding:13px 18px;background:#01382f;display:flex;align-items:center;gap:10px;
+                position:sticky;top:0;z-index:7;box-shadow:0 2px 10px rgba(0,0,0,.5);">
       <i class="bi bi-palette" style="color:#7dd3b8;font-size:.95rem;"></i>
       <span style="font-weight:700;color:#fff;font-size:.88rem;">Diseño visual</span>
-      <span style="margin-left:auto;font-size:.67rem;color:rgba(255,255,255,.35);">ESC para cerrar</span>
+      <span style="margin-left:auto;font-size:.65rem;color:rgba(255,255,255,.35);">ESC cierra</span>
     </div>
 
-    <!-- IMAGEN -->
-    <div class="fp-sec">
-      <div class="fp-hdr"><i class="bi bi-image"></i>IMAGEN</div>
+    <div class="fp-tabs">
+      <button type="button" class="fp-tab on" data-tab="img"  onclick="fp_tab('img')"><i class="bi bi-image"></i>IMAGEN</button>
+      <button type="button" class="fp-tab"    data-tab="card" onclick="fp_tab('card')"><i class="bi bi-square"></i>CARD</button>
+      <button type="button" class="fp-tab"    data-tab="fondo" onclick="fp_tab('fondo')"><i class="bi bi-layers"></i>FONDO</button>
+      <button type="button" class="fp-tab"    data-tab="txt"  onclick="fp_tab('txt')"><i class="bi bi-fonts"></i>TEXTO</button>
+      <button type="button" class="fp-tab"    data-tab="btn"  onclick="fp_tab('btn')"><i class="bi bi-cursor"></i>BOTÓN</button>
+    </div>
+
+    <div class="fp-pane on" id="pane-img">
+      <div class="fp-hdr"><i class="bi bi-cloud-upload"></i>Archivo</div>
       <div id="fp_zone"
            style="border:2px dashed rgba(255,255,255,.14);border-radius:10px;overflow:hidden;
-                  margin-bottom:12px;cursor:pointer;min-height:110px;
-                  display:flex;align-items:center;justify-content:center;
-                  transition:border-color .2s;position:relative;"
+                  margin-bottom:16px;cursor:pointer;min-height:110px;display:flex;
+                  align-items:center;justify-content:center;transition:border-color .2s;position:relative;"
            onclick="document.getElementById('fp_file').click()"
-           onmouseover="this.style.borderColor='rgba(2,83,76,.7)'"
+           onmouseover="this.style.borderColor='rgba(125,211,184,.7)'"
            onmouseout="this.style.borderColor='rgba(255,255,255,.14)'">
         <img id="fp_thumb" src="" style="width:100%;max-height:160px;object-fit:cover;display:none;">
         <div id="fp_zonePh" style="text-align:center;color:#3a7a56;padding:22px;font-size:.8rem;">
@@ -362,342 +403,355 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           <i class="bi bi-pencil-fill me-1"></i>Cambiar
         </div>
       </div>
-      <input type="file" id="fp_file" accept=".jpg,.jpeg,.png,.webp"
-             style="display:none;" onchange="fp_onImg(this)">
+      <input type="file" id="fp_file" accept=".jpg,.jpeg,.png,.webp" style="display:none;" onchange="fp_onImg(this)">
 
-      <div style="margin-bottom:12px;">
-        <div style="color:rgba(255,255,255,.4);font-size:.69rem;margin-bottom:6px;">Ajuste de imagen</div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Ajuste dentro del marco</div>
         <div class="fp-rg">
           {% for v, l, ic in [('cover','Recortar','bi-fullscreen'),('contain','Completa','bi-aspect-ratio'),('fill','Estirar','bi-arrows-fullscreen')] %}
-          <label style="flex:1;cursor:pointer;">
-            <input type="radio" name="fp_fit" value="{{ v }}" style="display:none;"
-                   onchange="fp_apply('fit',this.value)">
-            <div class="fp-opt" style="padding:8px 4px;">
-              <i class="bi {{ ic }}" style="display:block;font-size:.9rem;margin-bottom:2px;"></i>{{ l }}
-            </div>
-          </label>
+          <label><input type="radio" name="fp_fit" value="{{ v }}" style="display:none;" onchange="fp_apply('fit',this.value)">
+            <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
           {% endfor %}
         </div>
       </div>
 
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Altura imagen</span>
-          <strong id="fp_lblAlt" style="color:#7dd3b8;font-size:.76rem;
-                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">300px</strong>
-        </div>
-        <div style="display:flex;gap:4px;margin-bottom:7px;">
-          {% for v, l in [(200,'200'),(300,'300'),(420,'420'),(560,'560')] %}
-          <button type="button" class="fp-preset fp-pAlt" data-v="{{ v }}"
-                  onclick="fp_setAlt({{ v }})">{{ l }}px</button>
+      <div class="fp-grp">
+        <div class="fp-lbl">Comportamiento en móvil</div>
+        <div class="fp-rg">
+          {% for v, l, ic in [('ratio','Proporcional','bi-aspect-ratio'),('fija','Altura fija','bi-arrows-vertical')] %}
+          <label><input type="radio" name="fp_imod" value="{{ v }}" style="display:none;" onchange="fp_apply('imod',this.value)">
+            <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
           {% endfor %}
         </div>
-        <input type="range" id="fp_rAlt" min="80" max="700" step="10" value="300"
-               class="fp-range" oninput="fp_apply('altura',this.value)">
-        <div style="display:flex;justify-content:space-between;font-size:.63rem;
-                    color:rgba(255,255,255,.18);margin-top:3px;">
-          <span>80px</span><span>700px</span>
+        <div class="fp-note">
+          <strong style="color:#7dd3b8;">Proporcional</strong> mantiene la forma de la imagen al encoger la pantalla.
+          <strong>Altura fija</strong> conserva los píxeles de alto y recorta más en celular.
         </div>
       </div>
 
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Ancho del popup</span>
-          <strong id="fp_lblAnc" style="color:#7dd3b8;font-size:.76rem;
-                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">560px</strong>
+      <div class="fp-grp">
+        <div class="fp-lbl">Altura de imagen <strong class="fp-val" id="fp_lblAlt">300px</strong></div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          {% for v in [200,280,360,460] %}
+          <button type="button" class="fp-preset fp-pAlt" data-v="{{ v }}" onclick="fp_setAlt({{ v }})">{{ v }}</button>
+          {% endfor %}
         </div>
-        <div style="display:flex;gap:4px;margin-bottom:7px;">
-          <button type="button" class="fp-preset fp-pAnc" data-v="420" onclick="fp_setAnc(420)">
-            Compacto<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">420px</span>
-          </button>
-          <button type="button" class="fp-preset fp-pAnc" data-v="580" onclick="fp_setAnc(580)">
-            Estándar<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">580px</span>
-          </button>
-          <button type="button" class="fp-preset fp-pAnc" data-v="740" onclick="fp_setAnc(740)">
-            Grande<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">740px</span>
-          </button>
-          <button type="button" class="fp-preset fp-pAnc" data-v="940" onclick="fp_setAnc(940)">
-            Amplio<br><span style="color:rgba(255,255,255,.3);font-size:.62rem;">940px</span>
-          </button>
+        <input type="range" id="fp_rAlt" class="fp-range" min="80" max="900" step="10"
+               value="{{ p.get('imagen_altura',300) }}" oninput="fp_apply('altura',this.value);fp_markAlt(+this.value)">
+      </div>
+    </div>
+
+    <div class="fp-pane" id="pane-card">
+      <div class="fp-hdr"><i class="bi bi-arrows-angle-expand"></i>Tamaño</div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Ancho del popup <strong class="fp-val" id="fp_lblAnc">520px</strong></div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          {% for v, l in [(380,'S'),(520,'M'),(680,'L'),(860,'XL')] %}
+          <button type="button" class="fp-preset fp-pAnc" data-v="{{ v }}" onclick="fp_setAnc({{ v }})">{{ l }}</button>
+          {% endfor %}
         </div>
-        <input type="range" id="fp_rAnc" min="300" max="940" step="10" value="560"
-               class="fp-range" oninput="fp_apply('ancho',this.value);fp_markAnc()">
-        <div style="display:flex;justify-content:space-between;font-size:.63rem;
-                    color:rgba(255,255,255,.18);margin-top:3px;">
-          <span>300px</span><span>940px</span>
+        <input type="range" id="fp_rAnc" class="fp-range" min="280" max="960" step="10"
+               value="{{ p.get('popup_ancho',520) }}" oninput="fp_apply('ancho',this.value);fp_markAnc()">
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Esquinas redondeadas <strong class="fp-val" id="fp_lblRad">14px</strong></div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          {% for v, l in [(0,'Recto'),(8,'Suave'),(16,'Medio'),(28,'Muy'),(40,'Máx')] %}
+          <button type="button" class="fp-preset fp-pRad" data-v="{{ v }}" onclick="fp_setRad({{ v }})">{{ l }}</button>
+          {% endfor %}
+        </div>
+        <input type="range" id="fp_rRad" class="fp-range" min="0" max="40" step="1"
+               value="{{ p.get('popup_radio',14) }}" oninput="fp_apply('radio',this.value);fp_markRad()">
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Color de fondo del card</div>
+        <div class="fp-row">
+          <input type="color" class="fp-cp" id="fp_bgCP" value="{{ p.get('popup_bg','#111111') }}"
+                 oninput="fp_apply('bg',this.value);document.getElementById('fp_bgTxt').value=this.value">
+          <input type="text" class="fp-in" id="fp_bgTxt" value="{{ p.get('popup_bg','#111111') }}"
+                 oninput="fp_apply('bg',this.value)">
+        </div>
+        <div class="fp-sws">
+          {% for c in ['#111111','#ffffff','#02534C','#1a1a2e','#f5f5f5'] %}
+          <button type="button" style="background:{{ c }};" onclick="fp_setBg('{{ c }}')"></button>
+          {% endfor %}
+        </div>
+        <div class="fp-note">Sólo se ve si la imagen no cubre todo o hay bordes visibles.</div>
+      </div>
+
+      <div class="fp-hdr" style="margin-top:22px;"><i class="bi bi-layout-text-window"></i>Presentación</div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Posición en pantalla</div>
+        <div class="fp-rg" style="margin-bottom:5px;">
+          {% for v, l, ic in [('centro','Centro','bi-align-center'),('arriba','Arriba','bi-align-top'),('abajo','Abajo','bi-align-bottom')] %}
+          <label><input type="radio" name="fp_ppos" value="{{ v }}" style="display:none;" onchange="fp_apply('ppos',this.value)">
+            <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
+          {% endfor %}
+        </div>
+        <div class="fp-rg">
+          {% for v, l, ic in [('inf-izquierda','Esq. izq.','bi-box-arrow-in-down-left'),('inf-derecha','Esq. der.','bi-box-arrow-in-down-right')] %}
+          <label><input type="radio" name="fp_ppos" value="{{ v }}" style="display:none;" onchange="fp_apply('ppos',this.value)">
+            <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Sombra</div>
+        <div class="fp-rg">
+          {% for v, l in [('none','Sin'),('sm','Sutil'),('md','Media'),('lg','Fuerte')] %}
+          <label><input type="radio" name="fp_som" value="{{ v }}" style="display:none;" onchange="fp_apply('som',this.value)">
+            <div class="fp-opt" style="padding:8px 4px;">{{ l }}</div></label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Borde <strong class="fp-val" id="fp_lblBw">0px</strong></div>
+        <input type="range" id="fp_rBw" class="fp-range" min="0" max="12" step="1"
+               value="{{ p.get('popup_borde_ancho',0) }}" oninput="fp_apply('bw',this.value)">
+        <div class="fp-row" style="margin-top:8px;">
+          <input type="color" class="fp-cp" id="fp_bcCP" value="{{ p.get('popup_borde_color','#ffffff') }}"
+                 oninput="fp_apply('bc',this.value)">
+          <span style="color:rgba(255,255,255,.4);font-size:.72rem;">Color del borde</span>
         </div>
       </div>
     </div>
-    <hr class="fp-div">
 
-    <!-- ESTILO CARD -->
-    <div class="fp-sec">
-      <div class="fp-hdr"><i class="bi bi-square-rounded"></i>ESTILO CARD</div>
-
-      <!-- Border radius -->
-      <div style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="color:rgba(255,255,255,.45);font-size:.7rem;">Borde redondeado</span>
-          <strong id="fp_lblRad" style="color:#7dd3b8;font-size:.76rem;
-                  background:rgba(2,83,76,.25);padding:2px 8px;border-radius:4px;">14px</strong>
+    <div class="fp-pane" id="pane-fondo">
+      <div class="fp-hdr"><i class="bi bi-layers-half"></i>Fondo oscuro</div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Color <strong class="fp-val" id="fp_lblBdA">65%</strong></div>
+        <div class="fp-row">
+          <input type="color" class="fp-cp" id="fp_bdcCP" value="#000000" oninput="fp_bdSync()">
+          <input type="range" id="fp_bdcA" class="fp-range" min="0" max="100" step="5" value="65" oninput="fp_bdSync()">
         </div>
-        <div style="display:flex;gap:4px;margin-bottom:7px;">
-          {% for v, l in [(0,'Sin'),(8,'Leve'),(14,'Medio'),(24,'Redondo')] %}
-          <button type="button" class="fp-preset fp-pRad" data-v="{{ v }}"
-                  onclick="fp_setRad({{ v }})">{{ l }}<br>
-            <span style="color:rgba(255,255,255,.3);font-size:.62rem;">{{ v }}px</span>
-          </button>
+        <div class="fp-note">El color y su opacidad sobre la página que hay detrás.</div>
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Desenfoque del fondo <strong class="fp-val" id="fp_lblBdb">0px</strong></div>
+        <input type="range" id="fp_rBdb" class="fp-range" min="0" max="20" step="1"
+               value="{{ p.get('backdrop_blur',0) }}" oninput="fp_apply('bdb',this.value)">
+      </div>
+
+      <label class="fp-sw">
+        <input type="checkbox" id="fp_bdcl" onchange="fp_apply('bdcl',this.checked)">
+        <span>Cerrar al hacer clic fuera</span>
+      </label>
+
+      <div class="fp-hdr" style="margin-top:22px;"><i class="bi bi-x-circle"></i>Botón de cerrar</div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Estilo</div>
+        <div class="fp-rg">
+          {% for v, l, ic in [('dentro','Dentro','bi-box-arrow-in-down-right'),('fuera','Fuera','bi-box-arrow-up-right'),('oculto','Oculto','bi-eye-slash')] %}
+          <label><input type="radio" name="fp_xst" value="{{ v }}" style="display:none;" onchange="fp_apply('xst',this.value)">
+            <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
           {% endfor %}
         </div>
-        <input type="range" id="fp_rRad" min="0" max="32" step="2" value="14"
-               class="fp-range" oninput="fp_apply('radio',this.value);fp_markRad()">
-        <div style="display:flex;justify-content:space-between;font-size:.63rem;
-                    color:rgba(255,255,255,.18);margin-top:3px;">
-          <span>0px</span><span>32px</span>
+        <div class="fp-note" id="fp_xstNote">Si lo ocultas, el cierre al hacer clic fuera se activa siempre para no dejar atrapado al visitante.</div>
+      </div>
+
+      <div class="fp-grp">
+        <div class="fp-lbl">Color del icono</div>
+        <div class="fp-row">
+          <input type="color" class="fp-cp" id="fp_xcolCP" value="{{ p.get('cerrar_color','#ffffff') }}"
+                 oninput="fp_apply('xcol',this.value)">
+          <span style="color:rgba(255,255,255,.4);font-size:.72rem;">Aspa de cerrar</span>
         </div>
       </div>
 
-      <!-- Background color -->
-      <div>
-        <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Fondo del card</div>
-        <div style="display:flex;gap:5px;align-items:center;margin-bottom:8px;">
-          <input type="color" id="fp_bgCP" value="#111111"
-                 style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
-                 oninput="fp_syncCP('fp_bgCP','fp_bgTxt');fp_apply('bg',this.value)">
-          <input type="text" id="fp_bgTxt" value="#111111"
-                 class="fp-in fp-in-sm" style="min-width:0;"
-                 oninput="fp_syncCH('fp_bgTxt','fp_bgCP');fp_apply('bg',this.value)">
-        </div>
-        <div style="display:flex;gap:4px;">
-          {% for color, lbl in [('#111111','Negro'),('#1a1a2e','Azul noche'),('#02534C','CGM Verde'),('#ffffff','Blanco')] %}
-          <button type="button" onclick="fp_setBg('{{ color }}')" title="{{ lbl }}"
-                  style="flex:1;height:22px;border-radius:5px;border:1.5px solid rgba(255,255,255,.15);
-                         background:{{ color }};cursor:pointer;transition:transform .1s;"
-                  onmouseover="this.style.transform='scale(1.08)'"
-                  onmouseout="this.style.transform=''"></button>
-          {% endfor %}
-        </div>
+      <div class="fp-grp">
+        <div class="fp-lbl">Aparece tras <strong class="fp-val" id="fp_lblXdel">0s</strong></div>
+        <input type="range" id="fp_rXdel" class="fp-range" min="0" max="15000" step="500"
+               value="{{ p.get('cerrar_delay_ms',0) }}" oninput="fp_apply('xdel',this.value)">
+        <div class="fp-note">Retrasar el aspa aumenta la exposición, pero molesta si es demasiado. Máximo recomendado: 3 s.</div>
       </div>
-    </div>
-    <hr class="fp-div">
 
-    <!-- TEXTO SUPERPUESTO -->
-    <div class="fp-sec">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-hdr mb-0"><i class="bi bi-fonts"></i>TEXTO SUPERPUESTO</div>
-        <label class="fp-sw">
-          <input type="checkbox" id="fp_ovOn" onchange="fp_apply('ov_on',this.checked?'1':'')">
-          <span>Activo</span>
-        </label>
-      </div>
-      <input type="text" id="fp_ovTit" placeholder="Título del popup"
-             class="fp-in" style="margin-bottom:6px;"
-             oninput="fp_apply('ov_tit',this.value)">
-      <input type="text" id="fp_ovSub" placeholder="Subtítulo"
-             class="fp-in" style="margin-bottom:10px;"
-             oninput="fp_apply('ov_sub',this.value)">
-      <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-end;">
-        <div style="flex:1;">
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo (rgba)</div>
-          <input type="text" id="fp_ovCF" placeholder="rgba(0,0,0,.55)"
-                 class="fp-in fp-in-sm" oninput="fp_apply('ov_cf',this.value)">
-        </div>
-        <div>
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
-          <input type="color" id="fp_ovCT" value="#ffffff"
-                 style="width:46px;height:34px;border:1.5px solid rgba(255,255,255,.18);
-                        border-radius:7px;cursor:pointer;padding:2px;background:transparent;"
-                 oninput="fp_apply('ov_ct',this.value)">
-        </div>
-      </div>
-      <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Posición del texto</div>
-      <div class="fp-rg">
-        {% for v, l, ic in [('top','Arriba','bi-arrow-up'),('center','Centro','bi-dash-lg'),('bottom','Abajo','bi-arrow-down')] %}
-        <label style="flex:1;cursor:pointer;">
-          <input type="radio" name="fp_ovPos" value="{{ v }}" style="display:none;"
-                 onchange="fp_apply('ov_pos',this.value)">
-          <div class="fp-opt">
-            <i class="bi {{ ic }}" style="display:block;font-size:.85rem;"></i>{{ l }}
-          </div>
-        </label>
+      <div class="fp-hdr" style="margin-top:22px;"><i class="bi bi-magic"></i>Animación de entrada</div>
+      <div class="fp-rg" style="flex-wrap:wrap;">
+        {% for v, l, ic in [('fade','Fundido','bi-circle-half'),('slide','Subir','bi-arrow-up'),('drop','Caer','bi-arrow-down'),('zoom','Zoom','bi-zoom-in'),('bounce','Rebote','bi-arrow-repeat'),('flip','Giro','bi-arrow-clockwise')] %}
+        <label style="flex:0 0 calc(33.33% - 4px);">
+          <input type="radio" name="fp_anim" value="{{ v }}" style="display:none;" onchange="fp_apply('anim',this.value);fp_playAnim()">
+          <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
         {% endfor %}
       </div>
-    </div>
-    <hr class="fp-div">
-
-    <!-- BOTÓN CTA -->
-    <div class="fp-sec">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-hdr mb-0"><i class="bi bi-cursor"></i>BOTÓN CTA</div>
-        <label class="fp-sw">
-          <input type="checkbox" id="fp_btnOn" onchange="fp_apply('btn_on',this.checked?'1':'')">
-          <span>Activo</span>
-        </label>
-      </div>
-      <input type="text" id="fp_btnTxt" placeholder="Texto del botón" value="Ver más"
-             class="fp-in" style="margin-bottom:10px;"
-             oninput="fp_apply('btn_txt',this.value)">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <div>
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo</div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <input type="color" id="fp_btnCF" value="#02534C"
-                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
-                   oninput="fp_syncCP('fp_btnCF','fp_btnCFh');fp_apply('btn_cf',this.value)">
-            <input type="text" id="fp_btnCFh" value="#02534C"
-                   class="fp-in fp-in-sm" style="min-width:0;"
-                   oninput="fp_syncCH('fp_btnCFh','fp_btnCF');fp_apply('btn_cf',this.value)">
-          </div>
-        </div>
-        <div>
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <input type="color" id="fp_btnCT" value="#ffffff"
-                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
-                   oninput="fp_syncCP('fp_btnCT','fp_btnCTh');fp_apply('btn_ct',this.value)">
-            <input type="text" id="fp_btnCTh" value="#ffffff"
-                   class="fp-in fp-in-sm" style="min-width:0;"
-                   oninput="fp_syncCH('fp_btnCTh','fp_btnCT');fp_apply('btn_ct',this.value)">
-          </div>
-        </div>
-      </div>
-      <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:6px;">Tamaño</div>
-      <div class="fp-rg" style="margin-bottom:10px;">
-        {% for v, l in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
-        <label style="flex:1;cursor:pointer;">
-          <input type="radio" name="fp_btnTam" value="{{ v }}" style="display:none;"
-                 onchange="fp_apply('btn_tam',this.value)">
-          <div class="fp-opt">{{ l }}</div>
-        </label>
-        {% endfor %}
-      </div>
-      <div style="background:rgba(2,83,76,.18);border:1px solid rgba(2,83,76,.3);
-                  border-radius:7px;padding:8px 10px;font-size:.72rem;color:#7dd3b8;">
-        <i class="bi bi-hand-index me-1"></i>Arrastra el botón sobre la imagen para reposicionarlo
-      </div>
-    </div>
-    <hr class="fp-div">
-
-    <!-- CONTENIDO BAJO IMAGEN -->
-    <div class="fp-sec">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-hdr mb-0"><i class="bi bi-text-left"></i>CONTENIDO BAJO IMAGEN</div>
-        <label class="fp-sw">
-          <input type="checkbox" id="fp_contOn" onchange="fp_apply('cont_on',this.checked?'1':'')">
-          <span>Activo</span>
-        </label>
-      </div>
-      <input type="text" id="fp_contTit" placeholder="Título del contenido"
-             class="fp-in" style="margin-bottom:6px;"
-             oninput="fp_apply('cont_tit',this.value)">
-      <textarea id="fp_contDesc" placeholder="Descripción o texto del popup..."
-                class="fp-in" style="height:80px;resize:vertical;margin-bottom:10px;"
-                oninput="fp_apply('cont_desc',this.value)"></textarea>
-      <div style="display:flex;gap:10px;align-items:flex-end;">
-        <div style="flex:1;">
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Fondo</div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <input type="color" id="fp_contBgCP" value="#ffffff"
-                   style="width:32px;height:30px;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;"
-                   oninput="fp_syncCP('fp_contBgCP','fp_contBgTxt');fp_apply('cont_bg',this.value)">
-            <input type="text" id="fp_contBgTxt" value="#ffffff"
-                   class="fp-in fp-in-sm" style="min-width:0;"
-                   oninput="fp_syncCH('fp_contBgTxt','fp_contBgCP');fp_apply('cont_bg',this.value)">
-          </div>
-        </div>
-        <div>
-          <div style="color:rgba(255,255,255,.35);font-size:.68rem;margin-bottom:4px;">Texto</div>
-          <input type="color" id="fp_contCT" value="#222222"
-                 style="width:46px;height:34px;border:1.5px solid rgba(255,255,255,.18);
-                        border-radius:7px;cursor:pointer;padding:2px;background:transparent;"
-                 oninput="fp_apply('cont_ct',this.value)">
-        </div>
-      </div>
-    </div>
-    <hr class="fp-div">
-
-    <!-- ANIMACIÓN -->
-    <div class="fp-sec">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="fp-hdr mb-0"><i class="bi bi-stars"></i>ANIMACIÓN</div>
-        <button type="button" onclick="fp_playAnim()"
-                style="font-size:.72rem;padding:5px 12px;background:rgba(2,83,76,.28);color:#7dd3b8;
-                       border:1px solid rgba(2,83,76,.38);border-radius:6px;cursor:pointer;">
-          <i class="bi bi-play-fill"></i> Ver
-        </button>
-      </div>
-      <div class="fp-rg" style="flex-wrap:wrap;gap:5px;">
-        {% for v, l in [('fade','Fade'),('slide','Slide↑'),('drop','Drop↓'),('zoom','Zoom'),('bounce','Bounce'),('flip','Flip')] %}
-        <label style="cursor:pointer;">
-          <input type="radio" name="fp_anim" value="{{ v }}" style="display:none;"
-                 onchange="fp_apply('anim',this.value)">
-          <div class="fp-opt" style="padding:6px 13px;font-size:.73rem;">{{ l }}</div>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- Footer sidebar -->
-    <div style="padding:14px 18px;position:sticky;bottom:0;background:#0c1d12;
-                border-top:1px solid rgba(255,255,255,.08);">
-      <button type="button" onclick="editorCerrar()"
-              style="width:100%;padding:13px;background:linear-gradient(135deg,#02534C,#04877a);
-                     color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.88rem;
-                     cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-                     box-shadow:0 4px 16px rgba(2,83,76,.45);">
-        <i class="bi bi-check-lg"></i>Listo — volver al formulario
+      <button type="button" class="fp-preset" style="width:100%;margin-top:9px;padding:8px;" onclick="fp_playAnim()">
+        <i class="bi bi-play-fill me-1"></i>Reproducir animación
       </button>
-      <div style="font-size:.66rem;color:rgba(255,255,255,.2);text-align:center;margin-top:6px;">
-        Los cambios se guardan al hacer clic en "Guardar cambios"
+    </div>
+
+    <div class="fp-pane" id="pane-txt">
+      <div class="fp-hdr"><i class="bi bi-fonts"></i>Texto sobre la imagen</div>
+      <label class="fp-sw">
+        <input type="checkbox" id="fp_ovOn" onchange="fp_apply('ov_on',this.checked)">
+        <span>Activar texto superpuesto</span>
+      </label>
+      <div id="fp_ovBox">
+        <div class="fp-grp">
+          <input type="text" class="fp-in" id="fp_ovTit" maxlength="120" placeholder="Título"
+                 oninput="fp_apply('ov_tit',this.value)" style="margin-bottom:7px;">
+          <input type="text" class="fp-in" id="fp_ovSub" maxlength="200" placeholder="Subtítulo"
+                 oninput="fp_apply('ov_sub',this.value)">
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Posición vertical</div>
+          <div class="fp-rg">
+            {% for v, l, ic in [('top','Arriba','bi-align-top'),('center','Centro','bi-align-middle'),('bottom','Abajo','bi-align-bottom')] %}
+            <label><input type="radio" name="fp_ovPos" value="{{ v }}" style="display:none;" onchange="fp_apply('ov_pos',this.value)">
+              <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Alineación</div>
+          <div class="fp-rg">
+            {% for v, l, ic in [('izquierda','Izq.','bi-text-left'),('centro','Centro','bi-text-center'),('derecha','Der.','bi-text-right')] %}
+            <label><input type="radio" name="fp_ovAl" value="{{ v }}" style="display:none;" onchange="fp_apply('ov_al',this.value)">
+              <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Franja de fondo <strong class="fp-val" id="fp_lblOvA">55%</strong></div>
+          <div class="fp-row">
+            <input type="color" class="fp-cp" id="fp_ovCfCP" value="#000000" oninput="fp_ovSync()">
+            <input type="range" id="fp_ovCfA" class="fp-range" min="0" max="100" step="5" value="55" oninput="fp_ovSync()">
+          </div>
+          <div class="fp-row" style="margin-top:8px;">
+            <input type="color" class="fp-cp" id="fp_ovCT" value="{{ p.get('overlay_color_texto','#ffffff') }}"
+                   oninput="fp_apply('ov_ct',this.value)">
+            <span style="color:rgba(255,255,255,.4);font-size:.72rem;">Color del texto</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fp-hdr" style="margin-top:24px;"><i class="bi bi-text-paragraph"></i>Contenido bajo la imagen</div>
+      <label class="fp-sw">
+        <input type="checkbox" id="fp_contOn" onchange="fp_apply('cont_on',this.checked)">
+        <span>Activar sección de contenido</span>
+      </label>
+      <div id="fp_contBox">
+        <div class="fp-grp">
+          <input type="text" class="fp-in" id="fp_contTit" maxlength="120" placeholder="Título"
+                 oninput="fp_apply('cont_tit',this.value)" style="margin-bottom:7px;">
+          <textarea class="fp-in" id="fp_contDesc" maxlength="600" rows="4" placeholder="Descripción"
+                    oninput="fp_apply('cont_desc',this.value)" style="resize:vertical;"></textarea>
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Alineación</div>
+          <div class="fp-rg">
+            {% for v, l, ic in [('izquierda','Izq.','bi-text-left'),('centro','Centro','bi-text-center'),('derecha','Der.','bi-text-right')] %}
+            <label><input type="radio" name="fp_contAl" value="{{ v }}" style="display:none;" onchange="fp_apply('cont_al',this.value)">
+              <div class="fp-opt"><i class="bi {{ ic }}"></i>{{ l }}</div></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Colores</div>
+          <div class="fp-row">
+            <input type="color" class="fp-cp" id="fp_contBgCP" value="{{ p.get('contenido_bg','#ffffff') }}"
+                   oninput="fp_apply('cont_bg',this.value)">
+            <span style="color:rgba(255,255,255,.4);font-size:.72rem;flex:1;">Fondo</span>
+            <input type="color" class="fp-cp" id="fp_contCT" value="{{ p.get('contenido_color_texto','#222222') }}"
+                   oninput="fp_apply('cont_ct',this.value)">
+            <span style="color:rgba(255,255,255,.4);font-size:.72rem;flex:1;">Texto</span>
+          </div>
+        </div>
       </div>
     </div>
-  </div><!-- /sidebar -->
 
-  <!-- ── BARRA SUPERIOR ────────────────────────────────── -->
-  <div style="position:absolute;left:340px;right:0;top:0;height:52px;z-index:6;
-              background:rgba(0,0,0,.92);backdrop-filter:blur(14px);
-              display:flex;align-items:center;gap:10px;padding:0 20px;
-              border-bottom:1px solid rgba(255,255,255,.07);">
-    <span style="color:rgba(255,255,255,.3);font-size:.7rem;font-weight:700;letter-spacing:.5px;">
-      PREVISUALIZACIÓN
-    </span>
-    <span style="color:rgba(255,255,255,.08);">|</span>
-    <button type="button" id="fp_btnD" onclick="fp_modo('desktop')"
-            style="padding:5px 12px;font-size:.77rem;border-radius:6px;cursor:pointer;
-                   border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);
-                   color:#fff;transition:all .15s;">
-      <i class="bi bi-display me-1"></i>Desktop
-    </button>
-    <button type="button" id="fp_btnM" onclick="fp_modo('mobile')"
-            style="padding:5px 12px;font-size:.77rem;border-radius:6px;cursor:pointer;
-                   border:1.5px solid rgba(255,255,255,.1);background:transparent;
-                   color:rgba(255,255,255,.45);transition:all .15s;">
-      <i class="bi bi-phone me-1"></i>Mobile
-    </button>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
-      <span id="fp_scaleTag"
-            style="display:none;background:rgba(255,180,0,.15);color:#ffb400;
-                   font-size:.67rem;border-radius:4px;padding:2px 8px;font-weight:600;">
-        ~70% escala
-      </span>
-      <span style="font-size:.72rem;color:rgba(255,255,255,.35);">
-        <strong id="fp_iW" style="color:#7dd3b8;">560</strong>
-        <span style="color:rgba(255,255,255,.15);">×</span>
-        <strong id="fp_iH" style="color:#7dd3b8;">300</strong>
-        <span style="color:rgba(255,255,255,.2);">px</span>
-      </span>
-      <button type="button" onclick="editorCerrar()"
-              style="padding:6px 16px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);
-                     border:1.5px solid rgba(255,255,255,.18);border-radius:7px;
-                     font-size:.78rem;font-weight:600;cursor:pointer;"
-              onmouseover="this.style.background='rgba(255,255,255,.16)'"
-              onmouseout="this.style.background='rgba(255,255,255,.08)'">
-        <i class="bi bi-x-lg me-1"></i>Cerrar
-      </button>
+    <div class="fp-pane" id="pane-btn">
+      <div class="fp-hdr"><i class="bi bi-cursor"></i>Botón de acción</div>
+      <label class="fp-sw">
+        <input type="checkbox" id="fp_btnOn" onchange="fp_apply('btn_on',this.checked)">
+        <span>Mostrar botón CTA</span>
+      </label>
+      <div id="fp_btnBox">
+        <div class="fp-grp">
+          <div class="fp-lbl">Texto</div>
+          <input type="text" class="fp-in" id="fp_btnTxt" maxlength="60"
+                 oninput="fp_apply('btn_txt',this.value)" placeholder="Ver más">
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Tamaño</div>
+          <div class="fp-rg">
+            {% for v, l in [('sm','Pequeño'),('md','Mediano'),('lg','Grande')] %}
+            <label><input type="radio" name="fp_btnTam" value="{{ v }}" style="display:none;" onchange="fp_apply('btn_tam',this.value)">
+              <div class="fp-opt" style="padding:8px 4px;">{{ l }}</div></label>
+            {% endfor %}
+          </div>
+        </div>
+        <label class="fp-sw">
+          <input type="checkbox" id="fp_btnFull" onchange="fp_apply('btn_full',this.checked)">
+          <span>Ancho completo</span>
+        </label>
+        <div class="fp-grp">
+          <div class="fp-lbl">Esquinas <strong class="fp-val" id="fp_lblBRad">6px</strong></div>
+          <input type="range" id="fp_rBRad" class="fp-range" min="0" max="40" step="1"
+                 value="{{ p.get('boton_radio',6) }}" oninput="fp_apply('btn_rad',this.value)">
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Colores</div>
+          <div class="fp-row">
+            <input type="color" class="fp-cp" id="fp_btnCF" value="{{ p.get('boton_color_fondo','#02534C') }}"
+                   oninput="fp_apply('btn_cf',this.value)">
+            <span style="color:rgba(255,255,255,.4);font-size:.72rem;flex:1;">Fondo</span>
+            <input type="color" class="fp-cp" id="fp_btnCT" value="{{ p.get('boton_color_texto','#ffffff') }}"
+                   oninput="fp_apply('btn_ct',this.value)">
+            <span style="color:rgba(255,255,255,.4);font-size:.72rem;flex:1;">Texto</span>
+          </div>
+          <div class="fp-sws">
+            {% for cf, ct in [('#02534C','#ffffff'),('#ffffff','#02534C'),('#ff6b00','#ffffff'),('#111111','#ffffff'),('#e63946','#ffffff')] %}
+            <button type="button" style="background:{{ cf }};" onclick="fp_setBtnCol('{{ cf }}','{{ ct }}')"></button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="fp-grp">
+          <div class="fp-lbl">Posición <strong class="fp-val"><span id="fp_lblPX">50</span>% · <span id="fp_lblPY">85</span>%</strong></div>
+          <div class="fp-note" style="margin-top:0;margin-bottom:8px;">
+            Arrastra el botón sobre la vista previa para colocarlo.
+          </div>
+          <div style="display:flex;gap:4px;">
+            {% for x, y, l in [(50,85,'Abajo'),(50,50,'Centro'),(50,15,'Arriba'),(85,85,'Esq.')] %}
+            <button type="button" class="fp-preset" onclick="fp_setPos({{ x }},{{ y }})">{{ l }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ── FONDO SIMULADO CGM (oculto en mobile) ─────── -->
+  <div style="position:absolute;left:340px;right:0;top:0;height:52px;background:#01382f;z-index:6;
+              display:flex;align-items:center;padding:0 18px;gap:10px;
+              border-bottom:1px solid rgba(255,255,255,.08);">
+    <span style="color:rgba(255,255,255,.55);font-size:.75rem;">Vista previa</span>
+    <div style="display:flex;gap:5px;margin-left:6px;">
+      <button type="button" id="fp_btnD" onclick="fp_modo('desktop')"
+              style="border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.14);color:#fff;
+                     border-radius:6px;padding:4px 12px;font-size:.72rem;cursor:pointer;">
+        <i class="bi bi-display me-1"></i>Escritorio
+      </button>
+      <button type="button" id="fp_btnM" onclick="fp_modo('mobile')"
+              style="border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.45);
+                     border-radius:6px;padding:4px 12px;font-size:.72rem;cursor:pointer;">
+        <i class="bi bi-phone me-1"></i>Celular
+      </button>
+    </div>
+    <span id="fp_scaleTag" style="display:none;background:rgba(255,180,0,.15);color:#ffb400;
+          font-size:.68rem;padding:3px 9px;border-radius:5px;"></span>
+    <span style="margin-left:auto;color:rgba(255,255,255,.3);font-size:.7rem;">
+      <span id="fp_iW">520</span> × <span id="fp_iH">300</span> px
+    </span>
+    <button type="button" onclick="editorCerrar()"
+            style="background:#7dd3b8;border:none;color:#01382f;border-radius:6px;
+                   padding:6px 18px;font-size:.78rem;font-weight:700;cursor:pointer;">
+      <i class="bi bi-check-lg me-1"></i>Listo
+    </button>
+  </div>
+
   <div id="fpBgSim" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
               overflow:hidden;pointer-events:none;">
     <div style="background:#02534C;height:62px;display:flex;align-items:center;
@@ -718,44 +772,32 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
     </div>
   </div>
 
-  <!-- ── BACKDROP (oculto en mobile) ───────────────── -->
   <div id="fpBackdrop" style="position:absolute;left:340px;right:0;top:52px;bottom:0;
-              background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
+              background:rgba(0,0,0,.65);z-index:2;pointer-events:none;"></div>
 
-  <!-- ── PREVIEW AREA ───────────────────────────────── -->
   <div id="fpPreviewArea" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
               display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;">
 
-    <!-- ══ TELÉFONO (mode mobile) ══════════════════════════
-         Contiene su propia pantalla con mini-website + overlay + popup card.
-         En desktop: display:none. En mobile: visible, fpCard se mueve a fpPhoneSlot. -->
     <div id="fpPhoneWrap" style="display:none;position:relative;flex-shrink:0;">
-      <!-- Botones laterales (izquierda: volumen, derecha: power) -->
       <div style="position:absolute;left:-5px;top:110px;width:4px;height:28px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
       <div style="position:absolute;left:-5px;top:150px;width:4px;height:44px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
       <div style="position:absolute;right:-5px;top:130px;width:4px;height:52px;background:#5c5c5e;border-radius:0 2px 2px 0;"></div>
 
-      <!-- Pantalla del teléfono con todo el contenido -->
-      <div style="width:375px;height:680px;
-                  border:9px solid #5c5c5e;border-radius:50px;overflow:hidden;
+      <div style="width:375px;height:680px;border:9px solid #5c5c5e;border-radius:50px;overflow:hidden;
                   position:relative;background:#000;
                   box-shadow:inset 0 1px 0 #888,0 0 0 1px #333,0 30px 90px rgba(0,0,0,.95);">
-
-        <!-- Dynamic island (barra superior dentro de la pantalla) -->
         <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);
                     width:88px;height:22px;background:#000;border-radius:18px;z-index:20;
                     box-shadow:0 0 0 1.5px #222;"></div>
-        <!-- Home indicator (barra inferior) -->
         <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
                     width:100px;height:4px;background:#444;border-radius:2px;z-index:20;"></div>
 
-        <!-- Mini website CGM (fondo de la pantalla) -->
         <div style="position:absolute;inset:0;z-index:1;pointer-events:none;">
           <div style="background:#02534C;height:44px;display:flex;align-items:center;
                       padding:0 14px;justify-content:space-between;">
             <div style="background:#fff;border-radius:3px;padding:2px 7px;
                         font-weight:900;color:#02534C;font-size:.6rem;letter-spacing:.5px;">CGM RENTAL</div>
-            <div style="color:rgba(255,255,255,.7);font-size:1.3rem;line-height:1;">≡</div>
+            <div style="color:rgba(255,255,255,.7);font-size:1.3rem;line-height:1;">&#8801;</div>
           </div>
           <div style="height:calc(100% - 44px);
                       background:linear-gradient(155deg,#183328 0%,#286043 50%,#183328 100%);
@@ -767,384 +809,516 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
           </div>
         </div>
 
-        <!-- Overlay oscuro (como en el sitio real) -->
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
+        <div id="fpPhoneBd" style="position:absolute;inset:0;background:rgba(0,0,0,.65);z-index:2;pointer-events:none;"></div>
 
-        <!-- Slot para el popup card (centrado en la pantalla) -->
         <div id="fpPhoneSlot" style="position:absolute;inset:0;z-index:3;
-             display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden;">
-          <!-- fpCard se mueve aquí en mobile mode vía JS -->
-        </div>
+             display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden;"></div>
       </div>
     </div>
 
     <div id="fpCard"
          style="border-radius:{{ p.get('popup_radio',14) }}px;overflow:hidden;position:relative;
-                box-shadow:0 30px 80px rgba(0,0,0,.95);background:{{ p.get('popup_bg','#111') }};
-                width:560px;max-width:calc(100vw - 380px);transition:width .2s;">
-      <div style="position:absolute;top:10px;right:10px;z-index:10;
-                  background:rgba(0,0,0,.6);color:#fff;border-radius:50%;
-                  width:30px;height:30px;display:flex;align-items:center;
-                  justify-content:center;font-size:17px;pointer-events:none;
-                  backdrop-filter:blur(4px);">&times;</div>
+                box-shadow:0 18px 60px rgba(0,0,0,.5);background:{{ p.get('popup_bg','#111') }};
+                width:520px;max-width:calc(100vw - 380px);transition:width .2s;">
+      <div id="fpX" style="position:absolute;top:10px;right:10px;z-index:10;
+                  background:rgba(0,0,0,.55);color:#fff;border-radius:50%;
+                  width:32px;height:32px;display:flex;align-items:center;
+                  justify-content:center;font-size:18px;pointer-events:none;">&times;</div>
       <div id="fpImgW" style="position:relative;line-height:0;">
-        <div id="fpPh"
-             style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
-                    width:100%;height:300px;
-                    background:linear-gradient(135deg,#1e2e22,#2a3e2e);
-                    flex-direction:column;align-items:center;justify-content:center;
-                    color:#4a7a5a;gap:10px;">
-          <i class="bi bi-image" style="font-size:3rem;"></i>
-          <span style="font-size:.85rem;">Sube una imagen desde el panel izquierdo</span>
-        </div>
         <img id="fpImg"
              src="{{ url_for('static', filename='images/popups/' + p.get('imagen','')) if p.get('imagen') else '' }}"
-             alt=""
              style="width:100%;display:{{ 'block' if p.get('imagen') else 'none' }};
-                    height:300px;object-fit:{{ p.get('imagen_fit','cover') }};">
-        <div id="fpOvEl"
-             style="position:absolute;left:0;right:0;padding:14px 18px;
-                    background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
-                    color:{{ p.get('overlay_color_texto','#fff') }};
-                    display:{{ 'block' if p.get('overlay_activo') else 'none' }};
-                    {{ 'top:0' if p.get('overlay_posicion') == 'top'
-                       else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center'
-                       else 'bottom:0' }};">
-          <div id="fpOvT" style="font-weight:700;font-size:1.05rem;line-height:1.2;">{{ p.get('overlay_titulo','') }}</div>
-          <div id="fpOvS" style="font-size:.88rem;opacity:.85;margin-top:4px;">{{ p.get('overlay_subtitulo','') }}</div>
+                    height:{{ p.get('imagen_altura',300) }}px;object-fit:{{ p.get('imagen_fit','cover') }};"
+             onerror="this.style.display='none';document.getElementById('fpPh').style.display='flex';">
+        <div id="fpPh" style="{{ 'display:none' if p.get('imagen') else 'display:flex' }};
+                    width:100%;height:{{ p.get('imagen_altura',300) }}px;background:#242424;
+                    align-items:center;justify-content:center;color:#555;font-size:.85rem;
+                    flex-direction:column;gap:9px;">
+          <i class="bi bi-image" style="font-size:2.4rem;color:#3a3a3a;"></i>
+          Sube una imagen desde la pestaña IMAGEN
         </div>
-        <div id="fpBtn"
-             style="position:absolute;
-                    left:{{ p.get('boton_pos_x',50) }}%;top:{{ p.get('boton_pos_y',85) }}%;
+        <div id="fpOvEl" style="position:absolute;left:0;right:0;padding:12px 18px;
+                    display:{{ 'block' if p.get('overlay_activo') else 'none' }};
+                    background:{{ p.get('overlay_color_fondo','rgba(0,0,0,.55)') }};
+                    color:{{ p.get('overlay_color_texto','#fff') }};line-height:1.35;
+                    {{ 'top:0' if p.get('overlay_posicion') == 'top' else 'top:50%;transform:translateY(-50%)' if p.get('overlay_posicion') == 'center' else 'bottom:0' }};">
+          <div id="fpOvT" style="font-weight:700;font-size:1.02rem;">{{ p.get('overlay_titulo','') }}</div>
+          <div id="fpOvS" style="font-size:.83rem;opacity:.88;margin-top:3px;">{{ p.get('overlay_subtitulo','') }}</div>
+        </div>
+        <div id="fpBtn" style="position:absolute;left:{{ p.get('boton_pos_x',50) }}%;top:{{ p.get('boton_pos_y',85) }}%;
                     transform:translate(-50%,-50%);
                     display:{{ 'flex' if p.get('boton_activo') else 'none' }};
                     align-items:center;justify-content:center;cursor:grab;
                     user-select:none;white-space:nowrap;border:none;font-weight:700;
                     box-shadow:0 3px 14px rgba(0,0,0,.55);
-                    padding:9px 22px;font-size:14px;border-radius:6px;
+                    padding:10px 24px;font-size:15px;border-radius:{{ p.get('boton_radio',6) }}px;
                     background:{{ p.get('boton_color_fondo','#02534C') }};
                     color:{{ p.get('boton_color_texto','#fff') }};">
           {{ p.get('boton_texto','Ver más') }}
         </div>
       </div>
-      <!-- Contenido bajo imagen -->
       <div id="fpContent"
-           style="padding:16px 18px;
+           style="padding:18px 22px;
                   background:{{ p.get('contenido_bg','#ffffff') }};
                   color:{{ p.get('contenido_color_texto','#222222') }};
                   display:{{ 'block' if p.get('contenido_activo') else 'none' }};">
-        <div id="fpContTit" style="font-weight:700;font-size:1rem;margin-bottom:6px;">{{ p.get('contenido_titulo','') }}</div>
-        <div id="fpContDesc" style="font-size:.85rem;line-height:1.5;opacity:.85;">{{ p.get('contenido_descripcion','') }}</div>
+        <div id="fpContTit" style="font-weight:700;font-size:1.04rem;margin-bottom:7px;">{{ p.get('contenido_titulo','') }}</div>
+        <div id="fpContDesc" style="font-size:.88rem;line-height:1.6;opacity:.85;">{{ p.get('contenido_descripcion','') }}</div>
       </div>
     </div>
   </div>
 
-</div><!-- /fpOv -->
+</div>
 
 <script>
 var SIZES = {
-  sm:{padding:'5px 14px',fontSize:'12px',borderRadius:'4px'},
-  md:{padding:'9px 22px',fontSize:'14px',borderRadius:'6px'},
-  lg:{padding:'13px 30px',fontSize:'17px',borderRadius:'8px'},
+  sm:{padding:'6px 16px',fontSize:'13px'},
+  md:{padding:'10px 24px',fontSize:'15px'},
+  lg:{padding:'14px 32px',fontSize:'17px'}
 };
 var ANIMS = {
   fade:'cgmFade .5s ease', slide:'cgmSlide .5s ease', drop:'cgmDrop .5s ease',
-  zoom:'cgmZoom .5s ease', bounce:'cgmBounce .7s ease', flip:'cgmFlip .5s ease',
+  zoom:'cgmZoom .5s ease', bounce:'cgmBounce .7s ease', flip:'cgmFlip .55s ease'
 };
+var SOMBRAS = {
+  none:'none', sm:'0 2px 10px rgba(0,0,0,.25)',
+  md:'0 8px 28px rgba(0,0,0,.35)', lg:'0 18px 60px rgba(0,0,0,.5)'
+};
+var ALINEA = {izquierda:'left', centro:'center', derecha:'right'};
 var _mob = false;
-function _e(id){ return document.getElementById(id); }
-function _qv(s){ var e=document.querySelector(s); return e?e.value:null; }
 
-/* ═══ fp_apply: escribe en hidden input + refresca preview ══ */
+function _e(id){ return document.getElementById(id); }
+function _v(id,d){ var e=_e(id); return e ? e.value : d; }
+function _chk(id){ var e=_e(id); return e ? e.checked : false; }
+
+function fp_hex2rgb(h){
+  h=(h||'').replace('#','');
+  if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16)||0,parseInt(h.slice(2,4),16)||0,parseInt(h.slice(4,6),16)||0];
+}
+function fp_rgba(hex,a){ var c=fp_hex2rgb(hex); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function fp_parseRgba(v){
+  var m=/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/.exec(v||'');
+  if(!m){
+    if(/^#[0-9a-fA-F]{3,6}$/.test(v||'')) return {hex:v,a:1};
+    return null;
+  }
+  var hx='#'+[1,2,3].map(function(i){return ('0'+(+m[i]).toString(16)).slice(-2);}).join('');
+  return {hex:hx, a:m[4]!==undefined?parseFloat(m[4]):1};
+}
+
+function fp_tab(name){
+  document.querySelectorAll('.fp-tab').forEach(function(b){ b.classList.toggle('on', b.dataset.tab===name); });
+  document.querySelectorAll('.fp-pane').forEach(function(p){ p.classList.toggle('on', p.id==='pane-'+name); });
+}
+
 function fp_apply(k,v){
-  var M={
+  var M = {
     fit:      function(v){ _e('h_fit').value=v; fp_rImg(); fp_chips(); },
-    altura:   function(v){ v=+v; _e('h_altura').value=v; fp_rImg(); fp_chips(); fp_markAlt(v); },
-    ancho:    function(v){ v=+v; _e('h_ancho').value=v; fp_rCard(); fp_chips(); },
-    radio:    function(v){ v=+v; _e('h_radio').value=v; fp_rCard(); if(_e('fp_lblRad'))_e('fp_lblRad').textContent=v+'px'; },
+    imod:     function(v){ _e('h_imod').value=v; fp_rImg(); },
+    altura:   function(v){ _e('h_altura').value=+v; fp_rImg(); fp_chips(); },
+    ancho:    function(v){ _e('h_ancho').value=+v; fp_rCard(); fp_rImg(); fp_chips(); },
+    radio:    function(v){ _e('h_radio').value=+v; fp_rCard(); },
     bg:       function(v){ _e('h_bg').value=v; fp_rCard(); },
+    ppos:     function(v){ _e('h_ppos').value=v; fp_rPos(); },
+    som:      function(v){ _e('h_som').value=v; fp_rCard(); },
+    bw:       function(v){ _e('h_bw').value=+v; fp_rCard(); },
+    bc:       function(v){ _e('h_bc').value=v; fp_rCard(); },
+    bdc:      function(v){ _e('h_bdc').value=v; fp_rBackdrop(); },
+    bdb:      function(v){ _e('h_bdb').value=+v; fp_rBackdrop(); },
+    bdcl:     function(v){ _e('h_bdcl').checked=!!v; },
+    xst:      function(v){ _e('h_xst').value=v; fp_rClose(); },
+    xcol:     function(v){ _e('h_xcol').value=v; fp_rClose(); },
+    xdel:     function(v){ _e('h_xdel').value=+v; fp_rClose(); },
     ov_on:    function(v){ _e('h_ov_on').checked=!!v; fp_rOv(); fp_chips(); },
     ov_tit:   function(v){ _e('h_ov_tit').value=v; fp_rOv(); },
     ov_sub:   function(v){ _e('h_ov_sub').value=v; fp_rOv(); },
     ov_cf:    function(v){ _e('h_ov_cf').value=v; fp_rOv(); },
     ov_ct:    function(v){ _e('h_ov_ct').value=v; fp_rOv(); },
     ov_pos:   function(v){ _e('h_ov_pos').value=v; fp_rOv(); },
+    ov_al:    function(v){ _e('h_ov_al').value=v; fp_rOv(); },
+    cont_on:  function(v){ _e('h_cont_on').checked=!!v; fp_rContent(); fp_chips(); },
+    cont_tit: function(v){ _e('h_cont_tit').value=v; fp_rContent(); },
+    cont_desc:function(v){ _e('h_cont_desc').value=v; fp_rContent(); },
+    cont_bg:  function(v){ _e('h_cont_bg').value=v; fp_rContent(); },
+    cont_ct:  function(v){ _e('h_cont_ct').value=v; fp_rContent(); },
+    cont_al:  function(v){ _e('h_cont_al').value=v; fp_rContent(); },
     btn_on:   function(v){ _e('h_btn_on').checked=!!v; fp_rBtn(); fp_chips(); },
     btn_txt:  function(v){ _e('h_btn_txt').value=v; fp_rBtn(); },
     btn_cf:   function(v){ _e('h_btn_cf').value=v; fp_rBtn(); },
     btn_ct:   function(v){ _e('h_btn_ct').value=v; fp_rBtn(); },
     btn_tam:  function(v){ _e('h_btn_tam').value=v; fp_rBtn(); },
-    anim:     function(v){ _e('h_anim').value=v; fp_chips(); },
-    cont_on:  function(v){ _e('h_cont_on').checked=!!v; fp_rContent(); },
-    cont_tit: function(v){ _e('h_cont_tit').value=v; fp_rContent(); },
-    cont_desc:function(v){ _e('h_cont_desc').value=v; fp_rContent(); },
-    cont_bg:  function(v){ _e('h_cont_bg').value=v; fp_rContent(); },
-    cont_ct:  function(v){ _e('h_cont_ct').value=v; fp_rContent(); },
+    btn_rad:  function(v){ _e('h_btn_rad').value=+v; fp_rBtn(); },
+    btn_full: function(v){ _e('h_btn_full').checked=!!v; fp_rBtn(); },
+    anim:     function(v){ _e('h_anim').value=v; fp_chips(); }
   };
   if(M[k]) M[k](v);
 }
 
 function fp_rCard(){
-  var c=_e('fpCard'); if(!c)return;
-  var aw=+_e('h_ancho').value||560;
-  /* En mobile el card vive dentro de la pantalla del phone (375px - 20px padding = 355px max) */
-  var w=_mob?Math.min(355,aw):aw;
+  var c=_e('fpCard'); if(!c) return;
+  var aw=+_v('h_ancho',520)||520;
+  var w=_mob?Math.min(351,aw):aw;
   c.style.width=w+'px';
+  c.style.minWidth='0';
+  c.style.flex='0 0 auto';
   c.style.maxWidth=_mob?'100%':'calc(100vw - 380px)';
-  var r=+(_e('h_radio')?_e('h_radio').value:14)||0;
-  c.style.borderRadius=r+'px';
-  var bg=_e('h_bg')?(_e('h_bg').value||'#111'):'#111';
-  c.style.background=bg;
+  c.style.borderRadius=(+_v('h_radio',14)||0)+'px';
+  c.style.background=_v('h_bg','#111')||'#111';
+  c.style.boxShadow=SOMBRAS[_v('h_som','lg')]||SOMBRAS.lg;
+  var bw=+_v('h_bw',0)||0;
+  c.style.border=bw?(bw+'px solid '+(_v('h_bc','#fff')||'#fff')):'none';
   var st=_e('fp_scaleTag');
   if(st){
-    if(_mob){
-      /* En mobile siempre mostramos el ancho real del popup en escritorio */
-      st.textContent='vista mobile (real: '+aw+'px)';st.style.display='inline-block';
-    } else if(w<aw){
-      st.textContent='~'+Math.round(w/aw*100)+'% escala';st.style.display='inline-block';
-    } else {
-      st.style.display='none';
-    }
+    if(_mob){ st.textContent='celular · diseño real '+aw+'px'; st.style.display='inline-block'; }
+    else if(w<aw){ st.textContent='~'+Math.round(w/aw*100)+'% escala'; st.style.display='inline-block'; }
+    else st.style.display='none';
   }
-  if(_e('fp_lblAnc'))_e('fp_lblAnc').textContent=aw+'px';
-  if(_e('fp_iW'))_e('fp_iW').textContent=w;
+  if(_e('fp_lblAnc')) _e('fp_lblAnc').textContent=aw+'px';
+  if(_e('fp_lblRad')) _e('fp_lblRad').textContent=(+_v('h_radio',14)||0)+'px';
+  if(_e('fp_lblBw'))  _e('fp_lblBw').textContent=bw+'px';
+  if(_e('fp_iW'))     _e('fp_iW').textContent=w;
 }
+
 function fp_rImg(){
-  var alt=+_e('h_altura').value||300, fit=_e('h_fit').value||'cover';
-  var fi=_e('fpImg'),ph=_e('fpPh');
-  if(fi){fi.style.height=alt+'px';fi.style.objectFit=fit;} if(ph)ph.style.height=alt+'px';
-  if(_e('fp_lblAlt'))_e('fp_lblAlt').textContent=alt+'px';
-  if(_e('fp_iH'))_e('fp_iH').textContent=alt;
-  var t=_e('fp_thumb'); if(t)t.style.maxHeight=Math.min(alt,160)+'px';
-  var pi=_e('prevImg'); if(pi&&pi.style.display==='block')pi.style.objectFit=fit;
+  var alt=+_v('h_altura',300)||300, fit=_v('h_fit','cover')||'cover', modo=_v('h_imod','ratio');
+  var aw=+_v('h_ancho',520)||520;
+  var fi=_e('fpImg'), ph=_e('fpPh');
+  var cw=_mob?Math.min(351,aw):aw;
+  var h=(modo==='ratio')?Math.round(alt*(cw/aw)):alt;
+  if(fi){ fi.style.height=h+'px'; fi.style.objectFit=fit; }
+  if(ph)  ph.style.height=h+'px';
+  if(_e('fp_lblAlt')) _e('fp_lblAlt').textContent=alt+'px';
+  if(_e('fp_iH'))     _e('fp_iH').textContent=h;
+  var t=_e('fp_thumb'); if(t) t.style.maxHeight=Math.min(alt,160)+'px';
+  var pi=_e('prevImg'); if(pi&&pi.style.display==='block') pi.style.objectFit=fit;
+  fp_markAlt(alt);
 }
+
+function fp_rPos(){
+  var pa=_e('fpPreviewArea'); if(!pa) return;
+  var v=_v('h_ppos','centro');
+  var map={
+    centro:['center','center'], arriba:['flex-start','center'], abajo:['flex-end','center'],
+    'inf-derecha':['flex-end','flex-end'], 'inf-izquierda':['flex-end','flex-start']
+  };
+  var m=map[v]||map.centro;
+  pa.style.alignItems=m[0]; pa.style.justifyContent=m[1];
+}
+
+function fp_rBackdrop(){
+  var col=_v('h_bdc','rgba(0,0,0,0.65)'), b=+_v('h_bdb',0)||0;
+  var bd=_e('fpBackdrop'), pb=_e('fpPhoneBd');
+  var flt=b?('blur('+b+'px)'):'none';
+  if(bd){ bd.style.background=col; bd.style.backdropFilter=flt; bd.style.webkitBackdropFilter=flt; }
+  if(pb){ pb.style.background=col; pb.style.backdropFilter=flt; pb.style.webkitBackdropFilter=flt; }
+  if(_e('fp_lblBdb')) _e('fp_lblBdb').textContent=b+'px';
+}
+
+function fp_rClose(){
+  var x=_e('fpX'); if(!x) return;
+  var st=_v('h_xst','dentro');
+  x.style.display=(st==='oculto')?'none':'flex';
+  x.style.color=_v('h_xcol','#ffffff')||'#fff';
+  if(st==='fuera'){ x.style.top='-42px'; x.style.right='0'; x.style.background='rgba(0,0,0,.45)'; }
+  else { x.style.top='10px'; x.style.right='10px'; x.style.background='rgba(0,0,0,.55)'; }
+  var c=_e('fpCard'); if(c) c.style.overflow=(st==='fuera')?'visible':'hidden';
+  var d=+_v('h_xdel',0)||0;
+  if(_e('fp_lblXdel')) _e('fp_lblXdel').textContent=(d/1000).toFixed(d%1000?1:0)+'s';
+  var n=_e('fp_xstNote');
+  if(n) n.style.color=(st==='oculto')?'#ffb400':'rgba(255,255,255,.3)';
+}
+
 function fp_rOv(){
-  var el=_e('fpOvEl'); if(!el)return;
-  var on=_e('h_ov_on').checked;
+  var el=_e('fpOvEl'); if(!el) return;
+  var on=_chk('h_ov_on');
   el.style.display=on?'block':'none';
+  var box=_e('fp_ovBox'); if(box) box.style.opacity=on?'1':'.35';
   if(!on){ _syncPrevOv(false); return; }
-  var pos=_e('h_ov_pos').value||'bottom';
+  var pos=_v('h_ov_pos','bottom')||'bottom';
   el.style.top=''; el.style.bottom=''; el.style.transform='';
   if(pos==='top') el.style.top='0';
-  else if(pos==='center'){el.style.top='50%';el.style.transform='translateY(-50%)';}
+  else if(pos==='center'){ el.style.top='50%'; el.style.transform='translateY(-50%)'; }
   else el.style.bottom='0';
-  el.style.background=_e('h_ov_cf').value||'rgba(0,0,0,.55)';
-  el.style.color=_e('h_ov_ct').value||'#fff';
-  if(_e('fpOvT'))_e('fpOvT').textContent=_e('h_ov_tit').value||'';
-  if(_e('fpOvS'))_e('fpOvS').textContent=_e('h_ov_sub').value||'';
-  _syncPrevOv(true, pos, el.style.background, el.style.color);
+  el.style.background=_v('h_ov_cf','rgba(0,0,0,.55)');
+  el.style.color=_v('h_ov_ct','#fff');
+  el.style.textAlign=ALINEA[_v('h_ov_al','izquierda')]||'left';
+  if(_e('fpOvT')) _e('fpOvT').textContent=_v('h_ov_tit','');
+  if(_e('fpOvS')) _e('fpOvS').textContent=_v('h_ov_sub','');
+  _syncPrevOv(true,pos,el.style.background,el.style.color);
 }
-function _syncPrevOv(on, pos, bg, cl){
-  var po=_e('prevOv'); if(!po)return;
+
+function _syncPrevOv(on,pos,bg,cl){
+  var po=_e('prevOv'); if(!po) return;
   po.style.display=on?'block':'none';
-  if(!on)return;
+  if(!on) return;
   po.style.background=bg; po.style.color=cl;
   po.style.top=''; po.style.bottom=''; po.style.transform='';
   if(pos==='top') po.style.top='0';
-  else if(pos==='center'){po.style.top='50%';po.style.transform='translateY(-50%)';}
+  else if(pos==='center'){ po.style.top='50%'; po.style.transform='translateY(-50%)'; }
   else po.style.bottom='0';
-  var t=_e('prevOvT'),s=_e('prevOvS');
-  if(t)t.textContent=_e('h_ov_tit').value||'';
-  if(s)s.textContent=_e('h_ov_sub').value||'';
-}
-function fp_rBtn(){
-  var el=_e('fpBtn'); if(!el)return;
-  var on=_e('h_btn_on').checked;
-  el.style.display=on?'flex':'none';
-  if(!on)return;
-  var s=SIZES[_e('h_btn_tam').value||'md']||SIZES.md;
-  el.textContent=_e('h_btn_txt').value||'Ver más';
-  el.style.background=_e('h_btn_cf').value||'#02534C';
-  el.style.color=_e('h_btn_ct').value||'#fff';
-  el.style.padding=s.padding; el.style.fontSize=s.fontSize; el.style.borderRadius=s.borderRadius;
-}
-function fp_chips(){
-  var aw=_e('h_ancho').value, alt=_e('h_altura').value,
-      fit=_e('h_fit').value, an=_e('h_anim').value,
-      ovOn=_e('h_ov_on').checked, bOn=_e('h_btn_on').checked;
-  if(_e('chip_ancho'))  _e('chip_ancho').textContent=aw+'px';
-  if(_e('chip_altura')) _e('chip_altura').textContent=alt+'px';
-  if(_e('chip_fit'))    _e('chip_fit').textContent=fit;
-  if(_e('chip_anim'))   _e('chip_anim').textContent=an;
-  var co=_e('chip_ov');
-  if(co){co.textContent=(ovOn?'Texto: activo':'Texto: desactivado');co.style.background=ovOn?'#e8f5f3':'#f0f0f0';co.style.color=ovOn?'#02534C':'#aaa';}
-  var cb=_e('chip_btn');
-  if(cb){cb.innerHTML='<i class="bi bi-cursor me-1"></i>'+(bOn?'Botón: activo':'Botón: desactivado');cb.style.background=bOn?'#e8f5f3':'#f0f0f0';cb.style.color=bOn?'#02534C':'#aaa';}
-  var cp=_e('chip_pos'); if(cp)cp.style.display=bOn?'':'none';
+  if(_e('prevOvT')) _e('prevOvT').textContent=_v('h_ov_tit','');
+  if(_e('prevOvS')) _e('prevOvS').textContent=_v('h_ov_sub','');
 }
 
-function fp_setAlt(v){ if(_e('fp_rAlt'))_e('fp_rAlt').value=v; fp_apply('altura',v); }
-function fp_setAnc(v){ if(_e('fp_rAnc'))_e('fp_rAnc').value=v; fp_apply('ancho',v); fp_markAnc(); }
-function fp_setRad(v){ if(_e('fp_rRad'))_e('fp_rRad').value=v; fp_apply('radio',v); fp_markRad(); }
-function fp_markRad(){
-  var cur=+(_e('fp_rRad')||{value:14}).value;
-  document.querySelectorAll('.fp-pRad').forEach(function(b){b.classList.toggle('on',+b.dataset.v===cur);});
+function fp_rBtn(){
+  var el=_e('fpBtn'); if(!el) return;
+  var on=_chk('h_btn_on');
+  el.style.display=on?'flex':'none';
+  var box=_e('fp_btnBox'); if(box) box.style.opacity=on?'1':'.35';
+  if(!on) return;
+  var s=SIZES[_v('h_btn_tam','md')]||SIZES.md;
+  el.textContent=_v('h_btn_txt','Ver más')||'Ver más';
+  el.style.background=_v('h_btn_cf','#02534C');
+  el.style.color=_v('h_btn_ct','#fff');
+  el.style.padding=s.padding;
+  el.style.fontSize=s.fontSize;
+  el.style.borderRadius=(+_v('h_btn_rad',6)||0)+'px';
+  var full=_chk('h_btn_full');
+  var py=+_v('h_pos_y',85)||85, px=+_v('h_pos_x',50)||50;
+  if(full){
+    el.style.left='16px'; el.style.right='16px'; el.style.top=py+'%';
+    el.style.transform='translateY(-50%)'; el.style.cursor='ns-resize';
+  } else {
+    el.style.right=''; el.style.left=px+'%'; el.style.top=py+'%';
+    el.style.transform='translate(-50%,-50%)'; el.style.cursor='grab';
+  }
+  if(_e('fp_lblBRad')) _e('fp_lblBRad').textContent=(+_v('h_btn_rad',6)||0)+'px';
+  if(_e('fp_lblPX'))   _e('fp_lblPX').textContent=px;
+  if(_e('fp_lblPY'))   _e('fp_lblPY').textContent=py;
 }
-function fp_setBg(v){
-  if(_e('fp_bgCP'))_e('fp_bgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(v)?v:'#111111');
-  if(_e('fp_bgTxt'))_e('fp_bgTxt').value=v;
-  fp_apply('bg',v);
-}
+
 function fp_rContent(){
-  var el=_e('fpContent'); if(!el)return;
-  var on=_e('h_cont_on')&&_e('h_cont_on').checked;
+  var el=_e('fpContent'); if(!el) return;
+  var on=_chk('h_cont_on');
   el.style.display=on?'block':'none';
-  if(!on)return;
-  el.style.background=_e('h_cont_bg')?(_e('h_cont_bg').value||'#ffffff'):'#ffffff';
-  el.style.color=_e('h_cont_ct')?(_e('h_cont_ct').value||'#222222'):'#222222';
-  if(_e('fpContTit'))_e('fpContTit').textContent=_e('h_cont_tit')?_e('h_cont_tit').value:'';
-  if(_e('fpContDesc'))_e('fpContDesc').textContent=_e('h_cont_desc')?_e('h_cont_desc').value:'';
+  var box=_e('fp_contBox'); if(box) box.style.opacity=on?'1':'.35';
+  if(!on) return;
+  el.style.background=_v('h_cont_bg','#ffffff');
+  el.style.color=_v('h_cont_ct','#222222');
+  el.style.textAlign=ALINEA[_v('h_cont_al','izquierda')]||'left';
+  if(_e('fpContTit'))  _e('fpContTit').textContent=_v('h_cont_tit','');
+  if(_e('fpContDesc')) _e('fpContDesc').textContent=_v('h_cont_desc','');
+}
+
+function fp_chips(){
+  if(_e('chip_ancho'))  _e('chip_ancho').textContent=_v('h_ancho','')+'px';
+  if(_e('chip_altura')) _e('chip_altura').textContent=_v('h_altura','')+'px';
+  if(_e('chip_fit'))    _e('chip_fit').textContent=_v('h_fit','');
+  if(_e('chip_anim'))   _e('chip_anim').textContent=_v('h_anim','');
+  [['chip_ov','h_ov_on'],['chip_cont','h_cont_on'],['chip_btn','h_btn_on']].forEach(function(pair){
+    var c=_e(pair[0]); if(!c) return;
+    var on=_chk(pair[1]);
+    c.style.background=on?'#e8f5f3':'#f0f0f0';
+    c.style.color=on?'#02534C':'#aaa';
+  });
+}
+
+function fp_setAlt(v){ if(_e('fp_rAlt')) _e('fp_rAlt').value=v; fp_apply('altura',v); }
+function fp_setAnc(v){ if(_e('fp_rAnc')) _e('fp_rAnc').value=v; fp_apply('ancho',v); fp_markAnc(); }
+function fp_setRad(v){ if(_e('fp_rRad')) _e('fp_rRad').value=v; fp_apply('radio',v); fp_markRad(); }
+function fp_setBg(c){
+  if(_e('fp_bgCP')) _e('fp_bgCP').value=c;
+  if(_e('fp_bgTxt')) _e('fp_bgTxt').value=c;
+  fp_apply('bg',c);
+}
+function fp_setBtnCol(cf,ct){
+  if(_e('fp_btnCF')) _e('fp_btnCF').value=cf;
+  if(_e('fp_btnCT')) _e('fp_btnCT').value=ct;
+  fp_apply('btn_cf',cf); fp_apply('btn_ct',ct);
+}
+function fp_setPos(x,y){
+  _e('h_pos_x').value=x; _e('h_pos_y').value=y;
+  fp_rBtn();
 }
 function fp_markAnc(){
-  var cur=+(_e('fp_rAnc')||{value:0}).value;
-  document.querySelectorAll('.fp-pAnc').forEach(function(b){b.classList.toggle('on',+b.dataset.v===cur);});
+  var cur=+_v('fp_rAnc',0);
+  document.querySelectorAll('.fp-pAnc').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===cur); });
 }
 function fp_markAlt(v){
-  document.querySelectorAll('.fp-pAlt').forEach(function(b){b.classList.toggle('on',+b.dataset.v===v);});
+  document.querySelectorAll('.fp-pAlt').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===v); });
 }
-function fp_syncCP(pId,hId){ if(_e(hId))_e(hId).value=_e(pId).value; }
-function fp_syncCH(hId,pId){ var v=_e(hId)?_e(hId).value:''; if(/^#[0-9a-fA-F]{6}$/.test(v)&&_e(pId))_e(pId).value=v; }
+function fp_markRad(){
+  var cur=+_v('h_radio',14);
+  document.querySelectorAll('.fp-pRad').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===cur); });
+}
+
+function fp_bdSync(){
+  var hex=_v('fp_bdcCP','#000000'), a=(+_v('fp_bdcA',65))/100;
+  if(_e('fp_lblBdA')) _e('fp_lblBdA').textContent=Math.round(a*100)+'%';
+  fp_apply('bdc',fp_rgba(hex,a));
+}
+function fp_ovSync(){
+  var hex=_v('fp_ovCfCP','#000000'), a=(+_v('fp_ovCfA',55))/100;
+  if(_e('fp_lblOvA')) _e('fp_lblOvA').textContent=Math.round(a*100)+'%';
+  fp_apply('ov_cf',fp_rgba(hex,a));
+}
 
 function fp_playAnim(){
-  var c=_e('fpCard'); if(!c)return;
-  var a=_e('h_anim').value||'fade';
+  var c=_e('fpCard'); if(!c) return;
+  var a=_v('h_anim','fade');
   c.style.animation='none'; void c.offsetHeight; c.style.animation=ANIMS[a]||ANIMS.fade;
 }
+
 function fp_modo(m){
-  _mob=m==='mobile';
-  var D=_e('fp_btnD'),M=_e('fp_btnM');
-  if(D){D.style.background=_mob?'transparent':'rgba(255,255,255,.14)';D.style.color=_mob?'rgba(255,255,255,.45)':'#fff';D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)';}
-  if(M){M.style.background=_mob?'rgba(255,255,255,.14)':'transparent';M.style.color=_mob?'#fff':'rgba(255,255,255,.45)';M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)';}
+  _mob = m==='mobile';
+  var D=_e('fp_btnD'), M=_e('fp_btnM');
+  if(D){ D.style.background=_mob?'transparent':'rgba(255,255,255,.14)'; D.style.color=_mob?'rgba(255,255,255,.45)':'#fff'; D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)'; }
+  if(M){ M.style.background=_mob?'rgba(255,255,255,.14)':'transparent'; M.style.color=_mob?'#fff':'rgba(255,255,255,.45)'; M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)'; }
 
-  /* Mostrar/ocultar fondo de simulación de página */
-  var bg=_e('fpBgSim'),bd=_e('fpBackdrop');
-  if(bg)bg.style.display=_mob?'none':'block';
-  if(bd)bd.style.display=_mob?'none':'block';
+  var bg=_e('fpBgSim'), bd=_e('fpBackdrop');
+  if(bg) bg.style.display=_mob?'none':'block';
+  if(bd) bd.style.display=_mob?'none':'block';
 
-  /* Mover fpCard: en mobile va al slot del phone; en desktop vuelve al preview area */
-  var pf=_e('fpPhoneWrap'),slot=_e('fpPhoneSlot'),pa=_e('fpPreviewArea'),card=_e('fpCard');
+  var pf=_e('fpPhoneWrap'), slot=_e('fpPhoneSlot'), pa=_e('fpPreviewArea'), card=_e('fpCard');
   if(pf&&pa&&card){
-    if(_mob){
-      pf.style.display='block';
-      if(slot)slot.appendChild(card);
-    } else {
-      pf.style.display='none';
-      pa.appendChild(card);
-    }
+    if(_mob){ pf.style.display='block'; if(slot) slot.appendChild(card); pa.style.alignItems='center'; pa.style.justifyContent='center'; }
+    else { pf.style.display='none'; pa.appendChild(card); fp_rPos(); }
   }
-  fp_rCard();
+  fp_rCard(); fp_rImg(); fp_rBtn();
 }
 
-/* ─── Inicializar sidebar desde hidden inputs ─────────── */
 function fp_init(){
-  var fit=_e('h_fit').value||'cover';
-  var fEl=document.querySelector('input[name="fp_fit"][value="'+fit+'"]'); if(fEl)fEl.checked=true;
-  var alt=+(_e('h_altura').value||300), anc=+(_e('h_ancho').value||560);
-  if(_e('fp_rAlt'))_e('fp_rAlt').value=alt; if(_e('fp_rAnc'))_e('fp_rAnc').value=anc;
-  /* Thumbnail */
+  ['fit|h_fit','imod|h_imod','ppos|h_ppos','som|h_som','xst|h_xst','ovPos|h_ov_pos',
+   'ovAl|h_ov_al','contAl|h_cont_al','btnTam|h_btn_tam','anim|h_anim'].forEach(function(pair){
+    var pr=pair.split('|'), val=_v(pr[1],'');
+    var el=document.querySelector('input[name="fp_'+pr[0]+'"][value="'+val+'"]');
+    if(el) el.checked=true;
+  });
+
+  if(_e('fp_rAlt'))  _e('fp_rAlt').value=+_v('h_altura',300);
+  if(_e('fp_rAnc'))  _e('fp_rAnc').value=+_v('h_ancho',520);
+  if(_e('fp_rRad'))  _e('fp_rRad').value=+_v('h_radio',14);
+  if(_e('fp_rBw'))   _e('fp_rBw').value=+_v('h_bw',0);
+  if(_e('fp_rBdb'))  _e('fp_rBdb').value=+_v('h_bdb',0);
+  if(_e('fp_rXdel')) _e('fp_rXdel').value=+_v('h_xdel',0);
+  if(_e('fp_rBRad')) _e('fp_rBRad').value=+_v('h_btn_rad',6);
+
   var pi=_e('prevImg');
-  if(pi&&pi.style.display==='block'&&pi.src){
-    var t=_e('fp_thumb'),ph=_e('fp_zonePh'),bg=_e('fp_zoneBadge');
-    if(t){t.src=pi.src;t.style.display='block';} if(ph)ph.style.display='none'; if(bg)bg.style.display='block';
+  if(pi && pi.style.display==='block' && pi.src){
+    var t=_e('fp_thumb'), ph=_e('fp_zonePh'), bg=_e('fp_zoneBadge');
+    if(t){ t.src=pi.src; t.style.display='block'; }
+    if(ph) ph.style.display='none';
+    if(bg) bg.style.display='block';
   }
-  /* Overlay */
-  var ovOn=_e('h_ov_on').checked;
-  if(_e('fp_ovOn'))_e('fp_ovOn').checked=ovOn;
-  if(_e('fp_ovTit'))_e('fp_ovTit').value=_e('h_ov_tit').value||'';
-  if(_e('fp_ovSub'))_e('fp_ovSub').value=_e('h_ov_sub').value||'';
-  if(_e('fp_ovCF')) _e('fp_ovCF').value=_e('h_ov_cf').value||'rgba(0,0,0,0.55)';
-  if(_e('fp_ovCT')) _e('fp_ovCT').value=_e('h_ov_ct').value||'#ffffff';
-  var op=_e('h_ov_pos').value||'bottom';
-  var opE=document.querySelector('input[name="fp_ovPos"][value="'+op+'"]'); if(opE)opE.checked=true;
-  /* Botón */
-  var bOn=_e('h_btn_on').checked;
-  if(_e('fp_btnOn'))_e('fp_btnOn').checked=bOn;
-  if(_e('fp_btnTxt'))_e('fp_btnTxt').value=_e('h_btn_txt').value||'Ver más';
-  var bcf=_e('h_btn_cf').value||'#02534C',bct=_e('h_btn_ct').value||'#ffffff';
-  if(_e('fp_btnCF'))_e('fp_btnCF').value=bcf; if(_e('fp_btnCFh'))_e('fp_btnCFh').value=bcf;
-  if(_e('fp_btnCT'))_e('fp_btnCT').value=bct; if(_e('fp_btnCTh'))_e('fp_btnCTh').value=bct;
-  var bt=_e('h_btn_tam').value||'md';
-  var btE=document.querySelector('input[name="fp_btnTam"][value="'+bt+'"]'); if(btE)btE.checked=true;
-  /* Animación */
-  var an=_e('h_anim').value||'fade';
-  var anE=document.querySelector('input[name="fp_anim"][value="'+an+'"]'); if(anE)anE.checked=true;
-  /* Posición botón */
-  var px=+(_e('h_pos_x').value||50),py=+(_e('h_pos_y').value||85);
-  var fpB=_e('fpBtn'); if(fpB){fpB.style.left=px+'%';fpB.style.top=py+'%';}
-  /* Card style */
-  var rad=+(_e('h_radio')?_e('h_radio').value:14)||0;
-  if(_e('fp_rRad'))_e('fp_rRad').value=rad;
-  if(_e('fp_lblRad'))_e('fp_lblRad').textContent=rad+'px';
-  fp_markRad();
-  var bgv=_e('h_bg')?(_e('h_bg').value||'#111111'):'#111111';
-  if(_e('fp_bgCP'))_e('fp_bgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(bgv)?bgv:'#111111');
-  if(_e('fp_bgTxt'))_e('fp_bgTxt').value=bgv;
-  /* Contenido */
-  var cOn=_e('h_cont_on')&&_e('h_cont_on').checked;
-  if(_e('fp_contOn'))_e('fp_contOn').checked=cOn;
-  if(_e('fp_contTit'))_e('fp_contTit').value=_e('h_cont_tit')?_e('h_cont_tit').value:'';
-  if(_e('fp_contDesc'))_e('fp_contDesc').value=_e('h_cont_desc')?_e('h_cont_desc').value:'';
-  var cbg=_e('h_cont_bg')?(_e('h_cont_bg').value||'#ffffff'):'#ffffff';
-  if(_e('fp_contBgCP'))_e('fp_contBgCP').value=(/^#[0-9a-fA-F]{3,6}$/.test(cbg)?cbg:'#ffffff');
-  if(_e('fp_contBgTxt'))_e('fp_contBgTxt').value=cbg;
-  if(_e('fp_contCT'))_e('fp_contCT').value=_e('h_cont_ct')?(_e('h_cont_ct').value||'#222222'):'#222222';
-  /* Presets y renders */
-  fp_markAnc(); fp_markAlt(alt);
-  fp_rCard(); fp_rImg(); fp_rOv(); fp_rBtn(); fp_rContent(); fp_chips();
+
+  var bgv=_v('h_bg','#111111');
+  if(_e('fp_bgCP'))  _e('fp_bgCP').value=(/^#[0-9a-fA-F]{6}$/.test(bgv)?bgv:'#111111');
+  if(_e('fp_bgTxt')) _e('fp_bgTxt').value=bgv;
+  if(_e('fp_bcCP'))  _e('fp_bcCP').value=_v('h_bc','#ffffff');
+  if(_e('fp_xcolCP'))_e('fp_xcolCP').value=_v('h_xcol','#ffffff');
+
+  var bd=fp_parseRgba(_v('h_bdc','rgba(0,0,0,0.65)'))||{hex:'#000000',a:.65};
+  if(_e('fp_bdcCP')) _e('fp_bdcCP').value=bd.hex;
+  if(_e('fp_bdcA'))  _e('fp_bdcA').value=Math.round(bd.a*100);
+  if(_e('fp_lblBdA'))_e('fp_lblBdA').textContent=Math.round(bd.a*100)+'%';
+
+  var ovc=fp_parseRgba(_v('h_ov_cf','rgba(0,0,0,0.55)'))||{hex:'#000000',a:.55};
+  if(_e('fp_ovCfCP')) _e('fp_ovCfCP').value=ovc.hex;
+  if(_e('fp_ovCfA'))  _e('fp_ovCfA').value=Math.round(ovc.a*100);
+  if(_e('fp_lblOvA')) _e('fp_lblOvA').textContent=Math.round(ovc.a*100)+'%';
+
+  if(_e('fp_bdcl'))   _e('fp_bdcl').checked=_chk('h_bdcl');
+  if(_e('fp_ovOn'))   _e('fp_ovOn').checked=_chk('h_ov_on');
+  if(_e('fp_contOn')) _e('fp_contOn').checked=_chk('h_cont_on');
+  if(_e('fp_btnOn'))  _e('fp_btnOn').checked=_chk('h_btn_on');
+  if(_e('fp_btnFull'))_e('fp_btnFull').checked=_chk('h_btn_full');
+
+  if(_e('fp_ovTit'))    _e('fp_ovTit').value=_v('h_ov_tit','');
+  if(_e('fp_ovSub'))    _e('fp_ovSub').value=_v('h_ov_sub','');
+  if(_e('fp_ovCT'))     _e('fp_ovCT').value=_v('h_ov_ct','#ffffff');
+  if(_e('fp_contTit'))  _e('fp_contTit').value=_v('h_cont_tit','');
+  if(_e('fp_contDesc')) _e('fp_contDesc').value=_v('h_cont_desc','');
+  if(_e('fp_contBgCP')) _e('fp_contBgCP').value=_v('h_cont_bg','#ffffff');
+  if(_e('fp_contCT'))   _e('fp_contCT').value=_v('h_cont_ct','#222222');
+  if(_e('fp_btnTxt'))   _e('fp_btnTxt').value=_v('h_btn_txt','Ver más');
+  if(_e('fp_btnCF'))    _e('fp_btnCF').value=_v('h_btn_cf','#02534C');
+  if(_e('fp_btnCT'))    _e('fp_btnCT').value=_v('h_btn_ct','#ffffff');
+
+  fp_markAnc(); fp_markRad();
+  fp_rCard(); fp_rImg(); fp_rPos(); fp_rBackdrop(); fp_rClose();
+  fp_rOv(); fp_rBtn(); fp_rContent(); fp_chips();
 }
 
 function editorAbrir(){
   fp_init();
-  _e('fpOv').style.display='block'; document.body.style.overflow='hidden';
+  _e('fpOv').style.display='block';
+  document.body.style.overflow='hidden';
   fp_modo('desktop');
-  var c=_e('fpCard'); if(c){var a=_e('h_anim').value||'fade';c.style.animation='none';void c.offsetHeight;c.style.animation=ANIMS[a]||ANIMS.fade;}
+  fp_playAnim();
 }
 function editorCerrar(){
-  _e('fpOv').style.display='none'; document.body.style.overflow='';
+  _e('fpOv').style.display='none';
+  document.body.style.overflow='';
 }
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&_e('fpOv')&&_e('fpOv').style.display!=='none') editorCerrar();
+  if(e.key==='Escape' && _e('fpOv') && _e('fpOv').style.display!=='none') editorCerrar();
 });
 
-/* ─── Upload imagen ─────────────────────────────────── */
 function fp_onImg(input){
-  if(!input.files||!input.files[0])return;
+  if(!input.files || !input.files[0]) return;
   var file=input.files[0], r=new FileReader();
   r.onload=function(e){
     var src=e.target.result;
-    var t=_e('fp_thumb'),ph=_e('fp_zonePh'),bg=_e('fp_zoneBadge');
-    if(t){t.src=src;t.style.display='block';} if(ph)ph.style.display='none'; if(bg)bg.style.display='block';
-    var fi=_e('fpImg'),fp=_e('fpPh');
-    if(fi){fi.src=src;fi.style.display='block';} if(fp)fp.style.display='none';
-    var pi=_e('prevImg'),pp=_e('prevPh');
-    if(pi){pi.src=src;pi.style.display='block';} if(pp)pp.style.display='none';
-    try{var dt=new DataTransfer();dt.items.add(file);_e('h_file').files=dt.files;}catch(err){}
+    var t=_e('fp_thumb'), ph=_e('fp_zonePh'), bg=_e('fp_zoneBadge');
+    if(t){ t.src=src; t.style.display='block'; }
+    if(ph) ph.style.display='none';
+    if(bg) bg.style.display='block';
+    var fi=_e('fpImg'), fp=_e('fpPh');
+    if(fi){ fi.src=src; fi.style.display='block'; }
+    if(fp) fp.style.display='none';
+    var pi=_e('prevImg'), pp=_e('prevPh');
+    if(pi){ pi.src=src; pi.style.display='block'; }
+    if(pp) pp.style.display='none';
+    try{ var dt=new DataTransfer(); dt.items.add(file); _e('h_file').files=dt.files; }catch(err){}
+    fp_rImg();
   };
   r.readAsDataURL(file);
 }
 
-/* ─── Drag botón CTA ───────────────────────────────── */
+function dispCambio(){
+  var v=document.querySelector('input[name="disparador"]:checked');
+  v=v?v.value:'tiempo';
+  var bd=_e('boxDelay'), bs=_e('boxScroll');
+  if(bd) bd.style.display=(v==='scroll')?'none':'block';
+  if(bs) bs.style.display=(v==='scroll')?'block':'none';
+}
+function pagCambio(){
+  var s=_e('selPaginas'), b=_e('boxRutas');
+  if(s&&b) b.style.display=(s.value==='rutas')?'block':'none';
+}
+dispCambio(); pagCambio();
+
 (function(){
-  var btn=_e('fpBtn'),wrap=_e('fpImgW'),drag=false,sX,sY,sL,sT;
-  function start(mx,my){drag=true;btn.style.cursor='grabbing';sX=mx;sY=my;
-    var rc=wrap.getBoundingClientRect(),br=btn.getBoundingClientRect();
+  var btn=_e('fpBtn'), wrap=_e('fpImgW'), drag=false, sX, sY, sL, sT;
+  function start(mx,my){
+    drag=true; btn.style.cursor='grabbing'; sX=mx; sY=my;
+    var rc=wrap.getBoundingClientRect(), br=btn.getBoundingClientRect();
     sL=((br.left+br.width/2-rc.left)/rc.width)*100;
-    sT=((br.top+br.height/2-rc.top)/rc.height)*100;}
-  function move(mx,my){if(!drag)return;
+    sT=((br.top+br.height/2-rc.top)/rc.height)*100;
+  }
+  function move(mx,my){
+    if(!drag) return;
     var rc=wrap.getBoundingClientRect();
-    var nx=Math.min(95,Math.max(5,sL+(mx-sX)/rc.width*100));
+    var full=_chk('h_btn_full');
     var ny=Math.min(95,Math.max(5,sT+(my-sY)/rc.height*100));
-    btn.style.left=nx+'%';btn.style.top=ny+'%';
-    var rx=Math.round(nx),ry=Math.round(ny);
-    _e('h_pos_x').value=rx;_e('h_pos_y').value=ry;
-    if(_e('cPX'))_e('cPX').textContent=rx;if(_e('cPY'))_e('cPY').textContent=ry;}
-  function end(){if(drag){drag=false;btn.style.cursor='grab';}}
+    var ry=Math.round(ny);
+    _e('h_pos_y').value=ry;
+    if(_e('fp_lblPY')) _e('fp_lblPY').textContent=ry;
+    if(full){ btn.style.top=ny+'%'; return; }
+    var nx=Math.min(95,Math.max(5,sL+(mx-sX)/rc.width*100));
+    var rx=Math.round(nx);
+    btn.style.left=nx+'%'; btn.style.top=ny+'%';
+    _e('h_pos_x').value=rx;
+    if(_e('fp_lblPX')) _e('fp_lblPX').textContent=rx;
+  }
+  function end(){ if(drag){ drag=false; btn.style.cursor=_chk('h_btn_full')?'ns-resize':'grab'; } }
   if(btn&&wrap){
-    btn.addEventListener('mousedown',function(e){start(e.clientX,e.clientY);e.preventDefault();});
-    document.addEventListener('mousemove',function(e){move(e.clientX,e.clientY);});
+    btn.addEventListener('mousedown',function(e){ start(e.clientX,e.clientY); e.preventDefault(); });
+    document.addEventListener('mousemove',function(e){ move(e.clientX,e.clientY); });
     document.addEventListener('mouseup',end);
-    btn.addEventListener('touchstart',function(e){start(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();},{passive:false});
-    document.addEventListener('touchmove',function(e){if(drag){move(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+    btn.addEventListener('touchstart',function(e){ start(e.touches[0].clientX,e.touches[0].clientY); e.preventDefault(); },{passive:false});
+    document.addEventListener('touchmove',function(e){ if(drag){ move(e.touches[0].clientX,e.touches[0].clientY); e.preventDefault(); } },{passive:false});
     document.addEventListener('touchend',end);
   }
 })();

@@ -771,27 +771,38 @@ def inject_globals():
 
     from datetime import datetime as _dt, date as _date
     _today = _date.today().isoformat()
-    _popup_row = None
+    popup_activo = None
     try:
+        _path = (request.path or "/").rstrip("/") or "/"
         _pc = get_conn()
         try:
-            _popup_row = _pc.execute(
+            _rows = _pc.execute(
                 """SELECT * FROM popups WHERE activo=1 AND fecha_inicio<=? AND fecha_fin>=?
                    AND (pais_filtro IS NULL OR pais_filtro='todos' OR pais_filtro=?)
-                   ORDER BY id DESC LIMIT 1""",
+                   ORDER BY prioridad DESC, id DESC""",
                 (_today, _today, cc),
-            ).fetchone()
+            ).fetchall()
         except Exception:
-            # Fallback: schema antiguo sin pais_filtro
-            _popup_row = _pc.execute(
+            _rows = _pc.execute(
                 """SELECT * FROM popups WHERE activo=1
                    AND fecha_inicio<=? AND fecha_fin>=?
-                   ORDER BY id DESC LIMIT 1""",
+                   ORDER BY id DESC""",
                 (_today, _today),
-            ).fetchone()
-        _d = dict(_popup_row) if _popup_row else None
-        popup_activo = _d if (_d and _d.get("imagen")) else None
+            ).fetchall()
         _pc.close()
+        for _r in _rows:
+            _d = dict(_r)
+            if not _d.get("imagen"):
+                continue
+            _me = _d.get("mostrar_en") or "todas"
+            if _me == "home" and _path != "/":
+                continue
+            if _me == "rutas":
+                _lista = [x.strip().rstrip("/") or "/" for x in (_d.get("rutas") or "").split(",") if x.strip()]
+                if not any(_path == x or _path.startswith(x + "/") for x in _lista):
+                    continue
+            popup_activo = _d
+            break
     except Exception:
         popup_activo = None
 
@@ -2425,10 +2436,11 @@ def api_sunat(numero):
     return jsonify(_lookup_ruc_sunat(numero))
 
 
+@csrf.exempt
 @app.route("/api/popup-vista", methods=["POST"])
 def api_popup_vista():
     try:
-        pid = (request.json or {}).get("popup_id")
+        pid = (request.get_json(silent=True) or {}).get("popup_id")
         if pid:
             from datetime import date as _d
             today = _d.today().isoformat()
@@ -2446,10 +2458,11 @@ def api_popup_vista():
     return jsonify({"ok": True})
 
 
+@csrf.exempt
 @app.route("/api/popup-clic", methods=["POST"])
 def api_popup_clic():
     try:
-        pid = (request.json or {}).get("popup_id")
+        pid = (request.get_json(silent=True) or {}).get("popup_id")
         if pid:
             from datetime import date as _d
             today = _d.today().isoformat()
