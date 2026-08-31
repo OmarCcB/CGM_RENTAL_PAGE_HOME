@@ -769,6 +769,14 @@ input[type="radio"]:checked + .fp-opt{background:rgba(2,83,76,.55);border-color:
         <i class="bi bi-phone me-1"></i>Celular
       </button>
     </div>
+    <select id="fp_pantalla" onchange="fp_setPantalla(this.value)"
+            title="Tamaño de pantalla del visitante que se está simulando"
+            style="background:rgba(255,255,255,.09);color:#fff;border:1px solid rgba(255,255,255,.16);
+                   border-radius:6px;padding:4px 8px;font-size:.7rem;cursor:pointer;outline:none;">
+      {% for w, h, l in [(1280,620,'Laptop 1280'),(1440,780,'Laptop 1440'),(1680,900,'Monitor 1680'),(1920,950,'Full HD 1920')] %}
+      <option value="{{ w }}x{{ h }}" {{ 'selected' if w == 1440 else '' }}>{{ l }} × {{ h }}</option>
+      {% endfor %}
+    </select>
     <span id="fp_scaleTag" style="display:none;background:rgba(255,255,255,.09);color:rgba(255,255,255,.6);
           font-size:.68rem;padding:3px 9px;border-radius:5px;"></span>
     <span id="fp_avisoAlto" title="En pantallas de este alto el popup no cabe entero y el visitante tendrá que desplazarse dentro de él."
@@ -946,7 +954,7 @@ var SOMBRAS = {
   md:'0 8px 28px rgba(0,0,0,.35)', lg:'0 18px 60px rgba(0,0,0,.5)'
 };
 var ALINEA = {izquierda:'left', centro:'center', derecha:'right'};
-var _mob = false, _escala = 1;
+var _mob = false, _escala = 1, _pantalla = '1440x780';
 
 function _e(id){ return document.getElementById(id); }
 function _v(id,d){ var e=_e(id); return e ? e.value : d; }
@@ -1017,18 +1025,25 @@ function fp_apply(k,v){
   fp_rThumb();
 }
 
+function fp_setPantalla(v){
+  _pantalla = v;
+  try { localStorage.setItem('cgmPopPantalla', v); } catch(e) {}
+  fp_escalar(); fp_rCard();
+}
+
 function fp_escalar(){
   var vp=_e('fpViewport'), st=_e('fpStage');
   if(!vp||!st) return;
-  var r=vp.getBoundingClientRect();
-  var w=Math.max(320, window.innerWidth), h=Math.max(400, window.innerHeight);
+  var p=(_pantalla||'1440x780').split('x');
+  var w=+p[0]||1440, h=+p[1]||780;
   st.style.width=w+'px'; st.style.height=h+'px';
+  var r=vp.getBoundingClientRect();
   var k=Math.min((r.width-56)/w, (r.height-56)/h, 1);
   _escala=k;
   st.style.transform='translate(-50%,-50%) scale('+k+')';
   var tag=_e('fp_scaleTag');
   if(tag && !_mob){
-    tag.textContent='pantalla de '+w+'×'+h+' al '+Math.round(k*100)+'%';
+    tag.textContent='visto al '+Math.round(k*100)+'%';
     tag.style.display='inline-block';
   }
 }
@@ -1431,6 +1446,13 @@ function fp_init(){
 
 function editorAbrir(){
   fp_init();
+  var sel=_e('fp_pantalla');
+  if(sel){
+    var guardada=null;
+    try { guardada=localStorage.getItem('cgmPopPantalla'); } catch(e) {}
+    if(guardada && sel.querySelector('option[value="'+guardada+'"]')) sel.value=guardada;
+    _pantalla=sel.value;
+  }
   _e('fpOv').style.display='block';
   document.body.style.overflow='hidden';
   fp_modo('desktop');
