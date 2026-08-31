@@ -697,8 +697,8 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
     </div>
   </div>
 
-  <!-- ── FONDO SIMULADO CGM ──────────────────────────── -->
-  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
+  <!-- ── FONDO SIMULADO CGM (oculto en mobile) ─────── -->
+  <div id="fpBgSim" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:1;
               overflow:hidden;pointer-events:none;">
     <div style="background:#02534C;height:62px;display:flex;align-items:center;
                 padding:0 30px;gap:22px;border-bottom:1px solid rgba(255,255,255,.08);">
@@ -718,35 +718,64 @@ input[type="radio"]:checked + .fp-opt { background:rgba(2,83,76,.5); border-colo
     </div>
   </div>
 
-  <!-- ── BACKDROP ────────────────────────────────────── -->
-  <div style="position:absolute;left:340px;right:0;top:52px;bottom:0;
+  <!-- ── BACKDROP (oculto en mobile) ───────────────── -->
+  <div id="fpBackdrop" style="position:absolute;left:340px;right:0;top:52px;bottom:0;
               background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
 
-  <!-- ── POPUP CENTRADO ──────────────────────────────── -->
+  <!-- ── PREVIEW AREA ───────────────────────────────── -->
   <div id="fpPreviewArea" style="position:absolute;left:340px;right:0;top:52px;bottom:0;z-index:3;
               display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;">
 
-    <!-- Phone frame (solo en modo mobile, fpCard se mueve aquí via JS) -->
-    <div id="fpPhoneWrap" style="display:none;position:relative;padding:56px 14px 44px;
-         border:10px solid #4a4a4c;border-radius:54px;background:#111;flex-shrink:0;
-         box-shadow:inset 0 0 0 1.5px #666,0 0 0 1px #222,0 30px 80px rgba(0,0,0,.95),0 0 40px rgba(0,0,0,.6);">
-      <!-- Dynamic island -->
-      <div style="position:absolute;top:20px;left:50%;transform:translateX(-50%);
-                  width:90px;height:26px;background:#000;border-radius:20px;
-                  box-shadow:0 0 0 1px #333;"></div>
-      <!-- Speaker dot -->
-      <div style="position:absolute;top:20px;left:50%;transform:translateX(28px);
-                  width:10px;height:10px;background:#1a1a1a;border-radius:50%;"></div>
-      <!-- Volume buttons -->
-      <div style="position:absolute;left:-14px;top:110px;width:4px;height:30px;background:#5a5a5c;border-radius:2px 0 0 2px;box-shadow:-1px 0 2px rgba(0,0,0,.5);"></div>
-      <div style="position:absolute;left:-14px;top:152px;width:4px;height:46px;background:#5a5a5c;border-radius:2px 0 0 2px;box-shadow:-1px 0 2px rgba(0,0,0,.5);"></div>
-      <!-- Power button -->
-      <div style="position:absolute;right:-14px;top:132px;width:4px;height:54px;background:#5a5a5c;border-radius:0 2px 2px 0;box-shadow:1px 0 2px rgba(0,0,0,.5);"></div>
-      <!-- Home indicator -->
-      <div style="position:absolute;bottom:15px;left:50%;transform:translateX(-50%);
-                  width:112px;height:4px;background:#444;border-radius:2px;"></div>
-      <!-- Label -->
-      <div style="position:absolute;bottom:24px;right:20px;font-size:.55rem;color:#333;font-weight:600;letter-spacing:.5px;">MOBILE</div>
+    <!-- ══ TELÉFONO (mode mobile) ══════════════════════════
+         Contiene su propia pantalla con mini-website + overlay + popup card.
+         En desktop: display:none. En mobile: visible, fpCard se mueve a fpPhoneSlot. -->
+    <div id="fpPhoneWrap" style="display:none;position:relative;flex-shrink:0;">
+      <!-- Botones laterales (izquierda: volumen, derecha: power) -->
+      <div style="position:absolute;left:-5px;top:110px;width:4px;height:28px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
+      <div style="position:absolute;left:-5px;top:150px;width:4px;height:44px;background:#5c5c5e;border-radius:2px 0 0 2px;"></div>
+      <div style="position:absolute;right:-5px;top:130px;width:4px;height:52px;background:#5c5c5e;border-radius:0 2px 2px 0;"></div>
+
+      <!-- Pantalla del teléfono con todo el contenido -->
+      <div style="width:375px;height:680px;
+                  border:9px solid #5c5c5e;border-radius:50px;overflow:hidden;
+                  position:relative;background:#000;
+                  box-shadow:inset 0 1px 0 #888,0 0 0 1px #333,0 30px 90px rgba(0,0,0,.95);">
+
+        <!-- Dynamic island (barra superior dentro de la pantalla) -->
+        <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);
+                    width:88px;height:22px;background:#000;border-radius:18px;z-index:20;
+                    box-shadow:0 0 0 1.5px #222;"></div>
+        <!-- Home indicator (barra inferior) -->
+        <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+                    width:100px;height:4px;background:#444;border-radius:2px;z-index:20;"></div>
+
+        <!-- Mini website CGM (fondo de la pantalla) -->
+        <div style="position:absolute;inset:0;z-index:1;pointer-events:none;">
+          <div style="background:#02534C;height:44px;display:flex;align-items:center;
+                      padding:0 14px;justify-content:space-between;">
+            <div style="background:#fff;border-radius:3px;padding:2px 7px;
+                        font-weight:900;color:#02534C;font-size:.6rem;letter-spacing:.5px;">CGM RENTAL</div>
+            <div style="color:rgba(255,255,255,.7);font-size:1.3rem;line-height:1;">≡</div>
+          </div>
+          <div style="height:calc(100% - 44px);
+                      background:linear-gradient(155deg,#183328 0%,#286043 50%,#183328 100%);
+                      display:flex;align-items:center;justify-content:center;">
+            <div style="color:rgba(255,255,255,.04);font-size:1.3rem;font-weight:900;
+                        text-align:center;line-height:1.3;user-select:none;">
+              ALQUILER<br>Y VENTA<br>DE MAQUINARIA
+            </div>
+          </div>
+        </div>
+
+        <!-- Overlay oscuro (como en el sitio real) -->
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:2;pointer-events:none;"></div>
+
+        <!-- Slot para el popup card (centrado en la pantalla) -->
+        <div id="fpPhoneSlot" style="position:absolute;inset:0;z-index:3;
+             display:flex;align-items:center;justify-content:center;padding:10px;overflow:hidden;">
+          <!-- fpCard se mueve aquí en mobile mode vía JS -->
+        </div>
+      </div>
     </div>
 
     <div id="fpCard"
@@ -857,14 +886,26 @@ function fp_apply(k,v){
 
 function fp_rCard(){
   var c=_e('fpCard'); if(!c)return;
-  var aw=+_e('h_ancho').value||560, w=_mob?Math.min(400,aw):aw;
+  var aw=+_e('h_ancho').value||560;
+  /* En mobile el card vive dentro de la pantalla del phone (375px - 20px padding = 355px max) */
+  var w=_mob?Math.min(355,aw):aw;
   c.style.width=w+'px';
+  c.style.maxWidth=_mob?'100%':'calc(100vw - 380px)';
   var r=+(_e('h_radio')?_e('h_radio').value:14)||0;
   c.style.borderRadius=r+'px';
   var bg=_e('h_bg')?(_e('h_bg').value||'#111'):'#111';
   c.style.background=bg;
   var st=_e('fp_scaleTag');
-  if(st){if(w<aw){st.textContent='~'+Math.round(w/aw*100)+'% escala';st.style.display='inline-block';}else{st.style.display='none';}}
+  if(st){
+    if(_mob){
+      /* En mobile siempre mostramos el ancho real del popup en escritorio */
+      st.textContent='vista mobile (real: '+aw+'px)';st.style.display='inline-block';
+    } else if(w<aw){
+      st.textContent='~'+Math.round(w/aw*100)+'% escala';st.style.display='inline-block';
+    } else {
+      st.style.display='none';
+    }
+  }
   if(_e('fp_lblAnc'))_e('fp_lblAnc').textContent=aw+'px';
   if(_e('fp_iW'))_e('fp_iW').textContent=w;
 }
@@ -974,10 +1015,22 @@ function fp_modo(m){
   var D=_e('fp_btnD'),M=_e('fp_btnM');
   if(D){D.style.background=_mob?'transparent':'rgba(255,255,255,.14)';D.style.color=_mob?'rgba(255,255,255,.45)':'#fff';D.style.borderColor=_mob?'rgba(255,255,255,.1)':'rgba(255,255,255,.28)';}
   if(M){M.style.background=_mob?'rgba(255,255,255,.14)':'transparent';M.style.color=_mob?'#fff':'rgba(255,255,255,.45)';M.style.borderColor=_mob?'rgba(255,255,255,.28)':'rgba(255,255,255,.1)';}
-  var pf=_e('fpPhoneWrap'),pa=_e('fpPreviewArea'),card=_e('fpCard');
+
+  /* Mostrar/ocultar fondo de simulación de página */
+  var bg=_e('fpBgSim'),bd=_e('fpBackdrop');
+  if(bg)bg.style.display=_mob?'none':'block';
+  if(bd)bd.style.display=_mob?'none':'block';
+
+  /* Mover fpCard: en mobile va al slot del phone; en desktop vuelve al preview area */
+  var pf=_e('fpPhoneWrap'),slot=_e('fpPhoneSlot'),pa=_e('fpPreviewArea'),card=_e('fpCard');
   if(pf&&pa&&card){
-    if(_mob){pf.style.display='block';pf.appendChild(card);}
-    else{pf.style.display='none';pa.appendChild(card);}
+    if(_mob){
+      pf.style.display='block';
+      if(slot)slot.appendChild(card);
+    } else {
+      pf.style.display='none';
+      pa.appendChild(card);
+    }
   }
   fp_rCard();
 }
